@@ -99,7 +99,7 @@ export function BadgesSection() {
     <DSSection
       id="badges"
       title="Badges, tags & assessment"
-      description="Pills carry status; square tags carry content such as skills. Assessments always state who produced them: AI output is dashed, violet and labelled illustrative until a person confirms it."
+      description="Bordered chips with a coloured dot carry status; tinted tags carry content such as skills. Assessments always state who produced them: AI output is dashed, violet and labelled illustrative until a person confirms it."
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <Specimen label="Application stage">

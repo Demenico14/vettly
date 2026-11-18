@@ -13,8 +13,8 @@ export function DSSection({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 border-t border-line pt-10 pb-4 first:border-t-0 first:pt-0">
-      <h2 id={`${id}-title`} className="text-xl font-extrabold tracking-[-0.015em] text-fg">
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 border-t border-line pt-10 pb-6 first:border-t-0 first:pt-0">
+      <h2 id={`${id}-title`} className="text-xl font-bold tracking-[-0.01em] text-fg">
         {title}
       </h2>
       {description && <p className="mt-1.5 max-w-[68ch] text-sm text-fg-muted">{description}</p>}

@@ -1,6 +1,6 @@
 # Vettly brand guidelines
 
-Version 1.0 · Module 1 · November 2026
+Version 1.1 · Module 1 · November 2026 (corporate refinement)
 
 The live, interactive version of this document is the design system page at `/design-system`.
 Source of truth for brand values: `src/app/globals.css` (tokens) and `scripts/generate-brand.mjs` (logo geometry).
@@ -83,10 +83,10 @@ Plus Jakarta Sans, loaded through `next/font` (weights 400–800).
 
 | Style | Size / line | Weight |
 |---|---|---|
-| Display | 36 / 44 | 800, −2.5% |
-| Page title | 28 / 36 | 800, −2% |
-| Section | 22 / 30 | 800, −1.5% |
-| Panel title | 16 / 24 | 700 |
+| Display | 36 / 44 | 700, −2% |
+| Page title | 24 / 32 | 700, −1.5% |
+| Section | 18 / 26 | 700, −1% |
+| Panel title | 14 / 22 | 600 |
 | Body | 14 / 22 | 400 |
 | Label | 14 / 22 | 600 |
 | Caption | 12 / 18 | 400 |
@@ -94,13 +94,15 @@ Plus Jakarta Sans, loaded through `next/font` (weights 400–800).
 
 - Body text is 14 px in the app: it is a dense working tool. Reading-heavy views may use 16 px.
 - Tables and metrics use tabular figures (`tabular` utility).
-- No gradient text, no all-caps headings. Uppercase is limited to sidebar group labels.
+- ExtraBold (800) is reserved for the wordmark. Interface headings use Bold and SemiBold.
+- No gradient text, no all-caps headings or table headers. Uppercase is limited to sidebar group labels.
 
 ## 4. Spacing, radius, elevation
 
 - 4 px base grid. Related items 8–12 px apart, groups 24 px, page sections 40 px.
-- Radius: 4 (checkbox, tag) · 6 (menu item) · 8 (button, input) · 12 (panel, table) · 16 (modal) · full (badge, avatar).
-- Elevation is soft and offset: `shadow-xs` on controls, `shadow-lg` on menus and modals. Borders do most separating; shadows mean "floating".
+- Radius: 3 (checkbox) · 4 (badge, tag, menu item) · 6 (button, input) · 8 (panel, table) · 10 (modal) · full (avatars only).
+- Panels are flat: a 1px border, no shadow. Shadows are reserved for floating layers (menus, modals, toasts).
+- Every page opens with a white title band (breadcrumb, title, description, actions) above the grey canvas.
 
 ## 5. Components and conventions
 
@@ -109,7 +111,8 @@ Components live in `src/components/ui` (generic) and `src/components/domain` (re
 - **Buttons:** one primary per region. Order in footers: secondary left, primary right. Destructive actions confirm in a modal and name the object ("Delete vacancy").
 - **Forms:** label above, hint below, error replaces hint and says how to fix it. Required fields get an asterisk; optional fields say "Optional". Validate on submit, then live.
 - **Tables:** sortable headers announce `aria-sort`; selection reveals a navy bulk-action bar; every table designs loading (skeleton rows), empty (with a clear-filters action) and error (with retry).
-- **Badges vs tags:** pills for status, square tags for content such as skills.
+- **Status chips vs tags:** status is a bordered white chip with a coloured dot and label; tinted tags carry content such as skills.
+- **Sidebar:** the active item is a quiet light tint with white text and an indigo icon, not a solid colour block.
 - **AI provenance:** any AI output carries a `ProvenanceTag`. Unreviewed AI is dashed, violet and labelled "AI suggestion · illustrative"; confirmed work is solid green "Confirmed by HR"; changed work is "Adjusted by HR". Unreviewed match bars are hatched, not solid.
 - **Illustrative data:** any mock figure shows `IllustrativeNotice` until real data is connected.
 - **Overlays:** modals for protected decisions; side panels for detail next to a list; dropdowns for row actions; toasts for completed work, with Undo when reversible.

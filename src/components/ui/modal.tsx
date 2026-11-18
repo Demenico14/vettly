@@ -39,7 +39,7 @@ export function ModalContent({
       >
         <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4">
           <div>
-            <DialogPrimitive.Title className="text-lg font-bold text-fg">{title}</DialogPrimitive.Title>
+            <DialogPrimitive.Title className="text-lg font-semibold text-fg">{title}</DialogPrimitive.Title>
             {description ? (
               <DialogPrimitive.Description className="mt-1 text-sm text-fg-muted">{description}</DialogPrimitive.Description>
             ) : (

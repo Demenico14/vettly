@@ -36,7 +36,7 @@ export function TH({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
     <th
       scope="col"
       className={cn(
-        "h-10 border-b border-line px-4 text-left align-middle text-xs font-semibold whitespace-nowrap text-fg-muted",
+        "h-9 border-b border-line px-3 text-left first:pl-4 last:pr-4 align-middle text-xs font-semibold whitespace-nowrap text-fg-muted",
         className,
       )}
       {...props}
@@ -45,7 +45,7 @@ export function TH({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
 }
 
 export function TD({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-4 py-3 align-middle text-fg", className)} {...props} />;
+  return <td className={cn("px-3 py-2.5 align-middle text-fg first:pl-4 last:pr-4", className)} {...props} />;
 }
 
 export type SortDirection = "asc" | "desc";

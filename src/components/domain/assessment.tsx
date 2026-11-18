@@ -94,9 +94,11 @@ export function MatchScore({
             style={{ width: `${score}%` }}
           />
         </span>
-        <span className="text-2xs font-semibold text-fg-subtle" aria-hidden>
-          {b.label}
-        </span>
+        {size === "md" && (
+          <span className="text-2xs font-semibold text-fg-subtle" aria-hidden>
+            {b.label}
+          </span>
+        )}
       </div>
       {showTag && <ProvenanceTag provenance={provenance} compact />}
     </div>

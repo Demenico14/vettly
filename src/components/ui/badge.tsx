@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const badgeVariants = cva(
-  "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full font-semibold [&_svg]:size-3 [&_svg]:shrink-0",
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm font-semibold [&_svg]:size-3 [&_svg]:shrink-0",
   {
     variants: {
       tone: {
@@ -15,6 +15,8 @@ export const badgeVariants = cva(
         warning: "bg-warning-50 text-warning-700",
         danger: "bg-danger-50 text-danger-700",
         outline: "border border-line-strong bg-surface text-fg-muted",
+        /** Formal status chip: neutral body, the dot carries the colour. Pass dotClassName. */
+        status: "border border-line bg-surface text-ink-700",
         solid: "bg-primary-600 text-white",
       },
       size: {
@@ -29,18 +31,20 @@ export const badgeVariants = cva(
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
   /** Shows a status dot before the label. */
   dot?: boolean;
+  /** Colour class for the dot, e.g. "bg-success-500". Defaults to the text colour. */
+  dotClassName?: string;
 }
 
-export function Badge({ className, tone, size, dot, children, ...props }: BadgeProps) {
+export function Badge({ className, tone, size, dot, dotClassName, children, ...props }: BadgeProps) {
   return (
     <span className={cn(badgeVariants({ tone, size }), className)} {...props}>
-      {dot && <span className="size-1.5 rounded-full bg-current" aria-hidden />}
+      {dot && <span className={cn("size-1.5 shrink-0 rounded-full", dotClassName ?? "bg-current")} aria-hidden />}
       {children}
     </span>
   );
 }
 
-/** Square-cornered chip for skills and keywords; distinct from pill-shaped status badges. */
+/** Tinted chip for skills and keywords; distinct from bordered status chips. */
 export function Tag({
   className,
   children,

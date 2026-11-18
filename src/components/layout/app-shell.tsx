@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, FileUp, Menu as MenuIcon, Plus, Search, UserPlus } from "lucide-react";
+import { Briefcase, Building2, FileUp, Menu as MenuIcon, Plus, Search, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/feedback";
 import { Drawer, Modal, ModalContent } from "@/components/ui/modal";
@@ -70,16 +70,19 @@ function Header({
   const { organisation, switching } = useSession();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur-sm supports-backdrop-filter:bg-surface/85 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 sm:px-6">
       <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" onClick={onOpenNav} aria-label="Open navigation">
         <MenuIcon className="size-5!" />
       </Button>
 
-      <div className="hidden min-w-32 shrink-0 flex-col leading-tight sm:flex">
-        <span className={cn("truncate text-2xs font-medium text-fg-subtle", switching && "animate-pulse")}>
-          {organisation?.name ?? " "}
+      <div className={cn("hidden min-w-0 shrink-0 items-center gap-2.5 sm:flex", switching && "animate-pulse")}>
+        <span className="grid size-8 place-items-center rounded-md border border-line bg-surface-muted text-ink-600" aria-hidden>
+          <Building2 className="size-4" />
         </span>
-        <span className="truncate text-sm font-bold text-fg">{current?.label ?? "Vettly"}</span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate text-sm font-semibold text-fg">{organisation?.name ?? "\u00a0"}</span>
+          <span className="truncate text-2xs text-fg-subtle">{current?.label ?? "Vettly"}</span>
+        </span>
       </div>
 
       <button

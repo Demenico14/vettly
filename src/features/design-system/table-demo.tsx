@@ -236,7 +236,7 @@ export function TableSection() {
                   <TH>Stage</TH>
                   <SortableTH label="Match" active={sort.key === "matchScore"} direction={sort.dir} onSort={() => toggleSort("matchScore")} />
                   <SortableTH label="Applied" active={sort.key === "appliedAt"} direction={sort.dir} onSort={() => toggleSort("appliedAt")} />
-                  <TH className="w-12">
+                  <TH className="w-10">
                     <span className="sr-only">Actions</span>
                   </TH>
                 </TR>
@@ -268,7 +268,7 @@ export function TableSection() {
                       <TD>
                         <div className="flex items-center gap-3">
                           <Avatar name={r.name} size="sm" />
-                          <div className="min-w-0 max-w-60">
+                          <div className="min-w-0 max-w-56">
                             <p className="truncate font-semibold">{r.name}</p>
                             <p className="truncate text-xs text-fg-subtle">{r.headline} · {r.location}</p>
                           </div>

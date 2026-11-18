@@ -142,10 +142,10 @@ export function ColourSection() {
 }
 
 const TYPE_SCALE = [
-  { cls: "text-3xl font-extrabold tracking-[-0.025em]", name: "Display", spec: "36 / 44 · ExtraBold", sample: "Smarter hiring, faster." },
-  { cls: "text-2xl font-extrabold tracking-[-0.02em]", name: "Page title", spec: "28 / 36 · ExtraBold", sample: "Finance Manager · Bulawayo" },
-  { cls: "text-xl font-extrabold tracking-[-0.015em]", name: "Section", spec: "22 / 30 · ExtraBold", sample: "Requirement assessment" },
-  { cls: "text-base font-bold", name: "Panel title", spec: "16 / 24 · Bold", sample: "Upcoming interviews" },
+  { cls: "text-3xl font-bold tracking-[-0.02em]", name: "Display", spec: "36 / 44 · Bold", sample: "Smarter hiring, faster." },
+  { cls: "text-2xl font-bold tracking-[-0.015em]", name: "Page title", spec: "24 / 32 · Bold", sample: "Finance Manager · Bulawayo" },
+  { cls: "text-xl font-bold tracking-[-0.01em]", name: "Section", spec: "18 / 26 · Bold", sample: "Requirement assessment" },
+  { cls: "text-sm font-semibold", name: "Panel title", spec: "14 / 22 · SemiBold", sample: "Upcoming interviews" },
   { cls: "text-sm", name: "Body", spec: "14 / 22 · Regular", sample: "Six years building payment systems for regional banks, most recently leading a team of four at a Harare fintech." },
   { cls: "text-sm font-semibold", name: "Label", spec: "14 / 22 · SemiBold", sample: "Essential requirements" },
   { cls: "text-xs text-fg-muted", name: "Caption", spec: "12 / 18 · Regular", sample: "Applied 3 days ago via LinkedIn" },
@@ -157,7 +157,7 @@ export function TypographySection() {
     <DSSection
       id="typography"
       title="Typography"
-      description="Plus Jakarta Sans for everything: ExtraBold for titles, Bold for panel headings, Regular for reading. Numbers in tables and metrics use tabular figures so columns align."
+      description="Plus Jakarta Sans for everything: Bold for page and section titles, SemiBold for panel headings and labels, Regular for reading. ExtraBold is reserved for the wordmark. Numbers in tables and metrics use tabular figures so columns align."
     >
       <Specimen bodyClassName="p-0">
         <ul className="divide-y divide-line">
@@ -194,12 +194,12 @@ export function TypographySection() {
 
 const SPACING = [4, 8, 12, 16, 20, 24, 32, 40, 48, 64];
 const RADII = [
-  { name: "xs", px: 4, use: "Checkboxes, tags" },
-  { name: "sm", px: 6, use: "Menu items" },
-  { name: "md", px: 8, use: "Buttons, inputs" },
-  { name: "lg", px: 12, use: "Panels, tables" },
-  { name: "xl", px: 16, use: "Modals" },
-  { name: "full", px: 999, use: "Badges, avatars" },
+  { name: "xs", px: 3, use: "Checkboxes" },
+  { name: "sm", px: 4, use: "Badges, tags, menu items" },
+  { name: "md", px: 6, use: "Buttons, inputs" },
+  { name: "lg", px: 8, use: "Panels, tables" },
+  { name: "xl", px: 10, use: "Modals" },
+  { name: "full", px: 999, use: "Avatars only" },
 ];
 const SHADOWS = [
   { name: "xs", cls: "shadow-xs", use: "Controls" },

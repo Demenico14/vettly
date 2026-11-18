@@ -54,29 +54,33 @@ function useActiveSection() {
 export function DesignSystemView() {
   const active = useActiveSection();
   return (
-    <PageContainer>
-      <PageHeader
-        title="Design system"
-        description="Brand, tokens and the component library every Vettly module is built from. Everything on this page is interactive and uses illustrative mock data."
-        meta={
-          <>
-            <Badge tone="primary">v1.0 · Module 1</Badge>
-            <Badge tone="outline">Plus Jakarta Sans</Badge>
-            <Badge tone="outline">WCAG 2.2 AA</Badge>
-          </>
-        }
-        actions={
-          <Button asChild variant="secondary">
-            <a href="/brand/vettly-logo-horizontal-light.svg" download>
-              <Download />
-              Download logo
-            </a>
-          </Button>
-        }
-      />
+    <PageContainer
+      header={
+        <PageHeader
+          breadcrumb="Organisation / Design system"
+          title="Design system"
+          description="Brand, tokens and the component library every Vettly module is built from. Everything on this page is interactive and uses illustrative mock data."
+          meta={
+            <>
+              <Badge tone="outline">v1.1 · Module 1</Badge>
+              <Badge tone="outline">Plus Jakarta Sans</Badge>
+              <Badge tone="outline">WCAG 2.2 AA</Badge>
+            </>
+          }
+          actions={
+            <Button asChild variant="secondary">
+              <a href="/brand/vettly-logo-horizontal-light.svg" download>
+                <Download />
+                Download logo
+              </a>
+            </Button>
+          }
+        />
+      }
+    >
       <div className="grid grid-cols-[minmax(0,1fr)] gap-10 xl:grid-cols-[11rem_minmax(0,1fr)]">
         <nav aria-label="Design system sections" className="hidden xl:block">
-          <ul className="sticky top-24 flex flex-col border-l border-line">
+          <ul className="sticky top-20 flex flex-col border-l border-line">
             {TOC.map((t) => (
               <li key={t.id}>
                 <a
