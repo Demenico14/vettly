@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Vettly">
+  <title>Vettly</title>
+  <rect width="512" height="512" rx="122.88" fill="#0F172A"/>
+  <g transform="translate(61.44 89.91) scale(3.89)">
+  <defs>
+    <linearGradient id="ic-l" x1="6" y1="6" x2="54" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="ic-r" x1="47" y1="84" x2="92" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <path d="M6 6 H33 L54 62 L44 84 Z" fill="url(#ic-l)" stroke="url(#ic-l)" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M38 84 L77 6 H96 L53 84 Z" fill="url(#ic-r)" stroke="url(#ic-r)" stroke-width="5" stroke-linejoin="round"/></g>
+</svg>
