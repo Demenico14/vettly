@@ -100,6 +100,10 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                       <Plus />
                       Create vacancy
                     </Command.Item>
+                    <Command.Item value="send-test" onSelect={() => go("/assessments")} className={item}>
+                      <Plus />
+                      Send psychometric test
+                    </Command.Item>
                     <Command.Item value="upload-cvs" onSelect={() => go("/cv-processing")} className={item}>
                       <Plus />
                       Upload CVs

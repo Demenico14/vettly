@@ -6,6 +6,7 @@ export const STAGE_META: Record<ApplicationStage, { label: string; dot: string }
   applied: { label: "Applied", dot: "bg-ink-400" },
   screening: { label: "Screening", dot: "bg-secondary-300" },
   shortlisted: { label: "Shortlisted", dot: "bg-primary-500" },
+  assessment: { label: "Assessment", dot: "bg-primary-300" },
   interview: { label: "Interview", dot: "bg-secondary-500" },
   offer: { label: "Offer", dot: "bg-warning-500" },
   hired: { label: "Hired", dot: "bg-success-500" },

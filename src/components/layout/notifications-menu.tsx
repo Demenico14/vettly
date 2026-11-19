@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, BellOff, CalendarCheck, FileStack, FileSignature, AtSign, Inbox, Info } from "@/components/icons";
+import { Bell, BellOff, CalendarCheck, FileStack, FileSignature, AtSign, Inbox, Info, ClipboardList } from "@/components/icons";
 import { services, MOCK_NOW } from "@/services";
 import type { AppNotification, NotificationKind } from "@/types";
 import { cn, timeAgo } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { Segmented } from "@/components/ui/tabs";
 const KIND_ICON: Record<NotificationKind, { Icon: typeof Bell; cls: string }> = {
   application: { Icon: Inbox, cls: "bg-primary-50 text-primary-600" },
   processing: { Icon: FileStack, cls: "bg-secondary-50 text-secondary-700" },
+  assessment: { Icon: ClipboardList, cls: "bg-primary-50 text-primary-700" },
   interview: { Icon: CalendarCheck, cls: "bg-secondary-50 text-secondary-600" },
   offer: { Icon: FileSignature, cls: "bg-success-50 text-success-600" },
   mention: { Icon: AtSign, cls: "bg-ink-100 text-ink-700" },

@@ -28,7 +28,7 @@ export interface Organisation {
   seatsTotal: number;
 }
 
-export type NotificationKind = "application" | "interview" | "offer" | "processing" | "mention" | "system";
+export type NotificationKind = "application" | "assessment" | "interview" | "offer" | "processing" | "mention" | "system";
 
 export interface AppNotification {
   id: string;
@@ -46,11 +46,18 @@ export type ApplicationStage =
   | "applied"
   | "screening"
   | "shortlisted"
+  | "assessment"
   | "interview"
   | "offer"
   | "hired"
   | "rejected"
   | "withdrawn";
+
+/** Psychometric test categories offered in the test library (Module 9). */
+export type PsychometricTestType = "personality" | "cognitive" | "numerical" | "verbal" | "situational_judgement" | "integrity";
+
+/** Lifecycle of a psychometric test sent to a candidate. */
+export type TestInvitationStatus = "not_sent" | "sent" | "opened" | "in_progress" | "completed" | "expired" | "cancelled";
 
 /** Who produced an assessment. AI output is illustrative until a person confirms it. */
 export type AssessmentProvenance = "ai_illustrative" | "hr_confirmed" | "hr_overridden";

@@ -2,23 +2,26 @@
 
 Phase 1: frontend only, mock data, service abstractions. Each module is reviewed and approved before the next starts.
 
+Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 to add psychometric assessments as Module 9.
+
 | # | Module | Status | Notes |
 |---|---|---|---|
-| 1 | Design system & application shell | **In review** | v2.0 Granite & Msasa redesign (18 Nov). See below. |
-| 2 | Authentication & onboarding | Not started | Waiting for Module 1 approval |
+| 1 | Design system & application shell | **In review** | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
+| 2 | Authentication & onboarding | Not started | Includes candidate test-access links |
 | 3 | HR dashboard | Not started | `/` will redirect here |
-| 4 | Vacancy management | Not started | |
-| 5 | Candidate management | Not started | |
+| 4 | Vacancy management | Not started | Includes per-vacancy assessment plan |
+| 5 | Candidate management | Not started | Includes Assessments tab on profile |
 | 6 | CV upload & processing | Not started | |
-| 7 | AI recruitment intelligence | Not started | Uses `ProvenanceTag` / `MatchScore` conventions |
-| 8 | Recruitment pipeline | Not started | |
-| 9 | Interview management | Not started | |
-| 10 | Offers & hiring | Not started | |
-| 11 | Talent intelligence | Not started | |
-| 12 | Analytics & reporting | Not started | |
-| 13 | Organisation settings | Not started | |
-| 14 | Platform administration | Not started | Nav item visible only to super admin |
-| — | Backend integration | Gated | Starts after all 14 modules are approved |
+| 7 | AI recruitment intelligence | Not started | Optional test-score weighting |
+| 8 | Recruitment pipeline | Not started | Assessment column |
+| **9** | **Psychometric assessments** | Not started | **New.** Test library, sending, tracking, reminders, results, candidate test-taking |
+| 10 | Interview management | Not started | Panel sees test summary |
+| 11 | Offers & hiring | Not started | |
+| 12 | Talent intelligence | Not started | Filter by test results |
+| 13 | Analytics & reporting | Not started | Assessment completion and score analytics |
+| 14 | Organisation settings | Not started | Batteries, templates, consent, retention |
+| 15 | Platform administration | Not started | Assessment providers, catalogue, norms |
+| — | Backend integration | Gated | Starts after all 15 modules are approved |
 
 ## Module 1 checklist
 
@@ -34,6 +37,7 @@ Phase 1: frontend only, mock data, service abstractions. Each module is reviewed
 - [x] Browser check at 1440, 1024 and 375 wide
 - [x] Corporate refinement (v1.1)
 - [x] Full redesign to Granite & Msasa (v2.0): new logo, palette, Public Sans, Phosphor icons
+- [x] Roadmap restructured for psychometric assessments: Assessments nav item (/assessments), Assessment pipeline stage, test types and invitation status types, "Send psychometric test" in Create menu, command palette and table bulk actions, assessment notifications
 - [ ] User review and approval
 
 ## Known gaps carried forward

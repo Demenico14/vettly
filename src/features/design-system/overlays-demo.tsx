@@ -90,7 +90,7 @@ function MoveStageModal() {
               value={stage}
               onValueChange={(v) => { setStage(v as ApplicationStage); setError(undefined); }}
               placeholder="Choose stage"
-              options={(["screening", "interview", "offer", "rejected"] as ApplicationStage[]).map((s) => ({ value: s, label: STAGE_META[s].label }))}
+              options={(["screening", "assessment", "interview", "offer", "rejected"] as ApplicationStage[]).map((s) => ({ value: s, label: STAGE_META[s].label }))}
             />
           </Field>
           <Field label="Reason" optional hint="Visible to your HR team and in the audit log.">
@@ -193,7 +193,7 @@ export function OverlaysSection() {
                   <Share2 />
                   Copy share link
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => toast.info("Scheduling arrives in Module 9")}>
+                <DropdownMenuItem onSelect={() => toast.info("Scheduling arrives in Module 10")}>
                   <CalendarPlus />
                   Schedule interviews
                 </DropdownMenuItem>

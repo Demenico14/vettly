@@ -77,6 +77,14 @@ export const notifications: AppNotification[] = [
     read: false,
   },
   {
+    id: "ntf_6",
+    kind: "assessment",
+    title: "Psychometric results ready",
+    body: "Tafadzwa Ncube completed the numerical reasoning test for Finance Manager.",
+    createdAt: "2026-11-18T05:55:00+02:00",
+    read: false,
+  },
+  {
     id: "ntf_3",
     kind: "interview",
     title: "Interview confirmed",
@@ -121,7 +129,7 @@ export const candidates: CandidateSummary[] = [
     headline: "Chartered accountant (ICAZ) · 9 yrs",
     location: "Bulawayo",
     appliedFor: "Finance Manager",
-    stage: "shortlisted",
+    stage: "assessment",
     matchScore: 82,
     provenance: "ai_illustrative",
     appliedAt: "2026-11-10T08:20:00+02:00",

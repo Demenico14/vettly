@@ -112,7 +112,12 @@ export function TableSection() {
     const before = rows;
     setRows((prev) => prev.map((r) => (ids.has(r.id) ? { ...r, stage: to } : r)));
     if (!only) setSelected(new Set());
-    toast.withUndo(`${ids.size} candidate${ids.size === 1 ? "" : "s"} moved to ${STAGE_META[to].label}`, () => setRows(before));
+    const n = `${ids.size} candidate${ids.size === 1 ? "" : "s"}`;
+    toast.withUndo(
+      to === "assessment" ? `Psychometric test sent to ${n}` : `${n} moved to ${STAGE_META[to].label}`,
+      () => setRows(before),
+      to === "assessment" ? "Simulated invitation · Numerical reasoning, due in 5 days" : undefined,
+    );
   };
 
   const resetFilters = () => {
@@ -192,6 +197,9 @@ export function TableSection() {
             <span className="mx-1 h-4 w-px bg-ink-700" aria-hidden />
             <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("shortlisted")}>
               Shortlist
+            </Button>
+            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("assessment")}>
+              Send psychometric test
             </Button>
             <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("interview")}>
               Move to interview
@@ -290,7 +298,7 @@ export function TableSection() {
                           <DropdownMenuContent>
                             <DropdownMenuItem onSelect={() => toast.info("Profiles arrive in Module 5", r.name)}>View profile</DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => moveSelected("shortlisted", r.id)}>Shortlist</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => toast.info("Scheduling arrives in Module 9", r.name)}>Schedule interview</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => toast.info("Scheduling arrives in Module 10", r.name)}>Schedule interview</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem tone="danger" onSelect={() => {
                               const before = rows;

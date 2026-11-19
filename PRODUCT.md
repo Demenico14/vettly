@@ -15,11 +15,12 @@ Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS 4, Radix UI
 - **HR officers and recruiters** at mid-to-large organisations in Zimbabwe and Southern Africa. They open the app daily, often for hours, to run vacancies, screen large batches of CVs, move candidates through a pipeline and schedule interviews.
 - **Hiring managers** who review shortlists, sit on interview panels and submit scorecards. Less frequent, task-focused visits.
 - **Organisation administrators** who configure users, roles, recruitment settings, branding and subscription.
+- **Candidates** taking psychometric tests through a secure invitation link (no full account), often on a mobile phone.
 - **Vettly super administrators** (platform staff) who manage tenant organisations, subscriptions, system health and AI provider/model configuration.
 
 ## Product Purpose
 
-Vettly is a multi-tenant recruitment platform that turns a pile of CVs into an evidence-based shortlist. HR teams define a vacancy's essential and desirable requirements and screening weights; Vettly extracts structured profiles from uploaded CVs and assesses each candidate requirement by requirement, citing the evidence it found and flagging what is missing. Success means HR reaches a defensible shortlist faster, and every decision can be traced back to evidence.
+Vettly is a multi-tenant recruitment platform that turns a pile of CVs into an evidence-based shortlist, then lets HR send psychometric tests to shortlisted candidates and review the results before interview. HR teams define a vacancy's essential and desirable requirements and screening weights; Vettly extracts structured profiles from uploaded CVs and assesses each candidate requirement by requirement, citing the evidence it found and flagging what is missing. Success means HR reaches a defensible shortlist faster, and every decision can be traced back to evidence.
 
 ## Positioning
 
@@ -34,7 +35,9 @@ Assessment is requirement-by-requirement with cited evidence and explicit missin
 
 ## Capabilities and Constraints
 
-- Module roadmap (fixed order): 1 design system + shell, 2 auth/onboarding, 3 HR dashboard, 4 vacancies, 5 candidates, 6 CV upload/processing, 7 AI recruitment intelligence, 8 pipeline, 9 interviews, 10 offers/hiring, 11 talent intelligence, 12 analytics, 13 organisation settings, 14 platform administration.
+- Module roadmap (fixed order, full scope in `docs/ROADMAP.md`): 1 design system + shell, 2 auth/onboarding (+ candidate test access), 3 HR dashboard, 4 vacancies, 5 candidates, 6 CV upload/processing, 7 AI recruitment intelligence, 8 pipeline, 9 psychometric assessments, 10 interviews, 11 offers/hiring, 12 talent intelligence, 13 analytics, 14 organisation settings, 15 platform administration.
+- Psychometric tests are a decision aid, never an automatic filter; candidates consent before testing; accommodations such as extra time are honoured; results are personal data.
+- Undecided: whether tests are built in-house, licensed from third-party providers, or both.
 - One module at a time; each is reviewed and approved before the next starts.
 - Every visible control must work against local state or mock services.
 - Mock data is deterministic and consistent: the same candidate carries the same record everywhere.

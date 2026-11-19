@@ -11,6 +11,7 @@ export {
   At as AtSign,
   SealCheck as BadgeCheck,
   ChartBar as BarChart3,
+  Exam as ClipboardList,
   Bell,
   BellSlash as BellOff,
   Briefcase,
