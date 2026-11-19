@@ -8,8 +8,8 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 |---|---|---|---|
 | 1 | Design system & application shell | **Approved** (19 Nov) | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
 | 2 | Authentication & onboarding | **Approved** (19 Nov) | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access; photo sign-in redesign |
-| 3 | HR dashboard | **In review** | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
-| 4 | Vacancy management | Not started | Includes per-vacancy assessment plan |
+| 3 | HR dashboard | **Approved** (19 Nov) | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
+| 4 | Vacancy management | **In review** | List, details, create/edit editor with simulated writing assistant, requirements, weights, tests, publishing, status changes |
 | 5 | Candidate management | Not started | Includes Assessments tab on profile |
 | 6 | CV upload & processing | Not started | |
 | 7 | AI recruitment intelligence | Not started | Optional test-score weighting |
@@ -80,6 +80,21 @@ Prototype rules (shown on each screen under "Prototype: how to try each state"):
 - [x] States: skeleton loading per panel, empty workspace, service error with retry (prototype switch at the bottom of the page or `?scenario=empty|error`)
 - [x] Responsive: tested at 1440 and 375 wide; detector, lint, typecheck and build pass
 - [x] Mock data (`src/mocks/dashboard.ts`) uses the same candidates, vacancies and people as the rest of the app; service `services.dashboard`
+
+## Module 4 checklist
+
+- [x] Vacancy listing `/vacancies`: status views with counts (All, Open, Drafts, Paused, Closed & filled), search, department and location filters, sortable columns, row actions; stacked list on phones; loading, empty, no-match and error states
+- [x] Vacancy details `/vacancies/[id]`: header with status and the next status action, pipeline figures, Overview (role, responsibilities, essential/desirable requirements, benefits, details, screening weights, psychometric tests, channels), Candidates and History tabs; draft readiness notice that lists exactly what is missing
+- [x] Create `/vacancies/new` and edit `/vacancies/[id]/edit`: sectioned editor with completion outline, frosted save bar, unsaved-changes guard, draft vs publish validation that jumps to the first problem
+- [x] Job description editor: summary with character count, reorderable responsibilities and benefits
+- [x] AI-assisted description (simulated, labelled): draft from title, make inclusive, make concise, more formal; streamed suggestion with Use / Try again / Discard / Stop
+- [x] Requirements builder: essential and desirable groups, five kinds, years for experience, reorder, move between groups, simulated suggestions per department
+- [x] Screening weights: sliders, presets, live total, balance to 100%
+- [x] Psychometric test plan: battery, auto-send on shortlist, deadline
+- [x] Publishing: channels (simulated) and live advert preview
+- [x] Status management: publish, pause, resume, close, reopen, mark filled (with required note), duplicate, delete draft; reasons saved to history; incomplete drafts routed to the editor instead of publishing
+- [x] In-memory vacancy service (`services.vacancies`); dashboard figures now derive from the same records
+- [x] Tested at 1440 and 375 wide; typecheck, lint, detector and build pass
 
 ## Known gaps carried forward
 

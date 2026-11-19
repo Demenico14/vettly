@@ -255,3 +255,82 @@ export interface DashboardSnapshot {
   applications: RecentApplication[];
   activity: ActivityEvent[];
 }
+
+/* ---------- Vacancy management (Module 4) ---------- */
+
+export type WorkMode = "On-site" | "Hybrid" | "Remote";
+export type EmploymentType = "Full-time" | "Part-time" | "Contract" | "Internship";
+export type RequirementKind = "skill" | "experience" | "education" | "certification" | "language";
+export type RequirementPriority = "essential" | "desirable";
+
+export interface Requirement {
+  id: string;
+  kind: RequirementKind;
+  text: string;
+  /** Minimum years, for experience requirements. */
+  years?: number;
+  priority: RequirementPriority;
+}
+
+/** Share of the overall match score per evidence category. Always sums to 100. */
+export interface ScreeningWeights {
+  skills: number;
+  experience: number;
+  education: number;
+  certifications: number;
+  assessments: number;
+}
+
+export type PublishChannel = "careers" | "linkedin" | "indeed" | "internal" | "vacancymail";
+
+export interface StatusChange {
+  status: VacancyStatus;
+  at: string;
+  by: string;
+  reason?: string;
+}
+
+export interface Vacancy extends VacancySummary {
+  reference: string;
+  workMode: WorkMode;
+  employmentType: EmploymentType;
+  openings: number;
+  currency: "USD" | "ZiG" | "ZAR" | "BWP" | "ZMW";
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryVisible: boolean;
+  summary: string;
+  responsibilities: string[];
+  benefits: string[];
+  requirements: Requirement[];
+  weights: ScreeningWeights;
+  assessment: { battery: string | null; autoSendOnShortlist: boolean; deadlineDays: number };
+  channels: PublishChannel[];
+  createdAt: string;
+  updatedAt: string;
+  history: StatusChange[];
+}
+
+/** Everything the editor edits; ids, counts and history are managed by the service. */
+export type VacancyDraft = Pick<
+  Vacancy,
+  | "title"
+  | "department"
+  | "location"
+  | "workMode"
+  | "employmentType"
+  | "openings"
+  | "currency"
+  | "salaryMin"
+  | "salaryMax"
+  | "salaryVisible"
+  | "closesAt"
+  | "hiringManager"
+  | "summary"
+  | "responsibilities"
+  | "benefits"
+  | "requirements"
+  | "weights"
+  | "assessment"
+  | "channels"
+>;

@@ -7,7 +7,8 @@ import { CircleAlert, CircleCheck, Info, TriangleAlert } from "@/components/icon
 export function Toaster() {
   return (
     <SonnerToaster
-      position="bottom-right"
+      position="top-right"
+      offset={64}
       gap={8}
       visibleToasts={4}
       icons={{

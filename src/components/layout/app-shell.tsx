@@ -151,7 +151,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   }, [toggleCollapsed]);
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh" style={{ ["--sidebar-w" as string]: collapsed ? "3.5rem" : "15rem" }}>
       <a
         href="#main"
         className="sr-only z-50 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

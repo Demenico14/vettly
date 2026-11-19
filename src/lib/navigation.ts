@@ -40,7 +40,7 @@ export const NAV: NavGroup[] = [
     label: "Recruit",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, module: 3, built: true, description: "Recruitment overview, key statistics, funnel and upcoming interviews." },
-      { label: "Vacancies", href: "/vacancies", icon: Briefcase, module: 4, description: "Create, edit, publish and manage vacancies, requirements and screening weights.", badge: "6" },
+      { label: "Vacancies", href: "/vacancies", icon: Briefcase, module: 4, built: true, description: "Create, edit, publish and manage vacancies, requirements and screening weights.", badge: "4" },
       { label: "Candidates", href: "/candidates", icon: Users, module: 5, description: "Candidate directory, search, filters and full candidate profiles." },
       { label: "CV processing", href: "/cv-processing", icon: FileStack, module: 6, description: "Bulk CV upload, processing queue, extraction preview and manual correction.", badge: "2" },
       { label: "Matching", href: "/matching", icon: Sparkles, module: 7, description: "Requirement-by-requirement assessment, evidence, ranking and comparison." },

@@ -7,6 +7,10 @@ import type { AppNotification, CandidateSummary, Organisation, User } from "@/ty
 import * as mock from "@/mocks/data";
 import { mockAuth, mockCandidateAccess } from "./auth";
 import { mockDashboard } from "./dashboard";
+import { mockVacancies } from "./vacancies";
+
+export type { VacancyService, AssistAction } from "./vacancies";
+export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
 
 export type { DashboardService, DashboardScenario } from "./dashboard";
 
@@ -119,6 +123,7 @@ const mockCandidates: CandidateService = {
 export const services = {
   auth: mockAuth,
   dashboard: mockDashboard,
+  vacancies: mockVacancies,
   candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,

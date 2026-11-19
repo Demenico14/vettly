@@ -16,6 +16,7 @@ import type {
   VacancySummary,
 } from "@/types";
 import { candidates } from "./data";
+import { vacancyRecords } from "./vacancies";
 
 export const PERIOD_LABEL: Record<DashboardPeriod, string> = {
   "7d": "Last 7 days",
@@ -35,92 +36,21 @@ const HISTORY_LABEL: Record<DashboardPeriod, string> = {
   "90d": "Last 8 months",
 };
 
-export const vacancySummaries: VacancySummary[] = [
-  {
-    id: "vac_fin",
-    title: "Finance Manager",
-    department: "Finance",
-    location: "Bulawayo",
-    status: "open",
-    openedAt: "2026-10-27T08:00:00+02:00",
-    closesAt: "2026-11-20T17:00:00+02:00",
-    applicants: 86,
-    newApplicants: 6,
-    shortlisted: 11,
-    interviewing: 4,
-    hiringManager: "Sipho Ndlovu",
-  },
-  {
-    id: "vac_swdev",
-    title: "Software Developer",
-    department: "Information Technology",
-    location: "Harare",
-    status: "open",
-    openedAt: "2026-10-20T08:00:00+02:00",
-    closesAt: "2026-11-28T17:00:00+02:00",
-    applicants: 124,
-    newApplicants: 14,
-    shortlisted: 14,
-    interviewing: 5,
-    hiringManager: "Tatenda Mutasa",
-  },
-  {
-    id: "vac_data",
-    title: "Data Analyst",
-    department: "Information Technology",
-    location: "Harare",
-    status: "open",
-    openedAt: "2026-11-02T08:00:00+02:00",
-    closesAt: "2026-12-04T17:00:00+02:00",
-    applicants: 52,
-    newApplicants: 9,
-    shortlisted: 8,
-    interviewing: 3,
-    hiringManager: "Tatenda Mutasa",
-  },
-  {
-    id: "vac_mkt",
-    title: "Marketing Executive",
-    department: "Marketing",
-    location: "Harare",
-    status: "open",
-    openedAt: "2026-11-09T08:00:00+02:00",
-    closesAt: "2026-12-11T17:00:00+02:00",
-    applicants: 31,
-    newApplicants: 4,
-    shortlisted: 5,
-    interviewing: 1,
-    hiringManager: "Nokuthula Banda",
-  },
-  {
-    id: "vac_ops",
-    title: "Operations Manager",
-    department: "Operations",
-    location: "Gweru",
-    status: "paused",
-    openedAt: "2026-10-13T08:00:00+02:00",
-    closesAt: null,
-    applicants: 19,
-    newApplicants: 0,
-    shortlisted: 3,
-    interviewing: 2,
-    hiringManager: "Farai Gumbo",
-  },
-  {
-    id: "vac_hro",
-    title: "Human Resources Officer",
-    department: "Human Resources",
-    location: "Harare",
-    status: "filled",
-    openedAt: "2026-09-21T08:00:00+02:00",
-    closesAt: "2026-10-16T17:00:00+02:00",
-    applicants: 64,
-    newApplicants: 0,
-    shortlisted: 9,
-    interviewing: 0,
-    hiringManager: "Tendai Moyo",
-  },
-];
+/** Summaries come from the vacancy records so both screens always agree. */
+export const vacancySummaries: VacancySummary[] = vacancyRecords.map((v) => ({
+  id: v.id,
+  title: v.title,
+  department: v.department,
+  location: v.location,
+  status: v.status,
+  openedAt: v.openedAt,
+  closesAt: v.closesAt,
+  applicants: v.applicants,
+  newApplicants: v.newApplicants,
+  shortlisted: v.shortlisted,
+  interviewing: v.interviewing,
+  hiringManager: v.hiringManager,
+}));
 
 const STAGES = ["applied", "screening", "shortlisted", "assessment", "interview", "offer", "hired"] as const;
 
