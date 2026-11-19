@@ -26,6 +26,8 @@ export interface NavItem {
   description: string;
   badge?: string;
   roles?: Role[];
+  /** The screen exists; otherwise the route shows a "coming in Module N" placeholder. */
+  built?: boolean;
 }
 
 export interface NavGroup {
@@ -37,7 +39,7 @@ export const NAV: NavGroup[] = [
   {
     label: "Recruit",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, module: 3, description: "Recruitment overview, key statistics, funnel and upcoming interviews." },
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, module: 3, built: true, description: "Recruitment overview, key statistics, funnel and upcoming interviews." },
       { label: "Vacancies", href: "/vacancies", icon: Briefcase, module: 4, description: "Create, edit, publish and manage vacancies, requirements and screening weights.", badge: "6" },
       { label: "Candidates", href: "/candidates", icon: Users, module: 5, description: "Candidate directory, search, filters and full candidate profiles." },
       { label: "CV processing", href: "/cv-processing", icon: FileStack, module: 6, description: "Bulk CV upload, processing queue, extraction preview and manual correction.", badge: "2" },
@@ -60,7 +62,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Settings", href: "/settings", icon: Settings, module: 14, description: "Organisation profile, users, roles, configuration, privacy and audit log." },
       { label: "Platform admin", href: "/admin", icon: ShieldCheck, module: 15, description: "Super administrator: tenants, subscriptions, system health and AI configuration.", roles: ["super_admin"] },
-      { label: "Design system", href: "/design-system", icon: Palette, module: 1, description: "Vettly brand, tokens and component library." },
+      { label: "Design system", href: "/design-system", icon: Palette, module: 1, built: true, description: "Vettly brand, tokens and component library." },
     ],
   },
 ];

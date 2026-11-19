@@ -152,3 +152,106 @@ export interface CandidateTestAccess {
   tests: { name: string; type: PsychometricTestType; minutes: number; timed: boolean }[];
   extraTimePercent: number;
 }
+
+/* ---------- HR dashboard (Module 3) ---------- */
+
+export type DashboardPeriod = "7d" | "30d" | "90d";
+
+export interface Kpi {
+  id: string;
+  label: string;
+  value: number;
+  unit?: string;
+  /** Change versus the previous period of the same length. */
+  delta: number;
+  deltaUnit?: "%" | "";
+  /** Which direction is good for this measure ("none" = neutral). */
+  better: "up" | "down" | "none";
+  /** Eight equal buckets ending now, oldest first. */
+  history: number[];
+  historyLabel: string;
+  href: string;
+}
+
+export interface VacancySummary {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  status: VacancyStatus;
+  openedAt: string;
+  closesAt: string | null;
+  applicants: number;
+  newApplicants: number;
+  shortlisted: number;
+  interviewing: number;
+  hiringManager: string;
+}
+
+export interface FunnelStep {
+  stage: ApplicationStage;
+  count: number;
+}
+
+export type AttentionKind = "ai_review" | "test_results" | "offer_pending" | "cv_failed" | "closing_soon";
+
+export interface AttentionItem {
+  id: string;
+  kind: AttentionKind;
+  title: string;
+  detail: string;
+  count: number;
+  href: string;
+}
+
+export interface InterviewSlot {
+  id: string;
+  candidateName: string;
+  candidateHeadline: string;
+  vacancyTitle: string;
+  startsAt: string;
+  durationMin: number;
+  format: "In person" | "Video" | "Phone";
+  location: string;
+  panel: string[];
+  round: string;
+}
+
+export type ActivityKind = "stage" | "application" | "assessment" | "interview" | "offer" | "vacancy" | "ai";
+
+export interface ActivityEvent {
+  id: string;
+  kind: ActivityKind;
+  actor: string;
+  /** Sentence after the actor, e.g. "moved Rutendo Chikwanha to Interview". */
+  text: string;
+  context: string;
+  at: string;
+}
+
+export interface TestInvitationSummary {
+  id: string;
+  candidateName: string;
+  vacancyTitle: string;
+  battery: string;
+  status: TestInvitationStatus;
+  sentAt: string;
+  deadline: string;
+  completed: number;
+  total: number;
+}
+
+export interface RecentApplication extends CandidateSummary {
+  source: "Vettly careers page" | "LinkedIn" | "Email (CV upload)" | "Referral" | "Indeed";
+}
+
+export interface DashboardSnapshot {
+  period: DashboardPeriod;
+  kpis: Kpi[];
+  attention: AttentionItem[];
+  vacancies: VacancySummary[];
+  interviews: InterviewSlot[];
+  tests: TestInvitationSummary[];
+  applications: RecentApplication[];
+  activity: ActivityEvent[];
+}

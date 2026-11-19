@@ -7,8 +7,8 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | # | Module | Status | Notes |
 |---|---|---|---|
 | 1 | Design system & application shell | **Approved** (19 Nov) | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
-| 2 | Authentication & onboarding | **In review** | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access |
-| 3 | HR dashboard | Not started | `/` will redirect here |
+| 2 | Authentication & onboarding | **Approved** (19 Nov) | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access; photo sign-in redesign |
+| 3 | HR dashboard | **In review** | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
 | 4 | Vacancy management | Not started | Includes per-vacancy assessment plan |
 | 5 | Candidate management | Not started | Includes Assessments tab on profile |
 | 6 | CV upload & processing | Not started | |
@@ -64,6 +64,22 @@ Prototype rules (shown on each screen under "Prototype: how to try each state"):
 - Any email + 8-character password signs in; "wrong" in the password fails; `locked@msasafinancial.example` is locked; `tendai.moyo@msasafinancial.example` goes to the app, other emails start onboarding.
 - Verification code `246810`. Reset tokens `valid-reset`, `expired-reset`. Invitations `msasa-kudzai` (valid), `matobo-expired`.
 - Candidate links `tafadzwa-fin`, `nyasha-data` (extra time), `farai-done`, `simba-expired`.
+
+## Module 3 checklist
+
+- [x] Recruitment overview: greeting, date, period filter (7 / 30 / 90 days, kept in the URL), illustrative-data notice
+- [x] Key statistics: open vacancies, applications, shortlisted, tests awaiting completion, interviews next 7 days, median time to hire; each with change vs the previous period (good/bad shown by icon and text, not colour alone) and an 8-bucket history with hover values
+- [x] Recruitment funnel: 7 stages including Assessment, conversion from the previous stage, filter by vacancy, hover detail, own loading/error/empty states
+- [x] Needs your attention: AI assessments to review (copper), test results ready, closing soon, CVs needing correction, offers awaiting response
+- [x] Vacancies: table with status, applicants (+new), shortlist/interview progress, closing date (warning when under 3 days); Active/All filter; stacked list on phones
+- [x] Upcoming interviews: grouped by day, time, duration, round, format, location, panel
+- [x] Psychometric tests: status, progress, due/expired; View results, Remind (one per invitation) and Resend actions
+- [x] Recent applications: source, time, initial match with AI provenance
+- [x] Recruitment activity: timeline of applications, AI suggestions, tests, stage moves, interviews, offers and vacancy changes
+- [x] Quick actions: New vacancy, Upload CVs, Send tests, Schedule interview (collapsed into a menu below 1280 px)
+- [x] States: skeleton loading per panel, empty workspace, service error with retry (prototype switch at the bottom of the page or `?scenario=empty|error`)
+- [x] Responsive: tested at 1440 and 375 wide; detector, lint, typecheck and build pass
+- [x] Mock data (`src/mocks/dashboard.ts`) uses the same candidates, vacancies and people as the rest of the app; service `services.dashboard`
 
 ## Known gaps carried forward
 
