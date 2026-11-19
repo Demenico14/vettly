@@ -184,7 +184,7 @@ const D: Record<string, Detail> = {
       { name: "Lean", level: "Basic" },
       { name: "SAP", level: "Basic", years: 1 },
     ],
-    previous: [{ vacancyTitle: "Human Resources Officer", appliedAt: "2026-09-25T10:00:00+02:00", stage: "rejected", matchScore: 22, source: "Email (CV upload)" }],
+    previous: [{ vacancyTitle: "Human Resources Officer", appliedAt: "2026-09-25T10:00:00+02:00", stage: "rejected", matchScore: 0, source: "Email (CV upload)" }],
   },
   cnd_tinashe: {
     email: "tinashe.mhlanga@proton.me",

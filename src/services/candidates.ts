@@ -3,7 +3,8 @@
  * talent-pool changes persist while the app is open. Phase 2 replaces this with API calls of the same shape.
  */
 import type { ApplicationStage, Availability, CandidateDocument, CandidateNote, CandidateProfile, CvExtraction, TestInvitationSummary } from "@/types";
-import { hashString } from "@/lib/utils";
+import { assess } from "@/mocks/matching";
+import { vacancySnapshot } from "./vacancies";
 import { candidateProfiles } from "@/mocks/candidates";
 import { testInvitations } from "@/mocks/dashboard";
 import { MOCK_NOW, users } from "@/mocks/data";
@@ -50,8 +51,8 @@ function cvDocument(input: CvCandidateInput): CandidateDocument {
 }
 
 function application(input: CvCandidateInput, idSuffix: string) {
-  // Illustrative match until Module 7 assesses the CV against the vacancy.
-  const matchScore = 45 + (hashString(input.extraction.name.value + input.vacancyId) % 40);
+  // Replaced by the real assessment once the candidate exists (see scoreNew below).
+  const matchScore = 0;
   return {
     id: `app_cv_${idSuffix}`,
     vacancyId: input.vacancyId,
@@ -63,6 +64,32 @@ function application(input: CvCandidateInput, idSuffix: string) {
     provenance: "ai_illustrative" as const,
     history: [{ stage: "applied" as const, at: MOCK_NOW, by: me, note: `Added from ${input.fileName}` }],
   };
+}
+
+/** Assesses a CV-created application against its vacancy, as Module 7 does for everyone else. */
+function scoreNew(c: CandidateProfile, vacancyId: string) {
+  const vacancy = vacancySnapshot().find((v) => v.id === vacancyId);
+  const app = c.applications.find((a) => a.vacancyId === vacancyId);
+  if (!vacancy || !app) return;
+  recordMatch(c.id, app.id, assess(c, vacancy).score, "ai_illustrative");
+}
+
+/** Synchronous read of the live store, for other mock services in this layer (not part of the API). */
+export function profileSnapshot(): CandidateProfile[] {
+  return store;
+}
+
+/** Writes an assessment result back to the application, so lists and profiles show the same score. */
+export function recordMatch(id: string, applicationId: string, matchScore: number, provenance: CandidateProfile["provenance"]) {
+  const c = store.find((x) => x.id === id);
+  const app = c?.applications.find((a) => a.id === applicationId);
+  if (!c || !app) return;
+  app.matchScore = matchScore;
+  app.provenance = provenance;
+  if (c.applications[0]!.id === applicationId) {
+    c.matchScore = matchScore;
+    c.provenance = provenance;
+  }
 }
 
 export const mockCandidateProfiles: CandidateProfileService = {
@@ -166,6 +193,7 @@ export const mockCandidateProfiles: CandidateProfileService = {
       inTalentPool: false,
     };
     store.unshift(c);
+    scoreNew(c, input.vacancyId);
     return clone(c);
   },
   async attachCv(id, input) {
@@ -179,6 +207,7 @@ export const mockCandidateProfiles: CandidateProfileService = {
       c.stage = app.stage;
       c.matchScore = app.matchScore;
       c.appliedAt = app.appliedAt;
+      scoreNew(c, input.vacancyId);
     }
     return clone(c);
   },

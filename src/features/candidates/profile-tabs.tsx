@@ -21,6 +21,7 @@ import {
 import { StageBadge, STAGE_META } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
 import { services, MOCK_NOW } from "@/services";
+import { TEST_RESULTS } from "@/mocks/matching";
 import type { ApplicationStage, CandidateApplication, CandidateDocument, CandidateProfile, TestInvitationSummary } from "@/types";
 import { cn, formatDate, timeAgo } from "@/lib/utils";
 
@@ -135,9 +136,12 @@ export function ApplicationsTab({ c, onChange }: { c: CandidateProfile; onChange
                 Applied {formatDate(a.appliedAt)} via {a.source}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <MatchScore score={a.matchScore} provenance={a.provenance} size="sm" showTag />
               <StageBadge stage={a.stage} />
+              <Button size="sm" variant="ghost" asChild>
+                <Link href={`/matching/${a.vacancyId}/${c.id}`}>Assessment</Link>
+              </Button>
               {a.stage !== "hired" && a.stage !== "withdrawn" && (
                 <Button size="sm" variant="secondary" onClick={() => setMoving(a)}>
                   Move stage
@@ -183,21 +187,7 @@ const TEST_STATUS: Record<TestInvitationSummary["status"], string> = {
 };
 
 /** Illustrative per-test results for completed invitations, keyed by candidate. */
-const RESULTS: Record<string, { test: string; percentile: number; band: string }[]> = {
-  "Tafadzwa Ncube": [
-    { test: "Numerical reasoning", percentile: 78, band: "Above average" },
-    { test: "Situational judgement", percentile: 64, band: "Average" },
-    { test: "Work styles questionnaire", percentile: 0, band: "Profile report" },
-  ],
-  "Tinashe Mhlanga": [
-    { test: "Numerical reasoning", percentile: 69, band: "Above average" },
-    { test: "Situational judgement", percentile: 74, band: "Above average" },
-  ],
-  "Chipo Makoni": [
-    { test: "Numerical reasoning", percentile: 71, band: "Above average" },
-    { test: "Situational judgement", percentile: 82, band: "Well above average" },
-  ],
-};
+const RESULTS = TEST_RESULTS;
 
 export function AssessmentsTab({ c }: { c: CandidateProfile }) {
   const [tests, setTests] = React.useState<TestInvitationSummary[] | null>(null);

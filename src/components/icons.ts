@@ -9,6 +9,7 @@ export {
   BookmarkSimple as Bookmark,
   Certificate,
   ChatText,
+  Quotes as Quote,
   FilePdf,
   FileImage,
   FileX,

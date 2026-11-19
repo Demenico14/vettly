@@ -145,7 +145,9 @@ export function CandidateProfileView({ id }: { id: string }) {
                     {app.vacancyTitle}
                     <StageBadge stage={app.stage} size="sm" />
                   </span>
-                  <MatchScore score={app.matchScore} provenance={app.provenance} size="sm" showTag />
+                  <Link href={`/matching/${app.vacancyId}/${c.id}`} className="rounded-sm hover:opacity-80" aria-label="Open the assessment for this application">
+                    <MatchScore score={app.matchScore} provenance={app.provenance} size="sm" showTag />
+                  </Link>
                 </div>
               </div>
             </div>

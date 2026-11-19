@@ -43,7 +43,7 @@ export const NAV: NavGroup[] = [
       { label: "Vacancies", href: "/vacancies", icon: Briefcase, module: 4, built: true, description: "Create, edit, publish and manage vacancies, requirements and screening weights.", badge: "4" },
       { label: "Candidates", href: "/candidates", icon: Users, module: 5, built: true, description: "Candidate directory, search, filters and full candidate profiles." },
       { label: "CV processing", href: "/cv-processing", icon: FileStack, module: 6, built: true, description: "Bulk CV upload, processing queue, extraction preview and manual correction.", badge: "3" },
-      { label: "Matching", href: "/matching", icon: Sparkles, module: 7, description: "Requirement-by-requirement assessment, evidence, ranking and comparison." },
+      { label: "Matching", href: "/matching", icon: Sparkles, module: 7, built: true, description: "Requirement-by-requirement assessment, evidence, ranking and comparison." },
       { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, module: 8, description: "Kanban pipeline with stage transitions, bulk actions and decision records." },
       { label: "Assessments", href: "/assessments", icon: ClipboardList, module: 9, description: "Psychometric test library, sending tests to candidates, invitation tracking, reminders and result reports." },
       { label: "Interviews", href: "/interviews", icon: CalendarDays, module: 10, description: "Interview calendar, scheduling, panels, questions and scorecards." },

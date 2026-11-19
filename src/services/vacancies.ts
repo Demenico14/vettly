@@ -28,6 +28,11 @@ const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 let store: Vacancy[] = clone(vacancyRecords);
 let seq = 40;
 
+/** Synchronous read of the live store, for other mock services (matching reads current requirements and weights). */
+export function vacancySnapshot(): Vacancy[] {
+  return store;
+}
+
 /** Allowed status moves. Anything else is refused. */
 export const STATUS_MOVES: Record<VacancyStatus, VacancyStatus[]> = {
   draft: ["open"],

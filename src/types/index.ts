@@ -514,3 +514,72 @@ export interface CvBatch {
   uploadedAt: string;
   files: CvFile[];
 }
+
+/* ---------- AI recruitment intelligence (Module 7) ---------- */
+
+/** "missing" means Vettly found no evidence either way; "not_met" means the CV shows it falls short. */
+export type RequirementOutcome = "met" | "partial" | "not_met" | "missing";
+export type EvidenceSource = "Experience" | "Skills" | "Education" | "Certifications" | "Summary" | "Projects";
+export type ScoreCategory = keyof ScreeningWeights;
+
+export interface Evidence {
+  source: EvidenceSource;
+  /** Where on the CV, e.g. "Senior Accountant, KPMG Zimbabwe · 2017–2021". */
+  where: string;
+  quote: string;
+}
+
+export interface RequirementReview {
+  by: string;
+  at: string;
+  action: "agreed" | "changed";
+  reason?: string;
+}
+
+export interface RequirementAssessment {
+  requirement: Requirement;
+  /** Current outcome: Vettly's, unless HR changed it. */
+  outcome: RequirementOutcome;
+  aiOutcome: RequirementOutcome;
+  confidence: "high" | "medium" | "low";
+  rationale: string;
+  evidence: Evidence[];
+  /** Suggested interview question when evidence is partial or missing. */
+  question?: string;
+  review?: RequirementReview;
+}
+
+export interface CategoryScore {
+  category: ScoreCategory;
+  weight: number;
+  /** 0–100, or null when the vacancy has no requirement in this category (or no test results yet). */
+  score: number | null;
+}
+
+export interface CandidateAssessment {
+  candidateId: string;
+  candidateName: string;
+  headline: string;
+  location: string;
+  applicationId: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  stage: ApplicationStage;
+  /** Score from CV evidence only, using the vacancy's weights. */
+  score: number;
+  /** Score Vettly first suggested, before any HR change. */
+  aiScore: number;
+  /** Psychometric average percentile, when tests are complete. A separate input from CV evidence. */
+  testScore: number | null;
+  /** Score including the assessments weight, when test results exist. */
+  scoreWithTests: number | null;
+  breakdown: CategoryScore[];
+  explanation: string;
+  strengths: string[];
+  gaps: string[];
+  skills: { matched: string[]; partial: string[]; missing: string[]; extra: string[] };
+  requirements: RequirementAssessment[];
+  provenance: AssessmentProvenance;
+  confirmedBy?: string;
+  confirmedAt?: string;
+}
