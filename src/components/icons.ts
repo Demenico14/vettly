@@ -78,6 +78,7 @@ export {
   List as Menu,
   Minus,
   DotsThree as MoreHorizontal,
+  DotsSixVertical,
   Palette,
   SidebarSimple as PanelLeftClose,
   SidebarSimple as PanelLeftOpen,

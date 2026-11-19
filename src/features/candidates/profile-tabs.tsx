@@ -47,7 +47,8 @@ export function MoveStageDialog({
   const [note, setNote] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const needsNote = stage === "rejected";
+  const STAGE_LINE = ["applied", "screening", "shortlisted", "assessment", "interview", "offer", "hired"];
+  const needsNote = stage === "rejected" || (STAGE_LINE.indexOf(stage) >= 0 && STAGE_LINE.indexOf(stage) < STAGE_LINE.indexOf(app.stage));
 
   React.useEffect(() => {
     if (open) {
@@ -73,10 +74,13 @@ export function MoveStageDialog({
               loading={busy}
               onClick={async () => {
                 if (!stage) return setError("Choose a stage.");
-                if (needsNote && !note.trim()) return setError("Add the reason. Rejections must be explained for the audit record.");
+                if (needsNote && !note.trim()) return setError(stage === "rejected" ? "Add the reason. Rejections must be explained for the audit record." : "Say why the candidate is moving back a stage.");
                 setBusy(true);
                 try {
-                  const c = await services.profiles.moveStage(candidate.id, app.id, stage as ApplicationStage, note.trim() || undefined);
+                  // Same rules as the pipeline board: reasons, Offer before Hired, tests sent or cancelled.
+                  const r = await services.pipeline.move([{ candidateId: candidate.id, applicationId: app.id }], stage as ApplicationStage, note, { sendTests: true });
+                  if (r.moved === 0) throw new Error(r.skipped.map((x) => `${x.name} ${x.reason}.`).join(" ") || "The move could not be saved.");
+                  const c = await services.profiles.get(candidate.id);
                   onMoved(c);
                   toast.success(`Moved to ${STAGE_META[stage as ApplicationStage].label}`, `${candidate.name} · ${app.vacancyTitle}`);
                   onOpenChange(false);
@@ -108,7 +112,7 @@ export function MoveStageDialog({
               options={STAGES.filter((s) => s !== app.stage).map((s) => ({
                 value: s,
                 label: STAGE_META[s].label,
-                description: s === "assessment" ? "Sends the vacancy's psychometric tests" : undefined,
+                description: s === "assessment" ? "Sends the vacancy's psychometric tests" : s === "hired" ? "Only from Offer" : undefined,
               }))}
             />
           </Field>

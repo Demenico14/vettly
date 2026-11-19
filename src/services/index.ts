@@ -11,10 +11,13 @@ import { mockVacancies } from "./vacancies";
 import { mockCandidateProfiles } from "./candidates";
 import { mockCvProcessing } from "./cv";
 import { mockMatching } from "./matching";
+import { mockPipeline } from "./pipeline";
 
 export type { CandidateProfileService, CvCandidateInput } from "./candidates";
 export type { CvProcessingService, UploadInput } from "./cv";
 export type { MatchingService, VacancyMatchSummary } from "./matching";
+export type { PipelineService, PipelineCard, MoveTarget, MoveResult } from "./pipeline";
+export { PIPELINE_STAGES, CLOSED_STAGES } from "./pipeline";
 
 export type { VacancyService, AssistAction } from "./vacancies";
 export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
@@ -134,6 +137,7 @@ export const services = {
   profiles: mockCandidateProfiles,
   cv: mockCvProcessing,
   matching: mockMatching,
+  pipeline: mockPipeline,
   candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,

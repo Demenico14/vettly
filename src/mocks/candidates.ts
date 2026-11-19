@@ -16,7 +16,7 @@ import type {
   Certification,
   Project,
 } from "@/types";
-import { candidates as summaries } from "./data";
+import { candidates as summaries, MOCK_NOW } from "./data";
 import { vacancyRecords } from "./vacancies";
 
 type Detail = {
@@ -322,7 +322,10 @@ function historyFor(stage: CandidateSummary["stage"], appliedAt: string): Applic
   }
   const idx = STAGE_ORDER.indexOf(stage as (typeof STAGE_ORDER)[number]);
   const by = ["Candidate", "Vettly", "Kudzai Chirwa", "Vettly", "Tendai Moyo", "Tendai Moyo", "Tendai Moyo"];
-  for (let i = 1; i <= idx; i++) events.push({ stage: STAGE_ORDER[i]!, at: at(i * 2), by: by[i]! });
+  // Two days per stage, squeezed for recent applicants so no move lands after "now".
+  const room = (new Date(MOCK_NOW).getTime() - start) / 86400000;
+  const step = Math.min(2, (room * 0.9) / Math.max(1, idx));
+  for (let i = 1; i <= idx; i++) events.push({ stage: STAGE_ORDER[i]!, at: at(i * step), by: by[i]! });
   return events;
 }
 

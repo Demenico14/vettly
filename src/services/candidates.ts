@@ -6,7 +6,6 @@ import type { ApplicationStage, Availability, CandidateDocument, CandidateNote, 
 import { assess } from "@/mocks/matching";
 import { vacancySnapshot } from "./vacancies";
 import { candidateProfiles } from "@/mocks/candidates";
-import { testInvitations } from "@/mocks/dashboard";
 import { MOCK_NOW, users } from "@/mocks/data";
 
 export interface CandidateProfileService {
@@ -103,7 +102,9 @@ export const mockCandidateProfiles: CandidateProfileService = {
   },
   async tests(name) {
     await wait(300);
-    return clone(testInvitations.filter((t) => t.candidateName === name));
+    // Shared with the pipeline, so tests sent from the board show here too.
+    const { invitationStore } = await import("./pipeline");
+    return clone(invitationStore.filter((t) => t.candidateName === name));
   },
   async moveStage(id, applicationId, stage, note) {
     await wait(600);

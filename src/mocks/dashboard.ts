@@ -169,7 +169,7 @@ export const testInvitations: TestInvitationSummary[] = [
   { id: "tst_nyasha", candidateName: "Nyasha Dube", vacancyTitle: "Data Analyst", battery: "Professional battery", status: "in_progress", sentAt: "2026-11-16T09:00:00+02:00", deadline: "2026-11-26T17:00:00+02:00", completed: 1, total: 2 },
   { id: "tst_ruvimbo", candidateName: "Ruvimbo Gumbo", vacancyTitle: "Data Analyst", battery: "Professional battery", status: "opened", sentAt: "2026-11-17T15:00:00+02:00", deadline: "2026-11-22T17:00:00+02:00", completed: 0, total: 2 },
   { id: "tst_tinashe", candidateName: "Tinashe Mhlanga", vacancyTitle: "Software Developer", battery: "Professional battery", status: "completed", sentAt: "2026-11-08T09:00:00+02:00", deadline: "2026-11-13T17:00:00+02:00", completed: 2, total: 2 },
-  { id: "tst_simba", candidateName: "Simba Chari", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "expired", sentAt: "2026-11-07T09:00:00+02:00", deadline: "2026-11-12T17:00:00+02:00", completed: 0, total: 1 },
+  { id: "tst_simba", candidateName: "Simba Chari", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "sent", sentAt: "2026-11-17T09:00:00+02:00", deadline: "2026-11-22T17:00:00+02:00", completed: 0, total: 2 },
 ];
 
 const SOURCES: Record<string, RecentApplication["source"]> = {

@@ -45,8 +45,15 @@ export function DropdownMenuItem({
       className={cn(item, tone === "danger" && "text-danger-700 data-highlighted:bg-danger-50 [&_svg]:text-danger-600", className)}
       {...props}
     >
-      {children}
-      {shortcut && <span className="ml-auto pl-4 text-xs text-fg-subtle">{shortcut}</span>}
+      {shortcut ? (
+        <>
+          {children}
+          <span className="ml-auto pl-4 text-xs text-fg-subtle">{shortcut}</span>
+        </>
+      ) : (
+        // A single child, so `asChild` items (links) work.
+        children
+      )}
     </Menu.Item>
   );
 }
