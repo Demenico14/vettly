@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, Building2, FileUp, Menu as MenuIcon, Plus, Search, UserPlus } from "lucide-react";
+import { Briefcase, Building2, FileUp, Menu as MenuIcon, Plus, Search, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/feedback";
 import { Drawer, Modal, ModalContent } from "@/components/ui/modal";

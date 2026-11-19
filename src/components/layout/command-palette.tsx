@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
-import { Briefcase, CornerDownLeft, Plus, Search, UserRound } from "lucide-react";
+import { Briefcase, CornerDownLeft, Plus, Search, UserRound } from "@/components/icons";
 import { ALL_NAV_ITEMS } from "@/lib/navigation";
 import { services, type SearchResult } from "@/services";
 import { Kbd, Spinner } from "@/components/ui";

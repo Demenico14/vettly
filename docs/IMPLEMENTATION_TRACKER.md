@@ -4,7 +4,7 @@ Phase 1: frontend only, mock data, service abstractions. Each module is reviewed
 
 | # | Module | Status | Notes |
 |---|---|---|---|
-| 1 | Design system & application shell | **In review** | Brand package, tokens, components, shell. See below. |
+| 1 | Design system & application shell | **In review** | v2.0 Granite & Msasa redesign (18 Nov). See below. |
 | 2 | Authentication & onboarding | Not started | Waiting for Module 1 approval |
 | 3 | HR dashboard | Not started | `/` will redirect here |
 | 4 | Vacancy management | Not started | |
@@ -26,16 +26,18 @@ Phase 1: frontend only, mock data, service abstractions. Each module is reviewed
 - [x] Colour, typography, spacing, radius, elevation tokens in `src/app/globals.css`
 - [x] Components: Button, Input, Textarea, Field, Select, Checkbox, Switch, RadioGroup, Badge, Tag, Avatar, AvatarStack, Card, Table (+ sortable header), Tabs, Segmented, Modal, ConfirmModal, Drawer, DropdownMenu, Popover, Tooltip, Toast, Alert, Progress, Skeleton, EmptyState, Spinner, Kbd
 - [x] Domain components: StageBadge, VacancyStatusBadge, ProvenanceTag, MatchScore, IllustrativeNotice
-- [x] Shell: navy sidebar (collapsible, persisted), mobile drawer, header, command palette, notifications, profile menu with org switching and role preview, keyboard shortcuts, skip link
+- [x] Shell: bush-green sidebar (collapsible, persisted), mobile drawer, header, command palette, notifications, profile menu with org switching and role preview, keyboard shortcuts, skip link
 - [x] Every nav route resolves (placeholders state which module delivers them)
 - [x] Design system page with working demos and loading / empty / error / success states
 - [x] Mock data and services separated (`src/mocks`, `src/services`)
 - [x] Typecheck, lint and production build pass
 - [x] Browser check at 1440, 1024 and 375 wide
+- [x] Corporate refinement (v1.1)
+- [x] Full redesign to Granite & Msasa (v2.0): new logo, palette, Public Sans, Phosphor icons
 - [ ] User review and approval
 
 ## Known gaps carried forward
 
-- Dark mode not built; the light workspace with navy shell follows the brand board. Revisit if users ask.
+- Dark mode not built; the light granite workspace with bush-green shell is the chosen direction. Revisit if users ask.
 - No automated tests yet; add component tests with Module 2 forms.
 - Sign-out is simulated until Module 2.

@@ -14,60 +14,53 @@ const appDir = path.join(root, "src/app");
 mkdirSync(out, { recursive: true });
 
 export const BRAND = {
-  indigo: "#6366F1",
-  violet: "#8B5CF6",
-  blue: "#3B82F6",
-  cyan: "#06B6D4",
-  cyanLight: "#22D3EE",
-  navy: "#0F172A",
+  copper: "#C2602F",
+  copperOnDark: "#DB7A4A",
+  green: "#2A7D62",
+  greenOnDark: "#5FB08D",
+  bush: "#163A2E",
+  ink: "#1B2420",
   white: "#FFFFFF",
 };
 
-/* ---------- Mark geometry (100 x 88 design grid) ---------- */
+/* ---------- Mark geometry (100 x 88 design grid) ----------
+ * Two msasa leaflets forming a V. The left leaf is copper, a new leaf;
+ * the right is green, a mature one. Copper becomes green: AI suggestion becomes HR-confirmed.
+ */
 const MARK_W = 100;
 const MARK_H = 88;
-// Wide left stroke: indigo -> violet.
-const LEFT = "M6 6 H33 L54 62 L44 84 Z";
-// Slim right stroke rising to the top right: blue -> cyan.
-const RIGHT = "M38 84 L77 6 H96 L53 84 Z";
-const ROUND = 5; // soft corner radius via a same-colour stroke
+const LEFT = "M48 84 Q50.5 35.3 10 8 Q7.5 56.7 48 84 Z";
+const RIGHT = "M52 84 Q49.5 35.3 90 8 Q92.5 56.7 52 84 Z";
+const LEFT_RIB = "M45 78 L20 28";
+const RIGHT_RIB = "M55 78 L80 28";
 
-function markSvg({ id, mode = "color", fill = BRAND.navy }) {
-  if (mode === "color") {
-    return `
-  <defs>
-    <linearGradient id="${id}-l" x1="6" y1="6" x2="54" y2="84" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${BRAND.indigo}"/>
-      <stop offset="1" stop-color="${BRAND.violet}"/>
-    </linearGradient>
-    <linearGradient id="${id}-r" x1="47" y1="84" x2="92" y2="6" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${BRAND.blue}"/>
-      <stop offset="1" stop-color="${BRAND.cyanLight}"/>
-    </linearGradient>
-  </defs>
-  <path d="${LEFT}" fill="url(#${id}-l)" stroke="url(#${id}-l)" stroke-width="${ROUND}" stroke-linejoin="round"/>
-  <path d="${RIGHT}" fill="url(#${id}-r)" stroke="url(#${id}-r)" stroke-width="${ROUND}" stroke-linejoin="round"/>`;
-  }
-  // Monochrome: one ink. A knockout gap where the strokes cross keeps the two-stroke structure legible.
+function markSvg({ id, mode = "color", fill = BRAND.ink, onDark = false }) {
+  const left = mode === "color" ? (onDark ? BRAND.copperOnDark : BRAND.copper) : fill;
+  const right = mode === "color" ? (onDark ? BRAND.greenOnDark : BRAND.green) : fill;
   return `
   <defs>
-    <mask id="${id}-m" maskUnits="userSpaceOnUse" x="0" y="0" width="${MARK_W}" height="${MARK_H}">
+    <mask id="${id}-l" maskUnits="userSpaceOnUse" x="0" y="0" width="${MARK_W}" height="${MARK_H}">
       <rect width="${MARK_W}" height="${MARK_H}" fill="#fff"/>
-      <path d="${RIGHT}" fill="#000" stroke="#000" stroke-width="${ROUND + 7}" stroke-linejoin="round"/>
+      <path d="${RIGHT}" fill="#000" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
+      <path d="${LEFT_RIB}" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
+    </mask>
+    <mask id="${id}-r" maskUnits="userSpaceOnUse" x="0" y="0" width="${MARK_W}" height="${MARK_H}">
+      <rect width="${MARK_W}" height="${MARK_H}" fill="#fff"/>
+      <path d="${RIGHT_RIB}" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
     </mask>
   </defs>
-  <path d="${LEFT}" fill="${fill}" stroke="${fill}" stroke-width="${ROUND}" stroke-linejoin="round" mask="url(#${id}-m)"/>
-  <path d="${RIGHT}" fill="${fill}" stroke="${fill}" stroke-width="${ROUND}" stroke-linejoin="round"/>`;
+  <path d="${LEFT}" fill="${left}" mask="url(#${id}-l)"/>
+  <path d="${RIGHT}" fill="${right}" mask="url(#${id}-r)"/>`;
 }
 
 /* ---------- Wordmark as outlines ---------- */
 const fontPath = require.resolve(
-  "@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff",
+  "@fontsource/public-sans/files/public-sans-latin-700-normal.woff",
 );
 const buf = readFileSync(fontPath);
 const font = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 
-function wordmark(text, fontSize, tracking = -0.025) {
+function wordmark(text, fontSize, tracking = -0.02) {
   const glyphs = font.stringToGlyphs(text);
   const scale = fontSize / font.unitsPerEm;
   let x = 0;
@@ -99,13 +92,13 @@ function horizontal({ id, mode, ink, markFill }) {
   const wm = wordmark("Vettly", 96);
   const gap = 24;
   // Cap height of the wordmark sits at ~80% of the mark height, baselines aligned to the mark's foot.
-  const scale = (markH * 0.8) / wm.capHeight;
+  const scale = (markH * 0.72) / wm.capHeight;
   const wmW = wm.width * scale;
   const baseline = markH - 2;
   const w = MARK_W + gap + wmW;
   const h = baseline + wm.descent * scale + 2;
   const body = `
-  <g>${markSvg({ id, mode, fill: markFill })}</g>
+  <g>${markSvg({ id, mode, fill: markFill, onDark: ink === BRAND.white })}</g>
   <path transform="translate(${fmt(MARK_W + gap)} ${fmt(baseline)}) scale(${fmt(scale)})" fill="${ink}" d="${wm.d}"/>`;
   return svgDoc(w, h, body, "Vettly");
 }
@@ -120,7 +113,7 @@ function stacked({ id, mode, ink, markFill }) {
   const baseline = top + wm.ascent * scale;
   const h = baseline + wm.descent * scale + 4;
   const body = `
-  <g transform="translate(${fmt(markX)} 0)">${markSvg({ id, mode, fill: markFill })}</g>
+  <g transform="translate(${fmt(markX)} 0)">${markSvg({ id, mode, fill: markFill, onDark: ink === BRAND.white })}</g>
   <path transform="translate(${fmt((w - wmW) / 2)} ${fmt(baseline)}) scale(${scale})" fill="${ink}" d="${wm.d}"/>`;
   return svgDoc(w, h, body, "Vettly");
 }
@@ -129,28 +122,28 @@ function symbol({ id, mode, markFill }) {
   return svgDoc(MARK_W, MARK_H, markSvg({ id, mode, fill: markFill }), "Vettly");
 }
 
-function appIcon({ id, size = 512, padding = 0.2, radius = 0.22, bg = BRAND.navy }) {
+function appIcon({ id, size = 512, padding = 0.2, radius = 0.22, bg = BRAND.bush }) {
   const inner = size * (1 - padding * 2);
   const s = inner / MARK_W;
   const tx = (size - MARK_W * s) / 2;
   const ty = (size - MARK_H * s) / 2 + size * 0.01;
   const body = `
   <rect width="${size}" height="${size}" rx="${fmt(size * radius)}" fill="${bg}"/>
-  <g transform="translate(${fmt(tx)} ${fmt(ty)}) scale(${fmt(s)})">${markSvg({ id, mode: "color" })}</g>`;
+  <g transform="translate(${fmt(tx)} ${fmt(ty)}) scale(${fmt(s)})">${markSvg({ id, mode: "color", onDark: true })}</g>`;
   return svgDoc(size, size, body, "Vettly");
 }
 
 const files = {
   "vettly-symbol.svg": symbol({ id: "vs", mode: "color" }),
-  "vettly-symbol-mono-dark.svg": symbol({ id: "vsd", mode: "mono", markFill: BRAND.navy }),
+  "vettly-symbol-mono-dark.svg": symbol({ id: "vsd", mode: "mono", markFill: BRAND.ink }),
   "vettly-symbol-mono-white.svg": symbol({ id: "vsw", mode: "mono", markFill: BRAND.white }),
-  "vettly-logo-horizontal-light.svg": horizontal({ id: "hl", mode: "color", ink: BRAND.navy }),
+  "vettly-logo-horizontal-light.svg": horizontal({ id: "hl", mode: "color", ink: BRAND.ink }),
   "vettly-logo-horizontal-dark.svg": horizontal({ id: "hd", mode: "color", ink: BRAND.white }),
-  "vettly-logo-horizontal-mono-dark.svg": horizontal({ id: "hmd", mode: "mono", ink: BRAND.navy, markFill: BRAND.navy }),
+  "vettly-logo-horizontal-mono-dark.svg": horizontal({ id: "hmd", mode: "mono", ink: BRAND.ink, markFill: BRAND.ink }),
   "vettly-logo-horizontal-mono-white.svg": horizontal({ id: "hmw", mode: "mono", ink: BRAND.white, markFill: BRAND.white }),
-  "vettly-logo-stacked-light.svg": stacked({ id: "sl", mode: "color", ink: BRAND.navy }),
+  "vettly-logo-stacked-light.svg": stacked({ id: "sl", mode: "color", ink: BRAND.ink }),
   "vettly-logo-stacked-dark.svg": stacked({ id: "sd", mode: "color", ink: BRAND.white }),
-  "vettly-logo-stacked-mono-dark.svg": stacked({ id: "smd", mode: "mono", ink: BRAND.navy, markFill: BRAND.navy }),
+  "vettly-logo-stacked-mono-dark.svg": stacked({ id: "smd", mode: "mono", ink: BRAND.ink, markFill: BRAND.ink }),
   "vettly-logo-stacked-mono-white.svg": stacked({ id: "smw", mode: "mono", ink: BRAND.white, markFill: BRAND.white }),
   "vettly-app-icon.svg": appIcon({ id: "ai" }),
   "vettly-app-icon-maskable.svg": appIcon({ id: "am", padding: 0.27, radius: 0 }),

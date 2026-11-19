@@ -4,7 +4,7 @@ import * as React from "react";
 import * as Menu from "@radix-ui/react-dropdown-menu";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /* ---------- Dropdown menu ---------- */

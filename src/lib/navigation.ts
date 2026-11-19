@@ -12,14 +12,14 @@ import {
   Sparkles,
   Users,
   UsersRound,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import type { Role } from "@/types";
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   /** Roadmap module that delivers this screen. */
   module: number;
   description: string;

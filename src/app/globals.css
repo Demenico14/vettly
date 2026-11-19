@@ -2,12 +2,12 @@
 
 /*
  * Vettly design tokens. Single source of truth for colour, type, radius and elevation.
- * Brand values are pinned in PRODUCT.md and docs/brand-guidelines.md; change them there first.
+ * Direction: Granite & Msasa (see docs/brand-guidelines.md). Change values there first.
  */
 
 @theme {
   /* Typography */
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
   --text-2xs: 0.6875rem;
@@ -27,82 +27,87 @@
   --text-3xl: 2.25rem;
   --text-3xl--line-height: 2.75rem;
 
-  /* Brand palette (pinned) */
-  --color-brand-primary: #6366f1;
-  --color-brand-secondary: #06b6d4;
-  --color-brand-accent: #8b5cf6;
+  /* Brand palette: Granite & Msasa. Copper is reserved for unreviewed AI and attention. */
+  --color-brand-green: #16624f;
+  --color-brand-copper: #c2602f;
+  --color-brand-bush: #163a2e;
 
-  /* Primary scale: indigo. 500 is the brand primary; 600 carries text-bearing fills for AA contrast. */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* Primary: bush green. 600 carries buttons and links. */
+  --color-primary-50: #eef6f2;
+  --color-primary-100: #d5eae0;
+  --color-primary-200: #aed4c3;
+  --color-primary-300: #7fb8a0;
+  --color-primary-400: #4e9a7e;
+  --color-primary-500: #2a7d62;
+  --color-primary-600: #16624f;
+  --color-primary-700: #124f40;
+  --color-primary-800: #103f34;
+  --color-primary-900: #0e332b;
 
-  --color-secondary-50: #ecfeff;
-  --color-secondary-100: #cffafe;
-  --color-secondary-500: #06b6d4;
-  --color-secondary-600: #0891b2;
-  --color-secondary-700: #0e7490;
+  /* Secondary: slate blue, for information and neutral data series. */
+  --color-secondary-50: #eef3f8;
+  --color-secondary-100: #d9e4ef;
+  --color-secondary-300: #8eacc9;
+  --color-secondary-500: #2f5d8a;
+  --color-secondary-600: #284f76;
+  --color-secondary-700: #1f3f5e;
 
-  --color-accent-50: #f5f3ff;
-  --color-accent-100: #ede9fe;
-  --color-accent-500: #8b5cf6;
-  --color-accent-600: #7c3aed;
-  --color-accent-700: #6d28d9;
+  /* Accent: msasa copper. AI suggestions awaiting review, and items needing attention. Nothing else. */
+  --color-accent-50: #fbf1ea;
+  --color-accent-100: #f6dfcf;
+  --color-accent-300: #e3a37f;
+  --color-accent-500: #c2602f;
+  --color-accent-600: #a84f23;
+  --color-accent-700: #8a401d;
 
-  --color-success-50: #ecfdf5;
-  --color-success-100: #d1fae5;
-  --color-success-500: #10b981;
-  --color-success-600: #059669;
-  --color-success-700: #047857;
+  /* Success: mature leaf green, for confirmed and complete. */
+  --color-success-50: #eef6ef;
+  --color-success-100: #d6ead8;
+  --color-success-500: #3e8a47;
+  --color-success-600: #2f7438;
+  --color-success-700: #2c6b34;
 
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
+  --color-warning-50: #fcf5e6;
+  --color-warning-100: #f7e6bf;
+  --color-warning-500: #c98a12;
+  --color-warning-600: #a87210;
+  --color-warning-700: #8a5d0c;
 
-  --color-danger-50: #fef2f2;
-  --color-danger-100: #fee2e2;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
-  --color-danger-700: #b91c1c;
+  --color-danger-50: #fdf0ee;
+  --color-danger-100: #fad9d4;
+  --color-danger-500: #d0402f;
+  --color-danger-600: #b42318;
+  --color-danger-700: #93201a;
 
-  /* Neutrals: slate. 900 / 700 / 500 / 300 / 50 are the pinned brand neutrals. */
-  --color-ink-950: #020617;
-  --color-ink-900: #0f172a;
-  --color-ink-800: #1e293b;
-  --color-ink-700: #334155;
-  --color-ink-600: #475569;
-  --color-ink-500: #64748b;
-  --color-ink-400: #94a3b8;
-  --color-ink-300: #cbd5e1;
-  --color-ink-200: #e2e8f0;
-  --color-ink-100: #f1f5f9;
-  --color-ink-50: #f8fafc;
+  /* Neutrals: granite, faintly green-grey. */
+  --color-ink-950: #111714;
+  --color-ink-900: #1b2420;
+  --color-ink-800: #29332e;
+  --color-ink-700: #3a4540;
+  --color-ink-600: #505b55;
+  --color-ink-500: #67716b;
+  --color-ink-400: #8e968f;
+  --color-ink-300: #c4c8c2;
+  --color-ink-200: #dfdfda;
+  --color-ink-100: #ecece8;
+  --color-ink-50: #f7f7f4;
 
   /* Semantic surfaces */
-  --color-canvas: #f3f5f8;
+  --color-canvas: #f2f2ef;
   --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-line: #e2e8f0;
-  --color-line-strong: #cbd5e1;
-  --color-fg: #0f172a;
-  --color-fg-muted: #475569;
-  --color-fg-subtle: #64748b;
+  --color-surface-muted: #f7f7f4;
+  --color-line: #dfdfda;
+  --color-line-strong: #c4c8c2;
+  --color-fg: #1b2420;
+  --color-fg-muted: #505b55;
+  --color-fg-subtle: #5f6963;
 
-  /* Shell (navy sidebar) */
-  --color-shell: #0f172a;
-  --color-shell-raised: #1e293b;
-  --color-shell-line: #1e293b;
-  --color-shell-fg: #e2e8f0;
-  --color-shell-fg-muted: #94a3b8;
+  /* Shell: bush-green sidebar */
+  --color-shell: #163a2e;
+  --color-shell-raised: #1f4a3b;
+  --color-shell-line: #22493b;
+  --color-shell-fg: #e3ece7;
+  --color-shell-fg-muted: #a7bdb1;
 
   /* Radius */
   --radius-xs: 3px;

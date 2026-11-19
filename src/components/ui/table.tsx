@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export function TableContainer({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

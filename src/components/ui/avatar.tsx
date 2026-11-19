@@ -4,7 +4,7 @@ import { cn, hashString, initials } from "@/lib/utils";
 const TINTS = [
   "bg-primary-100 text-primary-800",
   "bg-secondary-100 text-secondary-700",
-  "bg-accent-100 text-accent-700",
+  "bg-primary-50 text-primary-700",
   "bg-success-100 text-success-700",
   "bg-warning-100 text-warning-700",
   "bg-ink-200 text-ink-800",

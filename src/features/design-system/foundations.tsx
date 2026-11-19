@@ -1,19 +1,19 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Download } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
 import { DSSection, Specimen } from "./specimen";
 
 const LOGOS = [
   { file: "vettly-logo-horizontal-light.svg", label: "Horizontal · light", bg: "bg-surface", w: "w-44" },
-  { file: "vettly-logo-horizontal-dark.svg", label: "Horizontal · dark", bg: "bg-ink-900", w: "w-44" },
+  { file: "vettly-logo-horizontal-dark.svg", label: "Horizontal · dark", bg: "bg-shell", w: "w-44" },
   { file: "vettly-logo-stacked-light.svg", label: "Stacked · light", bg: "bg-surface", w: "w-24" },
-  { file: "vettly-logo-stacked-dark.svg", label: "Stacked · dark", bg: "bg-ink-900", w: "w-24" },
+  { file: "vettly-logo-stacked-dark.svg", label: "Stacked · dark", bg: "bg-shell", w: "w-24" },
   { file: "vettly-symbol.svg", label: "Symbol", bg: "bg-surface", w: "w-14" },
   { file: "vettly-app-icon.svg", label: "App icon", bg: "bg-ink-100", w: "w-14" },
   { file: "vettly-logo-horizontal-mono-dark.svg", label: "Mono · ink", bg: "bg-surface", w: "w-44" },
-  { file: "vettly-logo-horizontal-mono-white.svg", label: "Mono · white", bg: "bg-primary-600", w: "w-44" },
+  { file: "vettly-logo-horizontal-mono-white.svg", label: "Mono · white", bg: "bg-ink-700", w: "w-44" },
 ];
 
 export function BrandSection() {
@@ -21,7 +21,7 @@ export function BrandSection() {
     <DSSection
       id="brand"
       title="Brand"
-      description="The two-stroke V carries the brand: a wide indigo-to-violet stroke for the evidence, a slim blue-to-cyan stroke rising past it for the decision. Every lockup below is outlined vector artwork generated from one source script."
+      description="Two msasa leaflets form the V. Msasa leaves open copper and mature to green, so the copper leaf stands for an AI suggestion and the green leaf for a decision a person has confirmed. Every lockup below is outlined vector artwork generated from one source script."
     >
       <div className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 xl:grid-cols-4">
         {LOGOS.map((l) => (
@@ -70,21 +70,21 @@ export function BrandSection() {
 type Swatch = { name: string; hex: string; token: string; role: string; dark?: boolean };
 
 const BRAND_SWATCHES: Swatch[] = [
-  { name: "Primary", hex: "#6366F1", token: "primary-500", role: "Brand, selection, focus", dark: true },
-  { name: "Primary 600", hex: "#4F46E5", token: "primary-600", role: "Buttons and text on white (AA)", dark: true },
-  { name: "Secondary", hex: "#06B6D4", token: "secondary-500", role: "Progress, data series", dark: true },
-  { name: "Accent", hex: "#8B5CF6", token: "accent-500", role: "AI suggestions only", dark: true },
-  { name: "Success", hex: "#10B981", token: "success-500", role: "Hired, confirmed, complete", dark: true },
-  { name: "Warning", hex: "#F59E0B", token: "warning-500", role: "Needs attention, offers" },
-  { name: "Error", hex: "#EF4444", token: "danger-500", role: "Failed, rejected, destructive", dark: true },
+  { name: "Bush green", hex: "#163A2E", token: "shell", role: "Sidebar and dark surfaces", dark: true },
+  { name: "Primary", hex: "#16624F", token: "primary-600", role: "Buttons, links, selection", dark: true },
+  { name: "Msasa copper", hex: "#C2602F", token: "accent-500", role: "Unreviewed AI and attention only", dark: true },
+  { name: "Leaf green", hex: "#3E8A47", token: "success-500", role: "Confirmed, hired, complete", dark: true },
+  { name: "Slate blue", hex: "#2F5D8A", token: "secondary-500", role: "Information, data series", dark: true },
+  { name: "Ochre", hex: "#C98A12", token: "warning-500", role: "Needs attention, offers" },
+  { name: "Red", hex: "#B42318", token: "danger-600", role: "Failed, rejected, destructive", dark: true },
 ];
 
 const NEUTRALS: Swatch[] = [
-  { name: "Neutral 900", hex: "#0F172A", token: "ink-900", role: "Text, navy shell", dark: true },
-  { name: "Neutral 700", hex: "#334155", token: "ink-700", role: "Strong secondary text", dark: true },
-  { name: "Neutral 500", hex: "#64748B", token: "ink-500", role: "Subtle text, icons", dark: true },
-  { name: "Neutral 300", hex: "#CBD5E1", token: "ink-300", role: "Control borders" },
-  { name: "Neutral 100", hex: "#F8FAFC", token: "ink-50", role: "Muted surfaces" },
+  { name: "Granite 900", hex: "#1B2420", token: "ink-900", role: "Body text", dark: true },
+  { name: "Granite 600", hex: "#505B55", token: "ink-600", role: "Secondary text", dark: true },
+  { name: "Granite 500", hex: "#67716B", token: "ink-500", role: "Subtle text, icons", dark: true },
+  { name: "Granite 200", hex: "#DFDFDA", token: "line", role: "Hairlines and borders" },
+  { name: "Granite 100", hex: "#F2F2EF", token: "canvas", role: "Page canvas" },
 ];
 
 function SwatchRow({ swatches }: { swatches: Swatch[] }) {
@@ -113,7 +113,7 @@ export function ColourSection() {
     <DSSection
       id="colour"
       title="Colour"
-      description="Six brand hues and five neutrals, pinned from the brand board. Each hue has a full scale in globals.css; text-bearing fills step to 600 so white labels pass WCAG AA. Accent violet is reserved for AI-generated content so the eye learns what the machine produced."
+      description="Granite neutrals with a bush-green shell. Copper is reserved for one job: AI output nobody has reviewed yet, and items that need attention. When HR confirms, it turns leaf green. Every hue has a full scale in globals.css and passes WCAG AA where it carries text."
     >
       <SwatchRow swatches={BRAND_SWATCHES} />
       <SwatchRow swatches={NEUTRALS} />
@@ -157,7 +157,7 @@ export function TypographySection() {
     <DSSection
       id="typography"
       title="Typography"
-      description="Plus Jakarta Sans for everything: Bold for page and section titles, SemiBold for panel headings and labels, Regular for reading. ExtraBold is reserved for the wordmark. Numbers in tables and metrics use tabular figures so columns align."
+      description="Public Sans for everything, a sober, highly legible face designed for public-sector services: Bold for titles and the wordmark, SemiBold for panel headings and labels, Regular for reading. Numbers in tables and metrics use tabular figures so columns align."
     >
       <Specimen bodyClassName="p-0">
         <ul className="divide-y divide-line">

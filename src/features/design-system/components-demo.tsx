@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Calendar, Download, Linkedin, MapPin, MoreHorizontal, Plus, Send, Trash2, Upload } from "lucide-react";
+import { Calendar, Download, Linkedin, MapPin, MoreHorizontal, Plus, Send, Trash2, Upload } from "@/components/icons";
 import {
   Avatar,
   AvatarStack,
@@ -99,7 +99,7 @@ export function BadgesSection() {
     <DSSection
       id="badges"
       title="Badges, tags & assessment"
-      description="Bordered chips with a coloured dot carry status; tinted tags carry content such as skills. Assessments always state who produced them: AI output is dashed, violet and labelled illustrative until a person confirms it."
+      description="Bordered chips with a coloured dot carry status; tinted tags carry content such as skills. Assessments always state who produced them: AI output is dashed, copper and labelled illustrative until a person confirms it, then it turns green."
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <Specimen label="Application stage">

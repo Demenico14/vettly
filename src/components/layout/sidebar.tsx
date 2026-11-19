@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { NAV, type NavItem } from "@/lib/navigation";
 import { Logo, LogoMark } from "@/components/brand/logo";
@@ -23,7 +23,7 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
         collapsed && "justify-center px-0",
       )}
     >
-      <item.icon className={cn("size-4.5 shrink-0", active ? "text-primary-300" : "text-ink-400 group-hover:text-ink-200")} aria-hidden />
+      <item.icon weight={active ? "fill" : "regular"} className={cn("size-[1.1rem] shrink-0", active ? "text-primary-300" : "text-shell-fg-muted group-hover:text-shell-fg")} aria-hidden />
       {!collapsed && <span className="truncate">{item.label}</span>}
       {!collapsed && item.badge && (
         <span
@@ -110,7 +110,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
     >
       <div className={cn("flex h-14 items-center border-b border-shell-line", collapsed ? "justify-center" : "px-5")}>
         <Link href="/dashboard" aria-label="Vettly home" className="rounded-sm">
-          {collapsed ? <LogoMark className="h-6" /> : <Logo onDark />}
+          {collapsed ? <LogoMark onDark className="h-6" /> : <Logo onDark />}
         </Link>
       </div>
       <div className={cn("scrollbar-shell flex-1 overflow-y-auto pt-4 pb-4", collapsed ? "px-3" : "px-3")}>

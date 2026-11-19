@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Building2, ChevronDown, CircleHelp, Eye, Keyboard, LogOut, Settings, UserRound } from "lucide-react";
+import { Building2, ChevronDown, CircleHelp, Eye, Keyboard, LogOut, Settings, UserRound } from "@/components/icons";
 import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,

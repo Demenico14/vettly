@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface FieldContextValue {

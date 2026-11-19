@@ -43,12 +43,12 @@ Assessment is requirement-by-requirement with cited evidence and explicit missin
 ## Brand Commitments
 
 - Name: Vettly. Tagline: "Smarter Hiring. Faster."
-- Official visual direction pinned by the user (2026-11-18) from the brand board at `docs/reference/brand-board-concept.webp`. The board is a reference; production assets are vector recreations in `public/brand/`.
-  - Logo: a two-stroke "V" mark (wide indigo-to-violet left stroke, slimmer blue-to-cyan right stroke rising higher) beside a heavy "Vettly" wordmark.
-  - Colours: Primary #6366F1, Secondary #06B6D4, Accent #8B5CF6, Success #10B981, Warning #F59E0B, Error #EF4444; neutrals #0F172A, #334155, #64748B, #CBD5E1, #F8FAFC.
-  - Typography: Plus Jakarta Sans.
-  - Shell: deep navy (#0F172A family) sidebar, light workspace.
-- No alternative colours or typefaces without a stated justification.
+- Visual direction: **Granite & Msasa**, chosen by the user on 2026-11-18 after asking for a full redesign (colour, icons, font, logo). It replaces the earlier indigo/cyan brand board, kept at `docs/reference/brand-board-concept.webp` for history only.
+- Tone: corporate and user-friendly. Peers for quality: Workday, SAP SuccessFactors, Greenhouse, Lever, Linear, Microsoft 365. Avoid: purple/"AI" styling, playful, plain.
+- Logo: two msasa leaflets forming a V (copper left, green right) with a Public Sans Bold wordmark. Assets in `public/brand/`.
+- Colour meaning: msasa copper marks unreviewed AI and attention only; green marks a person's confirmed decision.
+- Typography: Public Sans. Icons: Phosphor.
+- No alternative colours or typefaces without a stated reason in `docs/brand-guidelines.md`.
 
 ## Evidence on Hand
 

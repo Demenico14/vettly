@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CircleAlert, CircleCheck, Info, TriangleAlert } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export function Skeleton({ className }: { className?: string }) {

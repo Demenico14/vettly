@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, Search, SearchX, UsersRound, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, Search, SearchX, UsersRound, X } from "@/components/icons";
 import {
   Alert,
   Avatar,

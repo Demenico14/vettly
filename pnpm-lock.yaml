@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/public-sans':
+        specifier: 5.1.1
+        version: 5.1.1
       '@hookform/resolvers':
         specifier: 5.2.2
         version: 5.2.2(react-hook-form@7.62.0(react@19.2.4))
+      '@phosphor-icons/react':
+        specifier: 2.1.7
+        version: 2.1.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-avatar':
         specifier: 1.1.11
         version: 1.1.11(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -78,9 +84,6 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
     devDependencies:
-      '@fontsource/plus-jakarta-sans':
-        specifier: 5.1.1
-        version: 5.1.1
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.5
@@ -241,8 +244,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource/plus-jakarta-sans@5.1.1':
-    resolution: {integrity: sha512-czlD7FGbJqZ+5YVJ1LK3mVh2GIbGQZDQTtsv2leNgJC5lxNQ3dnqPURCNeW+nfPrcMHO94Er4qpklmJM++UHPw==}
+  '@fontsource/public-sans@5.1.1':
+    resolution: {integrity: sha512-BEJEc9kpLBowHLqeOlex1lMJPZ/6mzKn3ArhbvWY9dvMcjSqH7jzJyTN44j0H78FTOrVjIW1g4A8nDdbx8VV5Q==}
 
   '@hookform/resolvers@5.2.2':
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
@@ -514,6 +517,13 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@phosphor-icons/react@2.1.7':
+    resolution: {integrity: sha512-g2e2eVAn1XG2a+LI09QU3IORLhnFNAFkNbo2iwbX6NOKSLOwvEMmTa7CgOzEbgNWR47z8i8kwjdvYZ5fkGx1mQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>= 16.8'
+      react-dom: '>= 16.8'
 
   '@radix-ui/number@1.1.1':
     resolution: {integrity: sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g==}
@@ -2844,7 +2854,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource/plus-jakarta-sans@5.1.1': {}
+  '@fontsource/public-sans@5.1.1': {}
 
   '@hookform/resolvers@5.2.2(react-hook-form@7.62.0(react@19.2.4))':
     dependencies:
@@ -3027,6 +3037,11 @@ snapshots:
       fastq: 1.20.3
 
   '@nolyfill/is-core-module@1.0.39': {}
+
+  '@phosphor-icons/react@2.1.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   '@radix-ui/number@1.1.1': {}
 

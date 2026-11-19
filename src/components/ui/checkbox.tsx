@@ -4,7 +4,7 @@ import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import * as RadioPrimitive from "@radix-ui/react-radio-group";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export const Checkbox = React.forwardRef<
@@ -21,9 +21,9 @@ export const Checkbox = React.forwardRef<
   >
     <CheckboxPrimitive.Indicator>
       {props.checked === "indeterminate" ? (
-        <Minus className="size-3" strokeWidth={3} aria-hidden />
+        <Minus className="size-3" weight="bold" aria-hidden />
       ) : (
-        <Check className="size-3" strokeWidth={3} aria-hidden />
+        <Check className="size-3" weight="bold" aria-hidden />
       )}
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>

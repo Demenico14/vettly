@@ -1,7 +1,7 @@
 "use client";
 
 import { Toaster as SonnerToaster, toast as sonnerToast } from "sonner";
-import { CircleAlert, CircleCheck, Info, TriangleAlert } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert } from "@/components/icons";
 
 /** Mount once in the root layout. */
 export function Toaster() {

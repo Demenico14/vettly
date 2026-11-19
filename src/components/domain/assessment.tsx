@@ -1,4 +1,4 @@
-import { BadgeCheck, PenLine, Sparkles } from "lucide-react";
+import { BadgeCheck, PenLine, Sparkles } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/menu";
 import type { AssessmentProvenance } from "@/types";
@@ -22,7 +22,7 @@ const PROVENANCE: Record<AssessmentProvenance, { label: string; short: string; h
     label: "Adjusted by HR",
     short: "HR adjusted",
     hint: "A member of the HR team changed the AI suggestion. The original is kept in the audit log.",
-    cls: "border-primary-500/40 bg-primary-50 text-primary-700",
+    cls: "border-secondary-500/40 bg-secondary-50 text-secondary-700",
     Icon: PenLine,
   },
 };
@@ -51,7 +51,7 @@ export function ProvenanceTag({ provenance, compact }: { provenance: AssessmentP
 
 function band(score: number) {
   if (score >= 80) return { label: "Strong", bar: "bg-success-500", text: "text-success-700" };
-  if (score >= 60) return { label: "Partial", bar: "bg-primary-500", text: "text-primary-700" };
+  if (score >= 60) return { label: "Partial", bar: "bg-secondary-500", text: "text-secondary-700" };
   if (score >= 40) return { label: "Weak", bar: "bg-warning-500", text: "text-warning-700" };
   return { label: "Low", bar: "bg-danger-500", text: "text-danger-700" };
 }
@@ -88,8 +88,9 @@ export function MatchScore({
           <span
             className={cn(
               "absolute inset-y-0 left-0 rounded-full",
-              unreviewed ? "bg-[repeating-linear-gradient(-45deg,currentColor_0_3px,transparent_3px_5px)]" : b.bar,
-              unreviewed && b.text,
+              unreviewed
+                ? "bg-[repeating-linear-gradient(-45deg,currentColor_0_3px,transparent_3px_5px)] text-accent-500"
+                : b.bar,
             )}
             style={{ width: `${score}%` }}
           />

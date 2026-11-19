@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRightLeft, CalendarPlus, Copy, FileText, Inbox, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react";
+import { ArrowRightLeft, CalendarPlus, Copy, FileText, Inbox, MoreHorizontal, Pencil, Share2, Trash2 } from "@/components/icons";
 import {
   Alert,
   Avatar,

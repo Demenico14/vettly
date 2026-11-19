@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Hammer } from "lucide-react";
+import { ArrowRight, Hammer } from "@/components/icons";
 import { ALL_NAV_ITEMS } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

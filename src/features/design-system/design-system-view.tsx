@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download } from "lucide-react";
+import { Download } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
@@ -62,8 +62,8 @@ export function DesignSystemView() {
           description="Brand, tokens and the component library every Vettly module is built from. Everything on this page is interactive and uses illustrative mock data."
           meta={
             <>
-              <Badge tone="outline">v1.1 · Module 1</Badge>
-              <Badge tone="outline">Plus Jakarta Sans</Badge>
+              <Badge tone="outline">v2.0 · Granite & Msasa</Badge>
+              <Badge tone="outline">Public Sans</Badge>
               <Badge tone="outline">WCAG 2.2 AA</Badge>
             </>
           }

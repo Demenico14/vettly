@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, BellOff, CalendarCheck, FileStack, FileSignature, AtSign, Inbox, Info } from "lucide-react";
+import { Bell, BellOff, CalendarCheck, FileStack, FileSignature, AtSign, Inbox, Info } from "@/components/icons";
 import { services, MOCK_NOW } from "@/services";
 import type { AppNotification, NotificationKind } from "@/types";
 import { cn, timeAgo } from "@/lib/utils";
@@ -13,9 +13,9 @@ import { Segmented } from "@/components/ui/tabs";
 const KIND_ICON: Record<NotificationKind, { Icon: typeof Bell; cls: string }> = {
   application: { Icon: Inbox, cls: "bg-primary-50 text-primary-600" },
   processing: { Icon: FileStack, cls: "bg-secondary-50 text-secondary-700" },
-  interview: { Icon: CalendarCheck, cls: "bg-accent-50 text-accent-600" },
+  interview: { Icon: CalendarCheck, cls: "bg-secondary-50 text-secondary-600" },
   offer: { Icon: FileSignature, cls: "bg-success-50 text-success-600" },
-  mention: { Icon: AtSign, cls: "bg-warning-50 text-warning-700" },
+  mention: { Icon: AtSign, cls: "bg-ink-100 text-ink-700" },
   system: { Icon: Info, cls: "bg-ink-100 text-ink-600" },
 };
 
