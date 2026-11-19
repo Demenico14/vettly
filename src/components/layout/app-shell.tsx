@@ -70,7 +70,7 @@ function Header({
   const { organisation, switching } = useSession();
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center gap-2 bg-surface/95 px-3 backdrop-blur-sm supports-backdrop-filter:bg-surface/80 sm:px-5">
+    <header className="material-bar sticky top-0 z-30 flex h-12 items-center gap-2 px-3 shadow-[0_1px_0_0_rgb(27_36_32/0.06)] sm:px-5">
       <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={onOpenNav} aria-label="Open navigation">
         <MenuIcon className="size-5!" />
       </Button>

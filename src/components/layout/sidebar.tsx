@@ -21,7 +21,7 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className={cn(row, active && "bg-shell-raised font-medium text-shell-fg", collapsed && "justify-center px-0")}
+      className={cn(row, active && "bg-surface font-medium text-shell-fg shadow-xs", collapsed && "justify-center px-0")}
     >
       <item.icon
         weight={active ? "fill" : "regular"}
@@ -152,7 +152,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: { collapsed: bool
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-shell-line bg-shell transition-[width] duration-200 ease-(--ease-out-expo) lg:flex",
+        "material-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-shell-line transition-[width] duration-200 ease-(--ease-out-expo) lg:flex",
         collapsed ? "w-14" : "w-60",
       )}
     >

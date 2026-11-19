@@ -93,21 +93,21 @@
   --color-ink-50: #f7f7f4;
 
   /* Semantic surfaces */
-  /* Notion-like: one white page, faint hairlines, warm grey only where something is "raised". */
-  --color-canvas: #ffffff;
+  /* Apple-style grouped background: warm grey canvas, white platters on top. */
+  --color-canvas: #f3f3f1;
   --color-surface: #ffffff;
-  --color-surface-muted: #f9f9f8;
-  --color-line: #ededeb;
-  --color-line-strong: #dcdcd8;
+  --color-surface-muted: #f8f8f6;
+  --color-line: #e8e8e5;
+  --color-line-strong: #d6d6d2;
   --color-fg: #1b2420;
   --color-fg-muted: #505b55;
   --color-fg-subtle: #5f6963;
 
   /* Shell: bush-green sidebar */
-  /* Shell: light warm-grey sidebar */
-  --color-shell: #f8f8f7;
-  --color-shell-raised: #ececea;
-  --color-shell-line: #ededeb;
+  /* Shell: Notion-style source list on a translucent material (see .material-*). */
+  --color-shell: #ececea;
+  --color-shell-raised: #e0e0dd;
+  --color-shell-line: #dcdcd8;
   --color-shell-fg: #1b2420;
   --color-shell-fg-muted: #505b55;
 
@@ -115,12 +115,14 @@
   --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
   /* Elevation: offset + soft blur, tinted with ink. */
   --shadow-xs: 0 1px 1px 0 rgb(15 23 42 / 0.04);
   --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  /* Platter: hairline ring + soft contact shadow, for white panels on the grey canvas. */
+  --shadow-platter: 0 0 0 1px rgb(27 36 32 / 0.05), 0 1px 2px 0 rgb(27 36 32 / 0.05), 0 2px 8px -2px rgb(27 36 32 / 0.05);
   --shadow-md: 0 4px 10px -2px rgb(15 23 42 / 0.08), 0 1px 3px -1px rgb(15 23 42 / 0.05);
   --shadow-lg: 0 12px 28px -8px rgb(15 23 42 / 0.18), 0 2px 6px -2px rgb(15 23 42 / 0.06);
 
@@ -208,6 +210,36 @@
       animation-duration: 1ms !important;
       transition-duration: 1ms !important;
     }
+  }
+}
+
+/* Translucent materials (Apple): structural chrome blurs the content scrolling beneath it. */
+@utility material-bar {
+  background: rgb(243 243 241 / 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+@utility material-sidebar {
+  background: rgb(236 236 234 / 0.82);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .material-bar {
+    background: rgb(243 243 241);
+    backdrop-filter: none;
+  }
+  .material-sidebar {
+    background: rgb(236 236 234);
+    backdrop-filter: none;
+  }
+}
+
+/* Pressed feedback on pointer-down, as on Apple platforms. */
+@utility pressable {
+  transition: transform 100ms ease-out;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
   }
 }
 

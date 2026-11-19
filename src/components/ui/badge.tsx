@@ -3,11 +3,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const badgeVariants = cva(
-  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm font-semibold [&_svg]:size-3 [&_svg]:shrink-0",
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full font-semibold [&_svg]:size-3 [&_svg]:shrink-0",
   {
     variants: {
       tone: {
-        neutral: "bg-ink-100 text-ink-700",
+        neutral: "bg-ink-200/70 text-ink-700",
         primary: "bg-primary-50 text-primary-700",
         secondary: "bg-secondary-50 text-secondary-700",
         accent: "bg-accent-50 text-accent-700",

@@ -165,7 +165,7 @@ export function DashboardView() {
         />
       }
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         {error && (
           <Alert
             tone="danger"
@@ -185,7 +185,7 @@ export function DashboardView() {
           <>
             <KpiStrip kpis={show?.kpis} period={period} loading={busy} />
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
               <Funnel
                 steps={funnel ?? undefined}
                 loading={funnelLoading}
@@ -198,12 +198,12 @@ export function DashboardView() {
               <AttentionPanel items={show?.attention} loading={busy} />
             </div>
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
               <VacanciesPanel vacancies={show?.vacancies} loading={busy} />
               <InterviewsPanel interviews={show?.interviews} loading={busy} />
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:grid-cols-3">
               <TestsPanel tests={show?.tests} loading={busy} />
               <ApplicationsPanel applications={show?.applications} loading={busy} />
               <div className="lg:col-span-2 2xl:col-span-1">

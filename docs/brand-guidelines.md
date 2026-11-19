@@ -72,7 +72,7 @@ Next.js also serves `src/app/favicon.ico`, `src/app/icon.svg` and `src/app/apple
 | Granite 900 | `#1B2420` | `ink-900` / `fg` | Body text |
 | Granite 600 | `#505B55` | `ink-600` / `fg-muted` | Secondary text |
 | Hairline | `#EDEDEB` | `line` | Borders and dividers |
-| White | `#FFFFFF` | `canvas` | Page background |
+| Grouped background | `#F3F3F1` | `canvas` | Page background behind white panels |
 
 Rules:
 
@@ -110,7 +110,7 @@ Import icons only from `@/components/icons`, which maps stable names (`Search`, 
 - Radius: 3 (checkbox) · 4 (badge, tag, menu item) · 6 (button, input) · 8 (panel, table) · 10 (modal) · full (avatars only).
 - One hairline weight (1 px) for every border and divider.
 - Panels are flat. Shadows only on floating layers (menus, modals, toasts).
-- Notion-like layout: one white page, a large title set directly on it (24–36 px), a slim top bar with a breadcrumb, and generous space between sections.
+- Layout: Notion-style navigation (light sidebar, breadcrumb top bar, search) around Apple-style content: a warm grey grouped background with white rounded panels, a large page title (28–34 px), translucent top bar and sidebar, and pressed feedback on buttons.
 
 ## 6. Components and conventions
 
@@ -119,7 +119,7 @@ Components live in `src/components/ui` (generic) and `src/components/domain` (re
 - **Buttons:** one primary per region. In footers, secondary left, primary right. Destructive actions confirm in a modal and name the object ("Delete vacancy").
 - **Forms:** label above, hint below, error replaces hint and says how to fix it. Required fields get an asterisk; optional fields say "Optional".
 - **Tables:** compact 40 px rows. Sortable headers announce `aria-sort`. Selecting rows shows a dark bulk-action bar. Every table designs loading, empty (with clear filters) and error (with retry).
-- **Status chips vs tags:** status is a soft grey chip with a coloured dot and label; tags carry content such as skills.
+- **Status pills vs tags:** status is a pill tinted in its status colour with a dot and the word; square tags carry content such as skills.
 - **AI provenance:** every AI output carries a `ProvenanceTag`.
   - Unreviewed: dashed copper, "AI suggestion · illustrative". Score bars hatched in copper.
   - Confirmed: solid leaf green, "Confirmed by HR".

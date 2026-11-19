@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, KanbanSquare, Minus } from "@/components/icons";
+import { ArrowDown, ArrowUp, Briefcase, CalendarCheck, ClipboardList, Clock, Inbox, KanbanSquare, Minus, type IconComponent } from "@/components/icons";
 import { Card, CardHeader, EmptyState, Select, Skeleton } from "@/components/ui";
 import { STAGE_META } from "@/components/domain/status-badge";
 import type { DashboardPeriod, FunnelStep, Kpi, VacancySummary } from "@/types";
 import { cn } from "@/lib/utils";
-import { HISTORY_LABEL, PREVIOUS_LABEL } from "@/mocks/dashboard";
+import { PREVIOUS_LABEL } from "@/mocks/dashboard";
 
 const nf = new Intl.NumberFormat("en-GB");
 
@@ -38,26 +38,31 @@ function Delta({ kpi, period }: { kpi: Kpi; period: DashboardPeriod }) {
   );
 }
 
-/** Eight thin bars of recent history. The current bucket is darker; hover shows each value. */
+/** Each statistic has a category colour and icon, like a Health summary tile. */
+const KPI_STYLE: Record<string, { Icon: IconComponent; label: string; tile: string; bar: string; barMuted: string }> = {
+  open: { Icon: Briefcase, label: "text-ink-700", tile: "bg-ink-200/70 text-ink-700", bar: "bg-ink-600", barMuted: "bg-ink-200" },
+  applications: { Icon: Inbox, label: "text-secondary-700", tile: "bg-secondary-100 text-secondary-700", bar: "bg-secondary-500", barMuted: "bg-secondary-100" },
+  shortlisted: { Icon: KanbanSquare, label: "text-primary-700", tile: "bg-primary-100 text-primary-700", bar: "bg-primary-500", barMuted: "bg-primary-100" },
+  tests: { Icon: ClipboardList, label: "text-warning-700", tile: "bg-warning-100 text-warning-700", bar: "bg-warning-500", barMuted: "bg-warning-100" },
+  interviews: { Icon: CalendarCheck, label: "text-success-700", tile: "bg-success-100 text-success-700", bar: "bg-success-500", barMuted: "bg-success-100" },
+  tth: { Icon: Clock, label: "text-ink-700", tile: "bg-ink-200/70 text-ink-700", bar: "bg-ink-600", barMuted: "bg-ink-200" },
+};
+const FALLBACK = KPI_STYLE.open!;
+
+/** Eight thin bars of recent history in the tile's colour. The current bucket is solid; hover shows each value. */
 function History({ kpi }: { kpi: Kpi }) {
   const [hover, setHover] = React.useState<number | null>(null);
+  const st = KPI_STYLE[kpi.id] ?? FALLBACK;
   const max = Math.max(1, ...kpi.history);
   const last = kpi.history.length - 1;
   return (
-    <div className="relative mt-3" onMouseLeave={() => setHover(null)}>
-      <div className="flex h-7 max-w-40 items-end gap-[3px]" role="img" aria-label={`${kpi.label}, ${kpi.historyLabel}: ${kpi.history.join(", ")}`}>
+    <div className="relative" onMouseLeave={() => setHover(null)}>
+      <div className="flex h-9 items-end gap-[3px]" role="img" aria-label={`${kpi.label}, ${kpi.historyLabel}: ${kpi.history.join(", ")}`}>
         {kpi.history.map((v, i) => (
-          <span
-            key={i}
-            onMouseEnter={() => setHover(i)}
-            className="flex h-full flex-1 items-end"
-          >
+          <span key={i} onMouseEnter={() => setHover(i)} className="flex h-full flex-1 items-end">
             <span
-              className={cn(
-                "w-full rounded-t-[2px] transition-colors",
-                i === last ? "bg-primary-500" : hover === i ? "bg-primary-300" : "bg-primary-100",
-              )}
-              style={{ height: `${Math.max(6, (v / max) * 100)}%` }}
+              className={cn("w-full rounded-t-[3px] transition-colors", i === last || hover === i ? st.bar : st.barMuted)}
+              style={{ height: `${Math.max(8, (v / max) * 100)}%` }}
             />
           </span>
         ))}
@@ -77,34 +82,40 @@ function History({ kpi }: { kpi: Kpi }) {
 
 export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: DashboardPeriod; loading: boolean }) {
   return (
-    <section aria-label="Key statistics" className="-mx-4 overflow-hidden bg-line">
-      <div className="grid grid-cols-2 gap-px md:grid-cols-3 xl:grid-cols-6">
-        {loading || !kpis
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2 bg-surface px-4 py-3">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-7 w-16" />
-                <Skeleton className="h-3 w-32" />
-                <Skeleton className="mt-2 h-8 w-full" />
-              </div>
-            ))
-          : kpis.map((k) => (
+    <section aria-label="Key statistics" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      {loading || !kpis
+        ? Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-platter">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ))
+        : kpis.map((k) => {
+            const st = KPI_STYLE[k.id] ?? FALLBACK;
+            return (
               <Link
                 key={k.id}
                 href={k.href}
-                className="group flex flex-col rounded-sm bg-surface px-4 py-3 transition-colors hover:bg-surface-muted"
+                className="pressable group flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-platter transition-shadow hover:shadow-md"
               >
-                <p className="text-xs font-medium text-fg-muted group-hover:text-fg">{k.label}</p>
-                <p className="mt-1.5 text-2xl leading-none font-bold tracking-[-0.01em] text-fg tabular">
-                  {nf.format(k.value)}
-                  {k.unit && <span className="ml-1 text-sm font-semibold text-fg-subtle">{k.unit}</span>}
-                </p>
-                <Delta kpi={k} period={period} />
+                <span className="flex items-center gap-2">
+                  <span className={cn("grid size-6 shrink-0 place-items-center rounded-md", st.tile)}>
+                    <st.Icon className="size-3.5" weight="fill" aria-hidden />
+                  </span>
+                  <span className={cn("min-w-0 text-[0.8125rem] leading-tight font-semibold", st.label)}>{k.label}</span>
+                </span>
+                <span>
+                  <span className="block text-[1.75rem] leading-none font-bold tracking-[-0.02em] text-fg tabular">
+                    {nf.format(k.value)}
+                    {k.unit && <span className="ml-1 text-sm font-semibold tracking-normal text-fg-subtle">{k.unit}</span>}
+                  </span>
+                  <Delta kpi={k} period={period} />
+                </span>
                 <History kpi={k} />
-                <p className="mt-1 text-2xs text-fg-subtle">{HISTORY_LABEL[period]}</p>
               </Link>
-            ))}
-      </div>
+            );
+          })}
     </section>
   );
 }
@@ -197,7 +208,7 @@ export function Funnel({
                       <span
                         className={cn(
                           "absolute inset-y-0 left-0 rounded-r-[4px] transition-[width,background-color] duration-500 ease-(--ease-out-expo)",
-                          hover === i ? "bg-primary-400" : "bg-primary-200",
+                          hover === i ? "bg-primary-600" : "bg-primary-500",
                         )}
                         style={{ width: `${Math.max(width, s.count ? 1.5 : 0)}%` }}
                       />

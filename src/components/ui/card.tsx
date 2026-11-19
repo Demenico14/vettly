@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /** A bordered panel. Use for grouped content, not as the default container for every element. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-lg border border-line bg-surface", className)} {...props} />;
+  return <div className={cn("rounded-lg bg-surface shadow-platter", className)} {...props} />;
 }
 
 export function CardHeader({
