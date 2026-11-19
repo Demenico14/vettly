@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Building2, ChevronDown, CircleHelp, Eye, Keyboard, LogOut, Settings, UserRound } from "@/components/icons";
+import { Building2, ChevronDown, CircleHelp, Eye, Keyboard, LogOut, Settings, UserRound, Sparkles } from "@/components/icons";
 import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -94,6 +94,10 @@ export function UserMenu({ onShowShortcuts }: { onShowShortcuts: () => void }) {
             <Settings />
             Account settings
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push("/welcome")}>
+            <Sparkles />
+            Getting started
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={onShowShortcuts} shortcut="?">
             <Keyboard />
             Keyboard shortcuts
@@ -135,11 +139,12 @@ export function UserMenu({ onShowShortcuts }: { onShowShortcuts: () => void }) {
         open={confirmSignOut}
         onOpenChange={setConfirmSignOut}
         title="Sign out of Vettly?"
-        description="Unsaved changes on this page will be lost. Sign-in screens arrive in Module 2, so this prototype keeps you on the current page."
+        description="Unsaved changes on this page will be lost."
         confirmLabel="Sign out"
         onConfirm={async () => {
           await services.session.signOut();
-          toast.success("Signed out (simulated)", "Authentication is built in Module 2.");
+          toast.success("Signed out");
+          router.push("/login");
         }}
       />
     </>

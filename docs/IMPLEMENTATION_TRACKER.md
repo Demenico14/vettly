@@ -6,8 +6,8 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 
 | # | Module | Status | Notes |
 |---|---|---|---|
-| 1 | Design system & application shell | **In review** | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
-| 2 | Authentication & onboarding | Not started | Includes candidate test-access links |
+| 1 | Design system & application shell | **Approved** (19 Nov) | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
+| 2 | Authentication & onboarding | **In review** | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access |
 | 3 | HR dashboard | Not started | `/` will redirect here |
 | 4 | Vacancy management | Not started | Includes per-vacancy assessment plan |
 | 5 | Candidate management | Not started | Includes Assessments tab on profile |
@@ -38,10 +38,35 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 - [x] Corporate refinement (v1.1)
 - [x] Full redesign to Granite & Msasa (v2.0): new logo, palette, Public Sans, Phosphor icons
 - [x] Roadmap restructured for psychometric assessments: Assessments nav item (/assessments), Assessment pipeline stage, test types and invitation status types, "Send psychometric test" in Create menu, command palette and table bulk actions, assessment notifications
-- [ ] User review and approval
+- [x] User review and approval (19 Nov 2026)
+
+## Module 2 checklist
+
+Screens and routes:
+- [x] Sign in `/login`: email + password, show/hide, keep me signed in, Google and Microsoft single sign-on (simulated), failed and locked-account states
+- [x] Create account `/register`: name, work email (personal-address hint), password strength meter with four rules, confirm, terms consent, "email already registered" state
+- [x] Verify email `/verify-email`: 6-digit code with paste/autofill, wrong-code state, resend countdown, change email
+- [x] Forgot password `/forgot-password`: request link, neutral "check your inbox" confirmation that never reveals whether an account exists
+- [x] Reset password `/reset-password?token=…`: checking, valid, expired, invalid and success states
+- [x] Accept invitation `/invite/[token]`: organisation, inviter and role summary; set name and password; expired and invalid states
+- [x] Create organisation `/onboarding/organisation`: name, workspace address with live availability check, industry, size, country, city
+- [x] Organisation setup `/onboarding/setup`: four-step wizard with stepper (branding with logo upload, colour and live candidate preview; currency, time zone and reorderable pipeline stages with fixed final "Hired"; psychometric defaults; team invitations with validation and skip)
+- [x] Workspace onboarding `/welcome`: getting-started checklist with progress, hide and reset; "how a vacancy moves" panel
+- [x] Candidate test access `/t/[token]`: employer-branded, mobile-first; invitation → confirm identity by emailed code → consent → ready; extra-time accommodation; completed, expired and invalid states
+
+Supporting work:
+- [x] Components: PasswordInput, PasswordStrength, OtpInput, Stepper, AuthLayout, SsoButtons, PrototypeHint
+- [x] Mock auth and candidate-access services (`src/services/auth.ts`), mock data and prototype rules (`src/mocks/auth.ts`)
+- [x] Root `/` opens sign-in; Sign out goes to `/login`; "Getting started" in the profile menu
+- [x] Tested in browser at 1440 and 375 wide; typecheck, lint, detector and production build pass
+
+Prototype rules (shown on each screen under "Prototype: how to try each state"):
+- Any email + 8-character password signs in; "wrong" in the password fails; `locked@msasafinancial.example` is locked; `tendai.moyo@msasafinancial.example` goes to the app, other emails start onboarding.
+- Verification code `246810`. Reset tokens `valid-reset`, `expired-reset`. Invitations `msasa-kudzai` (valid), `matobo-expired`.
+- Candidate links `tafadzwa-fin`, `nyasha-data` (extra time), `farai-done`, `simba-expired`.
 
 ## Known gaps carried forward
 
 - Dark mode not built; the light granite workspace with bush-green shell is the chosen direction. Revisit if users ask.
 - No automated tests yet; add component tests with Module 2 forms.
-- Sign-out is simulated until Module 2.
+- No real session yet: the app shell does not gate routes behind sign-in, and shows the mock Msasa Financial user after onboarding. Real sessions arrive at backend integration.

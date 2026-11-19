@@ -5,6 +5,18 @@
 export type { Icon as IconComponent } from "@phosphor-icons/react";
 export {
   ArrowDown,
+  ArrowLeft,
+  Circle,
+  Clock,
+  DeviceMobile,
+  EnvelopeSimple as Mail,
+  EyeSlash as EyeOff,
+  GoogleLogo,
+  LockSimple as Lock,
+  PaintBrush as Paintbrush,
+  SlidersHorizontal,
+  Timer,
+  WindowsLogo,
   ArrowRight,
   ArrowsLeftRight as ArrowRightLeft,
   ArrowUp,

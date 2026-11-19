@@ -5,6 +5,9 @@
  */
 import type { AppNotification, CandidateSummary, Organisation, User } from "@/types";
 import * as mock from "@/mocks/data";
+import { mockAuth, mockCandidateAccess } from "./auth";
+
+export type { AuthService, CandidateAccessService } from "./auth";
 
 export interface SessionService {
   getCurrentUser(): Promise<User>;
@@ -111,6 +114,8 @@ const mockCandidates: CandidateService = {
 };
 
 export const services = {
+  auth: mockAuth,
+  candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,
   search: mockSearch,

@@ -74,3 +74,81 @@ export interface CandidateSummary {
   appliedAt: string;
   topSkills: string[];
 }
+
+/* ---------- Authentication & onboarding (Module 2) ---------- */
+
+export interface Session {
+  user: User;
+  organisationId: string | null;
+  /** True until the first organisation's setup wizard is finished. */
+  needsOnboarding: boolean;
+}
+
+export type AuthErrorCode =
+  | "invalid_credentials"
+  | "account_locked"
+  | "email_taken"
+  | "invalid_code"
+  | "code_expired"
+  | "token_invalid"
+  | "token_expired"
+  | "network";
+
+export class AuthError extends Error {
+  constructor(
+    public code: AuthErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
+export interface TeamInvitation {
+  token: string;
+  organisationName: string;
+  organisationCity: string;
+  invitedBy: string;
+  invitedByTitle: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  status: "pending" | "accepted" | "expired" | "revoked";
+}
+
+export type OrganisationSize = "1-50" | "51-200" | "201-1000" | "1000+";
+
+export interface OrganisationDraft {
+  name: string;
+  industry: string;
+  size: OrganisationSize;
+  country: string;
+  city: string;
+  slug: string;
+}
+
+export interface OrganisationSetup {
+  brandColour: string;
+  logoFileName: string | null;
+  currency: "USD" | "ZiG" | "ZAR" | "BWP" | "ZMW";
+  timezone: string;
+  stages: string[];
+  defaultTestDeadlineDays: number;
+  sendTestsOnShortlist: boolean;
+  defaultBattery: string | null;
+  invites: { email: string; role: Role }[];
+}
+
+/** What a candidate sees when opening a psychometric test link (Module 9 builds the test itself). */
+export interface CandidateTestAccess {
+  token: string;
+  status: "ready" | "in_progress" | "completed" | "expired";
+  candidateName: string;
+  candidateEmailMasked: string;
+  organisationName: string;
+  organisationColour: string;
+  vacancyTitle: string;
+  deadline: string;
+  tests: { name: string; type: PsychometricTestType; minutes: number; timed: boolean }[];
+  extraTimePercent: number;
+}

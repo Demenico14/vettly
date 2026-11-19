@@ -67,6 +67,11 @@ export const NAV: NavGroup[] = [
 
 export const ALL_NAV_ITEMS = NAV.flatMap((g) => g.items);
 
-export function findNavItem(pathname: string) {
-  return ALL_NAV_ITEMS.find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`));
+const EXTRA_TITLES: Record<string, string> = { "/welcome": "Getting started" };
+
+export function findNavItem(pathname: string): Pick<NavItem, "label"> | undefined {
+  const item = ALL_NAV_ITEMS.find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`));
+  if (item) return item;
+  const extra = EXTRA_TITLES[pathname];
+  return extra ? { label: extra } : undefined;
 }
