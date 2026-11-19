@@ -306,7 +306,7 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
               <span className="grid size-9 shrink-0 place-items-center rounded-md bg-danger-50 text-danger-600">
                 <FilePdf className="size-5" aria-hidden />
               </span>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-48 flex-1">
                 <p className="truncate text-sm font-semibold text-fg">{d.name}</p>
                 <p className="text-xs text-fg-subtle">
                   {d.kind} · {d.pages} {d.pages === 1 ? "page" : "pages"} · {d.sizeKb} KB · added {timeAgo(d.uploadedAt, NOW)}

@@ -119,7 +119,7 @@ export function CandidateProfileView({ id }: { id: string }) {
       header={
         <div>
           <BackLink />
-          <div className="mt-4 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div className="mt-4 flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="flex min-w-0 items-start gap-4">
               <Avatar name={c.name} size="lg" />
               <div className="min-w-0">
@@ -170,7 +170,7 @@ export function CandidateProfileView({ id }: { id: string }) {
         </div>
       }
     >
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
           <Tabs defaultValue="profile">
             <TabsList>
@@ -213,7 +213,7 @@ export function CandidateProfileView({ id }: { id: string }) {
           </Tabs>
         </div>
 
-        <aside className="flex flex-col gap-5 lg:pt-[3.75rem]">
+        <aside className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:flex xl:flex-col xl:pt-[3.75rem]">
           <Card>
             <CardHeader title="Contact" />
             <ul className="flex flex-col px-5 pb-4 text-sm">

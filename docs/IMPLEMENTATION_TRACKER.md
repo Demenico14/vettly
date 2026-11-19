@@ -10,7 +10,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | 2 | Authentication & onboarding | **Approved** (19 Nov) | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access; photo sign-in redesign |
 | 3 | HR dashboard | **Approved** (19 Nov) | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
 | 4 | Vacancy management | **Approved** (19 Nov) | List, details, create/edit editor with simulated writing assistant, requirements, weights, tests, publishing, status changes |
-| 5 | Candidate management | **In review** | Directory with advanced filters; full profiles with applications, tests, documents, notes. Phone layout and document upload/preview not yet browser-tested |
+| 5 | Candidate management | **In review** | Directory with advanced filters; full profiles with applications, tests, documents, notes. Verified in browser at 375px, ~1070px and desktop, including upload validation and CV preview |
 | 6 | CV upload & processing | Not started | |
 | 7 | AI recruitment intelligence | Not started | Optional test-score weighting |
 | 8 | Recruitment pipeline | Not started | Assessment column |

@@ -311,12 +311,12 @@ export function CandidateDirectory() {
                       <Link href={`/candidates/${c.id}`} className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-b-0 hover:bg-surface-muted">
                         <Avatar name={c.name} size="sm" />
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-2">
-                            <span className="truncate text-sm font-semibold text-fg">{c.name}</span>
-                            <StageBadge stage={primary(c).stage} size="sm" />
-                          </span>
+                          <span className="block truncate text-sm font-semibold text-fg">{c.name}</span>
                           <span className="block truncate text-xs text-fg-subtle">
                             {primary(c).vacancyTitle} · {c.location}
+                          </span>
+                          <span className="mt-1.5 block">
+                            <StageBadge stage={primary(c).stage} size="sm" />
                           </span>
                         </span>
                         <MatchScore score={primary(c).matchScore} provenance={primary(c).provenance} size="sm" />
