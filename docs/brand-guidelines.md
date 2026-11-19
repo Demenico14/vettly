@@ -61,7 +61,8 @@ Next.js also serves `src/app/favicon.ico`, `src/app/icon.svg` and `src/app/apple
 
 | Role | Hex | Token | Use |
 |---|---|---|---|
-| Bush green | `#163A2E` | `shell` | Sidebar, dark surfaces, app icon |
+| Bush green | `#163A2E` | `brand-bush` | App icon, photo scrims, dark logo backgrounds |
+| Sidebar | `#F8F8F7` | `shell` | Light sidebar; `shell-raised` `#ECECEA` for hover and active rows |
 | Primary | `#16624F` | `primary-600` | Buttons, links, selection, focus |
 | Msasa copper | `#C2602F` | `accent-500` | **Unreviewed AI output and items needing attention. Nothing else.** |
 | Leaf green | `#3E8A47` | `success-500` | Confirmed, hired, complete |
@@ -70,8 +71,8 @@ Next.js also serves `src/app/favicon.ico`, `src/app/icon.svg` and `src/app/apple
 | Red | `#B42318` | `danger-600` | Failed, rejected, destructive |
 | Granite 900 | `#1B2420` | `ink-900` / `fg` | Body text |
 | Granite 600 | `#505B55` | `ink-600` / `fg-muted` | Secondary text |
-| Granite 200 | `#DFDFDA` | `line` | Hairlines and borders |
-| Granite 100 | `#F2F2EF` | `canvas` | Page background |
+| Hairline | `#EDEDEB` | `line` | Borders and dividers |
+| White | `#FFFFFF` | `canvas` | Page background |
 
 Rules:
 
@@ -109,7 +110,7 @@ Import icons only from `@/components/icons`, which maps stable names (`Search`, 
 - Radius: 3 (checkbox) · 4 (badge, tag, menu item) · 6 (button, input) · 8 (panel, table) · 10 (modal) · full (avatars only).
 - One hairline weight (1 px) for every border and divider.
 - Panels are flat. Shadows only on floating layers (menus, modals, toasts).
-- Every page opens with a white title band (breadcrumb, title, description, actions) above the granite canvas.
+- Notion-like layout: one white page, a large title set directly on it (24–36 px), a slim top bar with a breadcrumb, and generous space between sections.
 
 ## 6. Components and conventions
 
@@ -118,13 +119,13 @@ Components live in `src/components/ui` (generic) and `src/components/domain` (re
 - **Buttons:** one primary per region. In footers, secondary left, primary right. Destructive actions confirm in a modal and name the object ("Delete vacancy").
 - **Forms:** label above, hint below, error replaces hint and says how to fix it. Required fields get an asterisk; optional fields say "Optional".
 - **Tables:** compact 40 px rows. Sortable headers announce `aria-sort`. Selecting rows shows a dark bulk-action bar. Every table designs loading, empty (with clear filters) and error (with retry).
-- **Status chips vs tags:** status is a bordered white chip with a coloured dot and label; tinted tags carry content such as skills.
+- **Status chips vs tags:** status is a soft grey chip with a coloured dot and label; tags carry content such as skills.
 - **AI provenance:** every AI output carries a `ProvenanceTag`.
   - Unreviewed: dashed copper, "AI suggestion · illustrative". Score bars hatched in copper.
   - Confirmed: solid leaf green, "Confirmed by HR".
   - Changed: slate blue, "Adjusted by HR".
 - **Illustrative data:** mock figures show `IllustrativeNotice` until real data is connected.
-- **Sidebar:** bush green. The active item gets a light tint, white text and a filled green icon.
+- **Sidebar:** light warm grey with the workspace switcher, Search and Getting started at the top. The active item gets a grey highlight and a filled green icon.
 - **Overlays:** modals for protected decisions, side panels for detail next to a list, dropdowns for row actions, toasts for completed work (with Undo when reversible).
 - **Shortcuts:** `⌘K` or `/` search, `?` shortcuts, `[` collapse sidebar.
 

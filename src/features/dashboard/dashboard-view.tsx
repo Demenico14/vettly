@@ -120,16 +120,16 @@ export function DashboardView() {
           }
           actions={
             <>
-              <div className="hidden items-center gap-2 xl:flex">
-                <Button variant="secondary" onClick={actions.upload}>
+              <div className="hidden items-center gap-1 xl:flex">
+                <Button variant="ghost" onClick={actions.upload}>
                   <FileUp />
                   Upload CVs
                 </Button>
-                <Button variant="secondary" onClick={actions.tests}>
+                <Button variant="ghost" onClick={actions.tests}>
                   <ClipboardList />
                   Send tests
                 </Button>
-                <Button variant="secondary" onClick={actions.interview}>
+                <Button variant="ghost" onClick={actions.interview}>
                   <CalendarPlus />
                   Schedule interview
                 </Button>
@@ -140,7 +140,7 @@ export function DashboardView() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" className="xl:hidden">
+                  <Button variant="ghost" className="xl:hidden">
                     More actions
                     <ChevronDown />
                   </Button>

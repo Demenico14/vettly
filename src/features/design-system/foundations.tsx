@@ -7,9 +7,9 @@ import { DSSection, Specimen } from "./specimen";
 
 const LOGOS = [
   { file: "vettly-logo-horizontal-light.svg", label: "Horizontal · light", bg: "bg-surface", w: "w-44" },
-  { file: "vettly-logo-horizontal-dark.svg", label: "Horizontal · dark", bg: "bg-shell", w: "w-44" },
+  { file: "vettly-logo-horizontal-dark.svg", label: "Horizontal · dark", bg: "bg-brand-bush", w: "w-44" },
   { file: "vettly-logo-stacked-light.svg", label: "Stacked · light", bg: "bg-surface", w: "w-24" },
-  { file: "vettly-logo-stacked-dark.svg", label: "Stacked · dark", bg: "bg-shell", w: "w-24" },
+  { file: "vettly-logo-stacked-dark.svg", label: "Stacked · dark", bg: "bg-brand-bush", w: "w-24" },
   { file: "vettly-symbol.svg", label: "Symbol", bg: "bg-surface", w: "w-14" },
   { file: "vettly-app-icon.svg", label: "App icon", bg: "bg-ink-100", w: "w-14" },
   { file: "vettly-logo-horizontal-mono-dark.svg", label: "Mono · ink", bg: "bg-surface", w: "w-44" },
@@ -70,7 +70,7 @@ export function BrandSection() {
 type Swatch = { name: string; hex: string; token: string; role: string; dark?: boolean };
 
 const BRAND_SWATCHES: Swatch[] = [
-  { name: "Bush green", hex: "#163A2E", token: "shell", role: "Sidebar and dark surfaces", dark: true },
+  { name: "Bush green", hex: "#163A2E", token: "brand-bush", role: "App icon, photo scrims, dark logo", dark: true },
   { name: "Primary", hex: "#16624F", token: "primary-600", role: "Buttons, links, selection", dark: true },
   { name: "Msasa copper", hex: "#C2602F", token: "accent-500", role: "Unreviewed AI and attention only", dark: true },
   { name: "Leaf green", hex: "#3E8A47", token: "success-500", role: "Confirmed, hired, complete", dark: true },
@@ -83,8 +83,8 @@ const NEUTRALS: Swatch[] = [
   { name: "Granite 900", hex: "#1B2420", token: "ink-900", role: "Body text", dark: true },
   { name: "Granite 600", hex: "#505B55", token: "ink-600", role: "Secondary text", dark: true },
   { name: "Granite 500", hex: "#67716B", token: "ink-500", role: "Subtle text, icons", dark: true },
-  { name: "Granite 200", hex: "#DFDFDA", token: "line", role: "Hairlines and borders" },
-  { name: "Granite 100", hex: "#F2F2EF", token: "canvas", role: "Page canvas" },
+  { name: "Hairline", hex: "#EDEDEB", token: "line", role: "Borders and dividers" },
+  { name: "Sidebar", hex: "#F8F8F7", token: "shell", role: "Sidebar and raised rows" },
 ];
 
 function SwatchRow({ swatches }: { swatches: Swatch[] }) {

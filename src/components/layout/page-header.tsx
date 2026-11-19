@@ -1,11 +1,11 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const INNER = "mx-auto w-full max-w-[90rem] px-4 sm:px-6 lg:px-8";
+const INNER = "mx-auto w-full max-w-[84rem] px-4 sm:px-8 lg:px-12";
 
 /**
- * Page frame: an optional white title band across the top, then the content on the grey canvas.
- * Pass the PageHeader as `header` so it spans the full width.
+ * Page frame, Notion style: the title sits directly on the white page with generous space above,
+ * then the content. Pass the PageHeader as `header`.
  */
 export function PageContainer({
   header,
@@ -18,11 +18,7 @@ export function PageContainer({
 }) {
   return (
     <>
-      {header && (
-        <div className="border-b border-line bg-surface">
-          <div className={cn(INNER, "py-5 lg:py-6")}>{header}</div>
-        </div>
-      )}
+      {header && <div className={cn(INNER, "pt-8 pb-2 lg:pt-14")}>{header}</div>}
       <div className={cn(INNER, "py-6 lg:py-8", className)}>{children}</div>
     </>
   );
@@ -47,9 +43,9 @@ export function PageHeader({
     <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0">
         {breadcrumb && <div className="mb-1.5 text-xs text-fg-subtle">{breadcrumb}</div>}
-        <h1 className="text-2xl font-bold tracking-[-0.015em] text-fg">{title}</h1>
-        {description && <p className="mt-1 max-w-2xl text-sm text-fg-muted">{description}</p>}
-        {meta && <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div>}
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-fg sm:text-3xl">{title}</h1>
+        {description && <p className="mt-2 max-w-2xl text-base text-fg-muted">{description}</p>}
+        {meta && <div className="mt-5 flex flex-wrap items-center gap-2">{meta}</div>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </div>

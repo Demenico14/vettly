@@ -55,7 +55,7 @@ function History({ kpi }: { kpi: Kpi }) {
             <span
               className={cn(
                 "w-full rounded-t-[2px] transition-colors",
-                i === last ? "bg-primary-600" : hover === i ? "bg-primary-400" : "bg-primary-200",
+                i === last ? "bg-primary-500" : hover === i ? "bg-primary-300" : "bg-primary-100",
               )}
               style={{ height: `${Math.max(6, (v / max) * 100)}%` }}
             />
@@ -77,11 +77,11 @@ function History({ kpi }: { kpi: Kpi }) {
 
 export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: DashboardPeriod; loading: boolean }) {
   return (
-    <section aria-label="Key statistics" className="overflow-hidden rounded-lg border border-line bg-line">
+    <section aria-label="Key statistics" className="-mx-4 overflow-hidden bg-line">
       <div className="grid grid-cols-2 gap-px md:grid-cols-3 xl:grid-cols-6">
         {loading || !kpis
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2 bg-surface p-4">
+              <div key={i} className="flex flex-col gap-2 bg-surface px-4 py-3">
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="h-7 w-16" />
                 <Skeleton className="h-3 w-32" />
@@ -92,7 +92,7 @@ export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: Dash
               <Link
                 key={k.id}
                 href={k.href}
-                className="group flex flex-col bg-surface p-4 transition-colors hover:bg-surface-muted"
+                className="group flex flex-col rounded-sm bg-surface px-4 py-3 transition-colors hover:bg-surface-muted"
               >
                 <p className="text-xs font-medium text-fg-muted group-hover:text-fg">{k.label}</p>
                 <p className="mt-1.5 text-2xl leading-none font-bold tracking-[-0.01em] text-fg tabular">
@@ -197,8 +197,7 @@ export function Funnel({
                       <span
                         className={cn(
                           "absolute inset-y-0 left-0 rounded-r-[4px] transition-[width,background-color] duration-500 ease-(--ease-out-expo)",
-                          s.stage === "assessment" ? "bg-primary-500" : "bg-primary-600",
-                          hover !== null && hover !== i && "opacity-60",
+                          hover === i ? "bg-primary-400" : "bg-primary-200",
                         )}
                         style={{ width: `${Math.max(width, s.count ? 1.5 : 0)}%` }}
                       />

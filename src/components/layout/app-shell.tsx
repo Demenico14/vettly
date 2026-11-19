@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, Building2, FileUp, Menu as MenuIcon, Plus, Search, UserPlus, ClipboardList } from "@/components/icons";
+import { Briefcase, FileUp, Menu as MenuIcon, Plus, Search, UserPlus, ClipboardList } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/feedback";
 import { Drawer, Modal, ModalContent } from "@/components/ui/modal";
@@ -70,41 +70,28 @@ function Header({
   const { organisation, switching } = useSession();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 sm:px-6">
-      <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" onClick={onOpenNav} aria-label="Open navigation">
+    <header className="sticky top-0 z-30 flex h-12 items-center gap-2 bg-surface/95 px-3 backdrop-blur-sm supports-backdrop-filter:bg-surface/80 sm:px-5">
+      <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={onOpenNav} aria-label="Open navigation">
         <MenuIcon className="size-5!" />
       </Button>
 
-      <div className={cn("hidden min-w-0 shrink-0 items-center gap-2.5 sm:flex", switching && "animate-pulse")}>
-        <span className="grid size-8 place-items-center rounded-md border border-line bg-surface-muted text-ink-600" aria-hidden>
-          <Building2 className="size-4" />
+      <nav aria-label="Breadcrumb" className={cn("flex min-w-0 items-center gap-1.5 text-sm", switching && "animate-pulse")}>
+        <span className="hidden truncate text-fg-subtle sm:inline">{organisation?.shortName ?? "\u00a0"}</span>
+        <span className="hidden text-ink-300 sm:inline" aria-hidden>
+          /
         </span>
-        <span className="flex min-w-0 flex-col leading-tight">
-          <span className="truncate text-sm font-semibold text-fg">{organisation?.name ?? "\u00a0"}</span>
-          <span className="truncate text-2xs text-fg-subtle">{current?.label ?? "Vettly"}</span>
-        </span>
-      </div>
+        <span className="truncate font-medium text-fg">{current?.label ?? "Vettly"}</span>
+      </nav>
 
-      <button
-        type="button"
-        onClick={onOpenSearch}
-        className="ml-auto flex h-9 w-full min-w-0 max-w-sm items-center gap-2.5 rounded-md border border-line bg-surface-muted px-3 text-left text-sm text-ink-500 transition-colors hover:border-line-strong hover:bg-surface sm:ml-6 md:max-w-md"
-        aria-label="Search candidates, vacancies and pages"
-      >
-        <Search className="size-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate">Search candidates, vacancies…</span>
-        <span className="hidden items-center gap-0.5 md:flex">
-          <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </span>
-      </button>
-
-      <div className="flex shrink-0 items-center gap-1 sm:ml-auto sm:gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={onOpenSearch} aria-label="Search">
+          <Search className="size-[1.05rem]!" />
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="md" className="hidden sm:inline-flex">
+            <Button size="sm" variant="ghost" className="hidden text-fg sm:inline-flex">
               <Plus />
-              Create
+              New
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -127,7 +114,7 @@ function Header({
           </DropdownMenuContent>
         </DropdownMenu>
         <NotificationsMenu />
-        <div className="mx-1 hidden h-6 w-px bg-line sm:block" aria-hidden />
+        
         <UserMenu onShowShortcuts={onShowShortcuts} />
       </div>
     </header>
@@ -171,9 +158,9 @@ function Shell({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
-      <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
+      <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} onOpenSearch={() => setSearchOpen(true)} />
       <Drawer open={navOpen} onOpenChange={setNavOpen} side="left" title="Navigation" hideHeader className="w-[min(17rem,85vw)] bg-shell">
-        <MobileSidebarContent onNavigate={() => setNavOpen(false)} />
+        <MobileSidebarContent onNavigate={() => setNavOpen(false)} onOpenSearch={() => setSearchOpen(true)} />
       </Drawer>
       <div className="flex min-w-0 flex-1 flex-col">
         <Header

@@ -89,25 +89,27 @@
   --color-ink-400: #8e968f;
   --color-ink-300: #c4c8c2;
   --color-ink-200: #dfdfda;
-  --color-ink-100: #ecece8;
+  --color-ink-100: #f1f1ef;
   --color-ink-50: #f7f7f4;
 
   /* Semantic surfaces */
-  --color-canvas: #f2f2ef;
+  /* Notion-like: one white page, faint hairlines, warm grey only where something is "raised". */
+  --color-canvas: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f7f4;
-  --color-line: #dfdfda;
-  --color-line-strong: #c4c8c2;
+  --color-surface-muted: #f9f9f8;
+  --color-line: #ededeb;
+  --color-line-strong: #dcdcd8;
   --color-fg: #1b2420;
   --color-fg-muted: #505b55;
   --color-fg-subtle: #5f6963;
 
   /* Shell: bush-green sidebar */
-  --color-shell: #163a2e;
-  --color-shell-raised: #1f4a3b;
-  --color-shell-line: #22493b;
-  --color-shell-fg: #e3ece7;
-  --color-shell-fg-muted: #a7bdb1;
+  /* Shell: light warm-grey sidebar */
+  --color-shell: #f8f8f7;
+  --color-shell-raised: #ececea;
+  --color-shell-line: #ededeb;
+  --color-shell-fg: #1b2420;
+  --color-shell-fg-muted: #505b55;
 
   /* Radius */
   --radius-xs: 3px;

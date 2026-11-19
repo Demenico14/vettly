@@ -14,9 +14,9 @@ export const badgeVariants = cva(
         success: "bg-success-50 text-success-700",
         warning: "bg-warning-50 text-warning-700",
         danger: "bg-danger-50 text-danger-700",
-        outline: "border border-line-strong bg-surface text-fg-muted",
+        outline: "border border-line-strong text-fg-muted",
         /** Formal status chip: neutral body, the dot carries the colour. Pass dotClassName. */
-        status: "border border-line bg-surface text-ink-700",
+        status: "bg-ink-100 text-ink-700",
         solid: "bg-primary-600 text-white",
       },
       size: {
@@ -54,7 +54,7 @@ export function Tag({
   return (
     <span
       className={cn(
-        "inline-flex h-6 items-center gap-1 rounded-sm border border-line bg-surface-muted px-2 text-xs font-medium text-ink-700",
+        "inline-flex h-6 items-center gap-1 rounded-sm bg-ink-100 px-2 text-xs font-medium text-ink-700",
         className,
       )}
       {...props}
