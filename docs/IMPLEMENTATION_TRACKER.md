@@ -11,7 +11,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | 3 | HR dashboard | **Approved** (19 Nov) | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
 | 4 | Vacancy management | **Approved** (19 Nov) | List, details, create/edit editor with simulated writing assistant, requirements, weights, tests, publishing, status changes |
 | 5 | Candidate management | **Approved** (19 Nov) | Directory with advanced filters; full profiles with applications, tests, documents, notes. Verified in browser at 375px, ~1070px and desktop, including upload validation and CV preview |
-| 6 | CV upload & processing | **In review** | `/cv-processing`: bulk drag-and-drop upload, live queue by batch, status filters, failures with retry; `/cv-processing/[id]`: review beside the CV, uncertain values marked in copper, duplicate handling, manual entry, discard. Verified in browser at 375px and desktop |
+| 6 | CV upload & processing | **Approved** (19 Nov) | `/cv-processing`: bulk drag-and-drop upload, live queue by batch, status filters, failures with retry; `/cv-processing/[id]`: review beside the CV, uncertain values marked in copper, duplicate handling, manual entry, discard. Verified in browser at 375px and desktop |
 | 7 | AI recruitment intelligence | Not started | Optional test-score weighting |
 | 8 | Recruitment pipeline | Not started | Assessment column |
 | **9** | **Psychometric assessments** | Not started | **New.** Test library, sending, tracking, reminders, results, candidate test-taking |
