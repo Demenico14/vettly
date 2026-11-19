@@ -381,7 +381,9 @@ export function VacancyDetail({ id }: { id: string }) {
                             <span className="flex items-center gap-3">
                               <Avatar name={c.name} size="sm" />
                               <span>
-                                <span className="block font-semibold">{c.name}</span>
+                                <Link href={`/candidates/${c.id}`} className="block font-semibold hover:underline">
+                                  {c.name}
+                                </Link>
                                 <span className="block text-xs text-fg-subtle">
                                   {c.headline} · {c.location}
                                 </span>

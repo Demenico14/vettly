@@ -334,3 +334,105 @@ export type VacancyDraft = Pick<
   | "assessment"
   | "channels"
 >;
+
+/* ---------- Candidate management (Module 5) ---------- */
+
+export type SkillLevel = "Expert" | "Advanced" | "Intermediate" | "Basic";
+export type Availability = "Immediately" | "2 weeks' notice" | "1 month's notice" | "3 months' notice";
+export type ApplicationSource = "Vettly careers page" | "LinkedIn" | "Email (CV upload)" | "Referral" | "Indeed" | "VacancyMail";
+
+export interface WorkExperience {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  /** YYYY-MM */
+  start: string;
+  end: string | null;
+  bullets: string[];
+}
+
+export interface Education {
+  id: string;
+  institution: string;
+  qualification: string;
+  field: string;
+  start: number;
+  end: number | null;
+  grade?: string;
+}
+
+export interface CandidateSkill {
+  name: string;
+  level: SkillLevel;
+  years?: number;
+}
+
+export interface Certification {
+  name: string;
+  issuer: string;
+  year: number;
+  credentialId?: string;
+}
+
+export interface Project {
+  name: string;
+  description: string;
+  year: number;
+  link?: string;
+}
+
+export interface CandidateDocument {
+  id: string;
+  name: string;
+  kind: "CV" | "Cover letter" | "Certificate" | "Transcript" | "Other";
+  sizeKb: number;
+  pages: number;
+  uploadedAt: string;
+}
+
+export interface ApplicationEvent {
+  stage: ApplicationStage;
+  at: string;
+  by: string;
+  note?: string;
+}
+
+export interface CandidateApplication {
+  id: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  appliedAt: string;
+  source: ApplicationSource;
+  stage: ApplicationStage;
+  matchScore: number;
+  provenance: AssessmentProvenance;
+  history: ApplicationEvent[];
+}
+
+export interface CandidateNote {
+  id: string;
+  author: string;
+  body: string;
+  at: string;
+}
+
+export interface CandidateProfile extends CandidateSummary {
+  email: string;
+  phone: string;
+  linkedin: string | null;
+  availability: Availability;
+  currentEmployer: string | null;
+  expectedSalary: string | null;
+  summary: string;
+  experience: WorkExperience[];
+  education: Education[];
+  skills: CandidateSkill[];
+  certifications: Certification[];
+  projects: Project[];
+  documents: CandidateDocument[];
+  applications: CandidateApplication[];
+  notes: CandidateNote[];
+  tags: string[];
+  inTalentPool: boolean;
+}

@@ -5,6 +5,17 @@
 export type { Icon as IconComponent } from "@phosphor-icons/react";
 export {
   ArrowDown,
+  ArrowSquareOut as ExternalLink,
+  BookmarkSimple as Bookmark,
+  Certificate,
+  ChatText,
+  FilePdf,
+  FolderSimple as Folder,
+  FunnelSimple as Filter,
+  GraduationCap,
+  NotePencil,
+  Phone,
+  Star,
   ArrowLeft,
   Circle,
   Clock,

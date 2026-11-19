@@ -141,7 +141,7 @@ export const candidates: CandidateSummary[] = [
     headline: "Data analyst · 4 yrs",
     location: "Harare",
     appliedFor: "Data Analyst",
-    stage: "screening",
+    stage: "assessment",
     matchScore: 74,
     provenance: "ai_illustrative",
     appliedAt: "2026-11-12T13:45:00+02:00",

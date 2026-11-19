@@ -163,12 +163,12 @@ const interviews: InterviewSlot[] = [
   },
 ];
 
-const tests: TestInvitationSummary[] = [
-  { id: "tst_tafadzwa", candidateName: "Tafadzwa Ncube", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "completed", sentAt: "2026-11-13T09:00:00+02:00", deadline: "2026-11-24T17:00:00+02:00", completed: 3, total: 3 },
-  { id: "tst_chipo", candidateName: "Chipo Makoni", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "completed", sentAt: "2026-11-12T09:00:00+02:00", deadline: "2026-11-17T17:00:00+02:00", completed: 2, total: 2 },
+export const testInvitations: TestInvitationSummary[] = [
+  { id: "tst_tafadzwa", candidateName: "Tafadzwa Ncube", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "completed", sentAt: "2026-11-16T09:00:00+02:00", deadline: "2026-11-24T17:00:00+02:00", completed: 3, total: 3 },
+  { id: "tst_chipo", candidateName: "Chipo Makoni", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "completed", sentAt: "2026-11-15T09:00:00+02:00", deadline: "2026-11-20T17:00:00+02:00", completed: 2, total: 2 },
   { id: "tst_nyasha", candidateName: "Nyasha Dube", vacancyTitle: "Data Analyst", battery: "Professional battery", status: "in_progress", sentAt: "2026-11-16T09:00:00+02:00", deadline: "2026-11-26T17:00:00+02:00", completed: 1, total: 2 },
   { id: "tst_ruvimbo", candidateName: "Ruvimbo Gumbo", vacancyTitle: "Data Analyst", battery: "Professional battery", status: "opened", sentAt: "2026-11-17T15:00:00+02:00", deadline: "2026-11-22T17:00:00+02:00", completed: 0, total: 2 },
-  { id: "tst_lindiwe", candidateName: "Lindiwe Khumalo", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "sent", sentAt: "2026-11-17T09:00:00+02:00", deadline: "2026-11-19T17:00:00+02:00", completed: 0, total: 2 },
+  { id: "tst_tinashe", candidateName: "Tinashe Mhlanga", vacancyTitle: "Software Developer", battery: "Professional battery", status: "completed", sentAt: "2026-11-08T09:00:00+02:00", deadline: "2026-11-13T17:00:00+02:00", completed: 2, total: 2 },
   { id: "tst_simba", candidateName: "Simba Chari", vacancyTitle: "Finance Manager", battery: "Professional battery", status: "expired", sentAt: "2026-11-07T09:00:00+02:00", deadline: "2026-11-12T17:00:00+02:00", completed: 0, total: 1 },
 ];
 
@@ -204,7 +204,7 @@ export function snapshotFor(period: DashboardPeriod): DashboardSnapshot {
     attention,
     vacancies: vacancySummaries,
     interviews,
-    tests,
+    tests: testInvitations,
     applications,
     activity: [...activity].sort((a, b) => b.at.localeCompare(a.at)),
   };

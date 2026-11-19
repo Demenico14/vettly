@@ -9,8 +9,8 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | 1 | Design system & application shell | **Approved** (19 Nov) | v2.0 Granite & Msasa; Assessments wired into nav, stages, menus |
 | 2 | Authentication & onboarding | **Approved** (19 Nov) | Sign-in, registration, reset, invitations, org setup, welcome, candidate test access; photo sign-in redesign |
 | 3 | HR dashboard | **Approved** (19 Nov) | `/dashboard`: statistics, funnel, attention list, vacancies, interviews, tests, applications, activity |
-| 4 | Vacancy management | **In review** | List, details, create/edit editor with simulated writing assistant, requirements, weights, tests, publishing, status changes |
-| 5 | Candidate management | Not started | Includes Assessments tab on profile |
+| 4 | Vacancy management | **Approved** (19 Nov) | List, details, create/edit editor with simulated writing assistant, requirements, weights, tests, publishing, status changes |
+| 5 | Candidate management | **In review** | Directory with advanced filters; full profiles with applications, tests, documents, notes. Phone layout and document upload/preview not yet browser-tested |
 | 6 | CV upload & processing | Not started | |
 | 7 | AI recruitment intelligence | Not started | Optional test-score weighting |
 | 8 | Recruitment pipeline | Not started | Assessment column |

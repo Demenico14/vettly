@@ -8,6 +8,9 @@ import * as mock from "@/mocks/data";
 import { mockAuth, mockCandidateAccess } from "./auth";
 import { mockDashboard } from "./dashboard";
 import { mockVacancies } from "./vacancies";
+import { mockCandidateProfiles } from "./candidates";
+
+export type { CandidateProfileService } from "./candidates";
 
 export type { VacancyService, AssistAction } from "./vacancies";
 export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
@@ -104,11 +107,11 @@ const mockSearch: SearchService = {
         type: "candidate",
         title: c.name,
         subtitle: `${c.headline} · ${c.location}`,
-        href: "/candidates",
+        href: `/candidates/${c.id}`,
       }));
     const vacs: SearchResult[] = mock.vacancies
       .filter((v) => v.title.toLowerCase().includes(q))
-      .map((v) => ({ id: v.id, type: "vacancy", title: v.title, subtitle: v.location, href: "/vacancies" }));
+      .map((v) => ({ id: v.id, type: "vacancy", title: v.title, subtitle: v.location, href: `/vacancies/${v.id}` }));
     return [...vacs, ...cands].slice(0, 8);
   },
 };
@@ -124,6 +127,7 @@ export const services = {
   auth: mockAuth,
   dashboard: mockDashboard,
   vacancies: mockVacancies,
+  profiles: mockCandidateProfiles,
   candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,

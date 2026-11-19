@@ -446,7 +446,7 @@ export function ApplicationsPanel({ applications, loading }: { applications?: Re
         <ul className="border-t border-line">
           {applications.map((a) => (
             <li key={a.id}>
-              <Link href="/candidates" className="flex items-center gap-3 border-b border-line px-5 py-3 hover:bg-surface-muted">
+              <Link href={`/candidates/${a.id}`} className="flex items-center gap-3 border-b border-line px-5 py-3 hover:bg-surface-muted">
                 <Avatar name={a.name} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-fg">{a.name}</span>
