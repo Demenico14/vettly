@@ -9,8 +9,10 @@ import { mockAuth, mockCandidateAccess } from "./auth";
 import { mockDashboard } from "./dashboard";
 import { mockVacancies } from "./vacancies";
 import { mockCandidateProfiles } from "./candidates";
+import { mockCvProcessing } from "./cv";
 
-export type { CandidateProfileService } from "./candidates";
+export type { CandidateProfileService, CvCandidateInput } from "./candidates";
+export type { CvProcessingService, UploadInput } from "./cv";
 
 export type { VacancyService, AssistAction } from "./vacancies";
 export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
@@ -128,6 +130,7 @@ export const services = {
   dashboard: mockDashboard,
   vacancies: mockVacancies,
   profiles: mockCandidateProfiles,
+  cv: mockCvProcessing,
   candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,

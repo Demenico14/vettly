@@ -436,3 +436,81 @@ export interface CandidateProfile extends CandidateSummary {
   tags: string[];
   inTalentPool: boolean;
 }
+
+/* ---------- CV upload & processing (Module 6) ---------- */
+
+export type CvFileStatus = "queued" | "uploading" | "extracting" | "ready" | "needs_review" | "failed" | "added" | "discarded";
+export type CvFailure = "password_protected" | "unreadable" | "not_a_cv";
+export type CvFormat = "PDF" | "Word" | "Image";
+
+/** A value Vettly read from the CV. `flag` says why Vettly is unsure; it is cleared once HR confirms or edits it. */
+export interface ExtractedValue {
+  value: string;
+  flag?: string;
+}
+
+export interface ExtractedExperience {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  /** YYYY-MM */
+  start: string;
+  end: string | null;
+  flag?: string;
+}
+
+export interface ExtractedEducation {
+  id: string;
+  institution: string;
+  qualification: string;
+  field: string;
+  end: number | null;
+  flag?: string;
+}
+
+export interface CvExtraction {
+  name: ExtractedValue;
+  email: ExtractedValue;
+  phone: ExtractedValue;
+  location: ExtractedValue;
+  headline: ExtractedValue;
+  currentEmployer: ExtractedValue;
+  availability: ExtractedValue;
+  summary: string;
+  experience: ExtractedExperience[];
+  education: ExtractedEducation[];
+  skills: string[];
+  pages: number;
+  /** Read from a scan or photo, so characters may be misread. */
+  ocr: boolean;
+}
+
+export interface CvFile {
+  id: string;
+  batchId: string;
+  name: string;
+  sizeKb: number;
+  format: CvFormat;
+  status: CvFileStatus;
+  /** 0–100 within the current status (uploading or extracting). */
+  progress: number;
+  failure?: CvFailure;
+  extraction?: CvExtraction;
+  /** Set once the CV becomes (or joins) a candidate record. */
+  candidateId?: string;
+  /** Existing candidate with the same email or phone number. */
+  duplicateOf?: { id: string; name: string };
+  discardReason?: string;
+  reviewedBy?: string;
+  updatedAt: string;
+}
+
+export interface CvBatch {
+  id: string;
+  vacancyId: string;
+  vacancyTitle: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  files: CvFile[];
+}

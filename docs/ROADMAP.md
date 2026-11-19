@@ -15,12 +15,12 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 
 | # | Module | Status |
 |---|---|---|
-| 1 | Design system & application shell | In review |
-| 2 | Authentication & onboarding (+ candidate test access) | Not started |
-| 3 | HR dashboard | Not started |
-| 4 | Vacancy management | Not started |
-| 5 | Candidate management | Not started |
-| 6 | CV upload & processing | Not started |
+| 1 | Design system & application shell | Approved |
+| 2 | Authentication & onboarding (+ candidate test access) | Approved |
+| 3 | HR dashboard | Approved |
+| 4 | Vacancy management | Approved |
+| 5 | Candidate management | Approved |
+| 6 | CV upload & processing | In review |
 | 7 | AI recruitment intelligence | Not started |
 | 8 | Recruitment pipeline | Not started |
 | **9** | **Psychometric assessments** (new) | Not started |

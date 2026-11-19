@@ -2,7 +2,8 @@
  * Candidate service. Phase 1: in-memory profiles seeded from mock data, so stage moves, notes, uploads and
  * talent-pool changes persist while the app is open. Phase 2 replaces this with API calls of the same shape.
  */
-import type { ApplicationStage, CandidateDocument, CandidateNote, CandidateProfile, TestInvitationSummary } from "@/types";
+import type { ApplicationStage, Availability, CandidateDocument, CandidateNote, CandidateProfile, CvExtraction, TestInvitationSummary } from "@/types";
+import { hashString } from "@/lib/utils";
 import { candidateProfiles } from "@/mocks/candidates";
 import { testInvitations } from "@/mocks/dashboard";
 import { MOCK_NOW, users } from "@/mocks/data";
@@ -18,6 +19,18 @@ export interface CandidateProfileService {
   removeDocument(id: string, docId: string): Promise<CandidateProfile>;
   setTalentPool(id: string, value: boolean): Promise<CandidateProfile>;
   setTags(id: string, tags: string[]): Promise<CandidateProfile>;
+  /** New candidate from a reviewed CV, applying for the CV batch's vacancy. */
+  createFromCv(input: CvCandidateInput): Promise<CandidateProfile>;
+  /** Adds a newer CV to an existing candidate, and an application if they haven't applied for this vacancy. */
+  attachCv(id: string, input: CvCandidateInput): Promise<CandidateProfile>;
+}
+
+export interface CvCandidateInput {
+  extraction: CvExtraction;
+  vacancyId: string;
+  vacancyTitle: string;
+  fileName: string;
+  sizeKb: number;
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -30,6 +43,26 @@ function find(id: string) {
   const c = store.find((x) => x.id === id);
   if (!c) throw new Error("This candidate could not be found. They may have been removed.");
   return c;
+}
+
+function cvDocument(input: CvCandidateInput): CandidateDocument {
+  return { id: `doc_new_${++seq}`, name: input.fileName, kind: "CV", sizeKb: input.sizeKb, pages: input.extraction.pages, uploadedAt: MOCK_NOW };
+}
+
+function application(input: CvCandidateInput, idSuffix: string) {
+  // Illustrative match until Module 7 assesses the CV against the vacancy.
+  const matchScore = 45 + (hashString(input.extraction.name.value + input.vacancyId) % 40);
+  return {
+    id: `app_cv_${idSuffix}`,
+    vacancyId: input.vacancyId,
+    vacancyTitle: input.vacancyTitle,
+    appliedAt: MOCK_NOW,
+    source: "Email (CV upload)" as const,
+    stage: "applied" as const,
+    matchScore,
+    provenance: "ai_illustrative" as const,
+    history: [{ stage: "applied" as const, at: MOCK_NOW, by: me, note: `Added from ${input.fileName}` }],
+  };
 }
 
 export const mockCandidateProfiles: CandidateProfileService = {
@@ -93,6 +126,60 @@ export const mockCandidateProfiles: CandidateProfileService = {
     await wait(250);
     const c = find(id);
     c.tags = tags;
+    return clone(c);
+  },
+  async createFromCv(input) {
+    await wait(700);
+    const x = input.extraction;
+    const email = x.email.value.trim().toLowerCase();
+    const clash = email && store.find((c) => c.email.toLowerCase() === email);
+    if (clash) throw new Error(`${clash.name} already uses ${x.email.value}. Add this CV to their record instead.`);
+    const id = `cnd_cv_${++seq}`;
+    const app = application(input, String(seq));
+    const c: CandidateProfile = {
+      id,
+      name: x.name.value.trim(),
+      headline: x.headline.value.trim(),
+      location: x.location.value.trim(),
+      appliedFor: input.vacancyTitle,
+      stage: "applied",
+      matchScore: app.matchScore,
+      provenance: "ai_illustrative",
+      appliedAt: MOCK_NOW,
+      topSkills: x.skills.slice(0, 3),
+      email: x.email.value.trim(),
+      phone: x.phone.value.trim(),
+      linkedin: null,
+      availability: x.availability.value as Availability,
+      currentEmployer: x.currentEmployer.value.trim() || null,
+      expectedSalary: null,
+      summary: x.summary,
+      experience: x.experience.map((e) => ({ id: e.id, title: e.title, company: e.company, location: e.location, start: e.start, end: e.end, bullets: [] })),
+      education: x.education.map((e) => ({ id: e.id, institution: e.institution, qualification: e.qualification, field: e.field, start: e.end ? e.end - 3 : 2020, end: e.end })),
+      skills: x.skills.map((name) => ({ name, level: "Intermediate" as const })),
+      certifications: [],
+      projects: [],
+      documents: [cvDocument(input)],
+      applications: [app],
+      notes: [],
+      tags: [],
+      inTalentPool: false,
+    };
+    store.unshift(c);
+    return clone(c);
+  },
+  async attachCv(id, input) {
+    await wait(600);
+    const c = find(id);
+    c.documents = [cvDocument(input), ...c.documents];
+    if (!c.applications.some((a) => a.vacancyId === input.vacancyId)) {
+      const app = application(input, String(++seq));
+      c.applications = [app, ...c.applications];
+      c.appliedFor = app.vacancyTitle;
+      c.stage = app.stage;
+      c.matchScore = app.matchScore;
+      c.appliedAt = app.appliedAt;
+    }
     return clone(c);
   },
 };

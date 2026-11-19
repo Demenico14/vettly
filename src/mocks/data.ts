@@ -72,9 +72,10 @@ export const notifications: AppNotification[] = [
     id: "ntf_2",
     kind: "processing",
     title: "CV batch processed",
-    body: "38 of 40 CVs extracted for Finance Manager. 2 need manual review.",
-    createdAt: "2026-11-18T06:40:00+02:00",
+    body: "7 of 9 CVs read for Finance Manager. 3 need your review and 2 could not be opened.",
+    createdAt: "2026-11-16T07:55:00+02:00",
     read: false,
+    href: "/cv-processing",
   },
   {
     id: "ntf_6",
