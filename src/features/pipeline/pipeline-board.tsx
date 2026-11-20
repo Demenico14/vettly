@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarPlus, ClipboardList, DotsSixVertical, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
+import { CalendarPlus, ClipboardList, DotsSixVertical, FileSignature, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
 import {
   Alert,
   Button,
@@ -474,6 +474,14 @@ function BoardCard({
               <DropdownMenuItem onSelect={onSendTests}>
                 <ClipboardList />
                 Send tests
+              </DropdownMenuItem>
+            )}
+            {(c.stage === "interview" || c.stage === "offer") && (
+              <DropdownMenuItem asChild>
+                <Link href={`/offers/new?candidate=${c.candidateId}&vacancy=${vacancyId}`}>
+                  <FileSignature />
+                  Create offer
+                </Link>
               </DropdownMenuItem>
             )}
             {!closed && c.stage !== "rejected" && (

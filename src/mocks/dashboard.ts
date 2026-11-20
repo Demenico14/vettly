@@ -111,7 +111,7 @@ const attention: AttentionItem[] = [
   { id: "att_tests", kind: "test_results", title: "Test results ready", detail: "Tafadzwa Ncube and Chipo Makoni, Finance Manager", count: 2, href: "/assessments" },
   { id: "att_closing", kind: "closing_soon", title: "Finance Manager closes in 2 days", detail: "Fri 20 Nov, 17:00 · 86 applicants, 11 shortlisted", count: 1, href: "/vacancies" },
   { id: "att_cv", kind: "cv_failed", title: "CVs need manual correction", detail: "Scanned PDFs, Finance Manager batch", count: 2, href: "/cv-processing" },
-  { id: "att_offer", kind: "offer_pending", title: "Offer awaiting candidate response", detail: "Tinashe Mhlanga, Software Developer · sent 4 days ago", count: 1, href: "/offers" },
+  { id: "att_offer", kind: "offer_pending", title: "Offer awaiting candidate response", detail: "Tinashe Mhlanga, Software Developer · sent 4 days ago", count: 1, href: "/offers/off_tinashe" },
 ];
 
 /** Next 7 days of scheduled interviews, from the interview store seed (Module 10). */

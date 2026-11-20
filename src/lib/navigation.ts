@@ -47,7 +47,7 @@ export const NAV: NavGroup[] = [
       { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, module: 8, built: true, description: "Kanban pipeline with stage transitions, bulk actions and decision records." },
       { label: "Assessments", href: "/assessments", icon: ClipboardList, module: 9, built: true, description: "Psychometric test library, sending tests to candidates, invitation tracking, reminders and result reports." },
       { label: "Interviews", href: "/interviews", icon: CalendarDays, module: 10, built: true, description: "Interview calendar, scheduling, panels, questions and scorecards." },
-      { label: "Offers", href: "/offers", icon: FileSignature, module: 11, description: "Offer creation, status tracking and the hiring workflow." },
+      { label: "Offers", href: "/offers", icon: FileSignature, module: 11, built: true, description: "Offer creation, status tracking and the hiring workflow." },
     ],
   },
   {

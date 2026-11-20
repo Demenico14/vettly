@@ -51,6 +51,11 @@ export function CandidateProfileView({ id }: { id: string }) {
   const [addingTag, setAddingTag] = React.useState(false);
   const [sendingTests, setSendingTests] = React.useState(false);
   const [scheduling, setScheduling] = React.useState(false);
+  const [offerId, setOfferId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    services.offers.list().then((all) => setOfferId(all.find((v) => v.offer.candidateId === id && !["withdrawn", "declined", "expired"].includes(v.offer.status))?.offer.id ?? null));
+  }, [id, reload]);
 
   React.useEffect(() => {
     let alive = true;
@@ -170,6 +175,11 @@ export function CandidateProfileView({ id }: { id: string }) {
                 <CalendarPlus />
                 Interview
               </Button>
+              {(app.stage === "interview" || app.stage === "offer") && (
+                <Button variant="secondary" asChild>
+                  <Link href={offerId ? `/offers/${offerId}` : `/offers/new?candidate=${c.id}&vacancy=${app.vacancyId}`}>{offerId ? "View offer" : "Make offer"}</Link>
+                </Button>
+              )}
               {app.stage !== "hired" && app.stage !== "withdrawn" && <Button onClick={() => setMoving(true)}>Move stage</Button>}
             </div>
           </div>

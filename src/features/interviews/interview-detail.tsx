@@ -508,6 +508,11 @@ function Decision({ data, onDone }: { data: Data; onDone: () => void }) {
           <p className="mt-1 text-xs text-fg-subtle">
             {iv.decision.by} · {iv.decision.at.slice(0, 10)}
           </p>
+          {iv.decision.outcome === "advance" && (stage === "interview" || stage === "offer") && (
+            <Button size="sm" className="mt-3" asChild>
+              <Link href={`/offers/new?candidate=${iv.candidateId}&vacancy=${iv.vacancyId}`}>Create offer</Link>
+            </Button>
+          )}
         </div>
       </Card>
     );
