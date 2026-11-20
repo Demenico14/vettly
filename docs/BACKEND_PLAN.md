@@ -1,6 +1,6 @@
 # Vettly backend plan
 
-**Status, 20 Nov 2026:** the first version of the backend is built on branch `backend-docker`. All sample data is gone. Section 0 records what was built and the decisions taken; sections 1–9 are the original plan, kept for reference.
+**Status, 20 Nov 2026:** the first version of the backend is built and approved, on branch `backend-docker`. All sample data is gone. Section 0 records what was built and the decisions taken; sections 1–9 are the original plan, kept for reference.
 
 ## 0. What was built
 
