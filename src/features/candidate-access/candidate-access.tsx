@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CircleAlert, CircleCheck, Clock, DeviceMobile, Info, Lock, Timer } from "@/components/icons";
+import { CircleAlert, CircleCheck, Clock, DeviceMobile, Lock, Timer } from "@/components/icons";
 import { Alert, Button, CheckboxField, Skeleton, toast } from "@/components/ui";
 import { OtpInput, isCompleteCode } from "@/components/ui/otp-input";
 import { LogoMark } from "@/components/brand/logo";
@@ -10,8 +10,10 @@ import { services } from "@/services";
 import { AuthError, type CandidateTestAccess } from "@/types";
 import { cn } from "@/lib/utils";
 import { useCountdown } from "@/features/auth/verify-email";
+import { TestRunner } from "./test-runner";
+import { consentNotice } from "@/mocks/psychometrics";
 
-type Phase = "welcome" | "verify" | "consent" | "ready";
+type Phase = "welcome" | "verify" | "consent" | "ready" | "run" | "done";
 type Load = { kind: "loading" } | { kind: "error"; error: AuthError } | { kind: "ok"; access: CandidateTestAccess };
 
 const dateTime = (iso: string) =>
@@ -26,6 +28,7 @@ const dateTime = (iso: string) =>
 export function CandidateAccess({ token }: { token: string }) {
   const [load, setLoad] = React.useState<Load>({ kind: "loading" });
   const [phase, setPhase] = React.useState<Phase>("welcome");
+  const [running, setRunning] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let alive = true;
@@ -86,13 +89,53 @@ export function CandidateAccess({ token }: { token: string }) {
             body={`Thank you, ${access.candidateName.split(" ")[0]}. ${access.organisationName} has your responses for ${access.vacancyTitle} and will contact you about next steps.`}
           />
         )}
+        {access?.status === "cancelled" && (
+          <StatusCard
+            tone="danger"
+            icon={<Lock />}
+            title="These tests were withdrawn"
+            body={`${access.organisationName} has withdrawn this invitation, so there's nothing to complete. If you weren't expecting this, reply to the original email.`}
+          />
+        )}
         {access && (access.status === "ready" || access.status === "in_progress") && (
           <>
-            <Progress phase={phase} />
+            {PHASES.some((p) => p.id === phase) && <Progress phase={phase} />}
             {phase === "welcome" && <Welcome access={access} onNext={() => setPhase("verify")} />}
-            {phase === "verify" && <Verify access={access} onNext={() => setPhase("consent")} />}
+            {phase === "verify" && <Verify access={access} onNext={() => setPhase(access.consented ? "ready" : "consent")} />}
             {phase === "consent" && <Consent access={access} onNext={() => setPhase("ready")} />}
-            {phase === "ready" && <Ready access={access} />}
+            {phase === "ready" && (
+              <Ready
+                access={access}
+                onStart={(id) => {
+                  setRunning(id);
+                  setPhase("run");
+                }}
+              />
+            )}
+            {phase === "run" && running && (
+              <TestRunner
+                token={access.token}
+                testId={running}
+                onExit={async () => {
+                  setLoad({ kind: "ok", access: await services.candidateAccess.open(access.token) });
+                  setPhase("ready");
+                }}
+                onFinished={async (allDone) => {
+                  // After the last test, stay on this screen's thank-you rather than the "already completed" state.
+                  if (allDone) return setPhase("done");
+                  setLoad({ kind: "ok", access: await services.candidateAccess.open(access.token) });
+                  setPhase("ready");
+                }}
+              />
+            )}
+            {phase === "done" && (
+              <StatusCard
+                tone="success"
+                icon={<CircleCheck />}
+                title="All done. Thank you"
+                body={`Your answers have been sent to ${access.organisationName}. The recruitment team will be in touch about ${access.vacancyTitle}. You'll receive a short feedback report by email within a day. You can close this page.`}
+              />
+            )}
           </>
         )}
         <PrototypeLinks />
@@ -113,7 +156,7 @@ const PHASES: { id: Phase; label: string }[] = [
   { id: "welcome", label: "Invitation" },
   { id: "verify", label: "Confirm it's you" },
   { id: "consent", label: "Consent" },
-  { id: "ready", label: "Start" },
+  { id: "ready", label: "Your tests" },
 ];
 
 function Progress({ phase }: { phase: Phase }) {
@@ -286,6 +329,15 @@ function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () =
           at any time.
         </p>
       </div>
+      <details className="mt-3 rounded-md border border-line text-sm">
+        <summary className="cursor-pointer px-4 py-2.5 font-semibold text-primary-700 select-none">Read the full data-use notice</summary>
+        <ul className="flex list-disc flex-col gap-1.5 border-t border-line py-3 pr-4 pl-8 text-fg-muted">
+          {consentNotice.items.map((i) => (
+            <li key={i}>{i}</li>
+          ))}
+        </ul>
+        <p className="border-t border-line px-4 py-2 text-2xs text-fg-subtle">Notice version {consentNotice.version}</p>
+      </details>
       <div className="mt-5 flex flex-col gap-4">
         <CheckboxField
           checked={checks.data}
@@ -329,41 +381,54 @@ function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () =
   );
 }
 
-function Ready({ access }: { access: CandidateTestAccess }) {
-  const first = access.tests[0]!;
-  const minutes = first.timed ? Math.round(first.minutes * (1 + access.extraTimePercent / 100)) : first.minutes;
+function Ready({ access, onStart }: { access: CandidateTestAccess; onStart: (testId: string) => void }) {
+  const next = access.tests.find((t) => !t.done);
+  const doneCount = access.tests.filter((t) => t.done).length;
+  const mins = (t: CandidateTestAccess["tests"][number]) => (t.timed ? Math.round(t.minutes * (1 + access.extraTimePercent / 100)) : t.minutes);
   return (
     <Panel>
-      <h1 className="text-xl font-bold text-fg">You&apos;re ready</h1>
-      <p className="mt-2 text-sm text-fg-muted">A few tips for your best result:</p>
+      <h1 className="text-xl font-bold text-fg">{doneCount ? "Welcome back" : "You're ready"}</h1>
+      <p className="mt-2 text-sm text-fg-muted">
+        {doneCount ? `${doneCount} of ${access.tests.length} done. ` : ""}Take the tests in any order, in one sitting or separately, before {dateTime(access.deadline)}.
+      </p>
       <ul className="mt-4 flex flex-col gap-3 text-sm text-fg-muted">
         <li className="flex gap-3">
           <Clock className="mt-0.5 size-4 shrink-0 text-primary-700" />
-          Find a quiet place where you won&apos;t be interrupted for {minutes} minutes.
+          Find a quiet place for each timed test. Once a timed test starts, the clock keeps running.
         </li>
         <li className="flex gap-3">
           <DeviceMobile className="mt-0.5 size-4 shrink-0 text-primary-700" />
-          A phone works, but a laptop is easier for numerical tests. Keep your battery above 30%.
+          A phone works, but a laptop is easier for numerical tests. If your connection drops, reopen the link to continue.
         </li>
-        <li className="flex gap-3">
-          <Info className="mt-0.5 size-4 shrink-0 text-primary-700" />
-          A calculator, pen and paper are allowed. If your connection drops, reopen the link to continue.
-        </li>
+        {access.extraTimePercent > 0 && (
+          <li className="flex gap-3">
+            <Timer className="mt-0.5 size-4 shrink-0 text-primary-700" />
+            Your {access.extraTimePercent}% extra time is already included in the times below.
+          </li>
+        )}
       </ul>
-      <div className="mt-6 flex items-center justify-between gap-3 rounded-md border border-line px-4 py-3">
-        <div>
-          <p className="text-xs text-fg-subtle">First test</p>
-          <p className="text-sm font-semibold text-fg">{first.name}</p>
-        </div>
-        <span className="text-sm text-fg-muted tabular">{minutes} min</span>
-      </div>
-      <Button
-        size="lg"
-        className="mt-7 w-full sm:w-auto"
-        onClick={() => toast.info("Tests open in Module 9", "Test-taking screens are part of the psychometric assessments module.")}
-      >
-        Start {first.name.toLowerCase()}
-      </Button>
+      <ul className="mt-6 flex flex-col divide-y divide-line rounded-md border border-line">
+        {access.tests.map((t) => (
+          <li key={t.id ?? t.name} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-fg">{t.name}</p>
+              <p className="text-xs text-fg-subtle">
+                {t.done ? "Finished" : t.saved ? `Saved part-way · ${t.saved} answered` : t.timed ? `${mins(t)} min, timed` : `About ${t.minutes} min, no time limit`}
+              </p>
+            </div>
+            {t.done ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-success-700">
+                <CircleCheck className="size-4" aria-hidden />
+                Done
+              </span>
+            ) : (
+              <Button size="sm" variant={t === next ? "primary" : "secondary"} onClick={() => t.id && onStart(t.id)}>
+                {t.saved ? "Continue" : "Start"}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
     </Panel>
   );
 }
@@ -405,10 +470,12 @@ function PrototypeLinks() {
           Verification code: <code className="font-mono text-fg">246810</code>
         </p>
         <p>
-          <Link className="underline" href="/t/tafadzwa-fin">tafadzwa-fin</Link> (ready) ·{" "}
-          <Link className="underline" href="/t/nyasha-data">nyasha-data</Link> (extra time) ·{" "}
+          <Link className="underline" href="/t/simba-fin">simba-fin</Link> (new) ·{" "}
+          <Link className="underline" href="/t/ruvimbo-data">ruvimbo-data</Link> (extra time) ·{" "}
+          <Link className="underline" href="/t/nyasha-data">nyasha-data</Link> (part-way) ·{" "}
           <Link className="underline" href="/t/farai-done">farai-done</Link> (completed) ·{" "}
-          <Link className="underline" href="/t/simba-expired">simba-expired</Link> (expired) ·{" "}
+          <Link className="underline" href="/t/lindiwe-expired">lindiwe-expired</Link> (expired) ·{" "}
+          <Link className="underline" href="/t/thandiwe-cancelled">thandiwe-cancelled</Link> (withdrawn) ·{" "}
           <Link className="underline" href="/t/unknown">unknown</Link> (invalid)
         </p>
       </div>

@@ -8,10 +8,10 @@
  * - Verification code: 246810 is correct; any other 6 digits fails.
  * - Reset links: token "valid-reset" works, "expired-reset" is expired.
  * - Team invitations: see `invitations` below.
- * - Candidate test links: see `candidateTestLinks` below.
+ * - Candidate test links: tokens come from the psychometric invitations (src/mocks/psychometrics/invitations.ts).
  */
 import { batteryOptions } from "./psychometrics";
-import type { CandidateTestAccess, TeamInvitation } from "@/types";
+import type { TeamInvitation } from "@/types";
 
 export const MOCK_OTP = "246810";
 
@@ -40,63 +40,6 @@ export const invitations: TeamInvitation[] = [
   },
 ];
 
-export const candidateTestLinks: CandidateTestAccess[] = [
-  {
-    token: "tafadzwa-fin",
-    status: "ready",
-    candidateName: "Tafadzwa Ncube",
-    candidateEmailMasked: "t•••••@gmail.com",
-    organisationName: "Msasa Financial Group",
-    organisationColour: "#16624F",
-    vacancyTitle: "Finance Manager",
-    deadline: "2026-11-24T17:00:00+02:00",
-    tests: [
-      { name: "Numerical reasoning", type: "numerical", minutes: 25, timed: true },
-      { name: "Verbal reasoning", type: "verbal", minutes: 20, timed: true },
-      { name: "Work styles questionnaire", type: "personality", minutes: 15, timed: false },
-    ],
-    extraTimePercent: 0,
-  },
-  {
-    token: "nyasha-data",
-    status: "ready",
-    candidateName: "Nyasha Dube",
-    candidateEmailMasked: "n•••••@outlook.com",
-    organisationName: "Msasa Financial Group",
-    organisationColour: "#16624F",
-    vacancyTitle: "Data Analyst",
-    deadline: "2026-11-26T17:00:00+02:00",
-    tests: [
-      { name: "Numerical reasoning", type: "numerical", minutes: 25, timed: true },
-      { name: "Situational judgement", type: "situational_judgement", minutes: 20, timed: false },
-    ],
-    extraTimePercent: 25,
-  },
-  {
-    token: "farai-done",
-    status: "completed",
-    candidateName: "Farai Mutasa",
-    candidateEmailMasked: "f•••••@yahoo.com",
-    organisationName: "Msasa Financial Group",
-    organisationColour: "#16624F",
-    vacancyTitle: "Human Resources Officer",
-    deadline: "2026-10-30T17:00:00+02:00",
-    tests: [{ name: "Work styles questionnaire", type: "personality", minutes: 15, timed: false }],
-    extraTimePercent: 0,
-  },
-  {
-    token: "simba-expired",
-    status: "expired",
-    candidateName: "Simba Chari",
-    candidateEmailMasked: "s•••••@gmail.com",
-    organisationName: "Msasa Financial Group",
-    organisationColour: "#16624F",
-    vacancyTitle: "Finance Manager",
-    deadline: "2026-11-12T17:00:00+02:00",
-    tests: [{ name: "Numerical reasoning", type: "numerical", minutes: 25, timed: true }],
-    extraTimePercent: 0,
-  },
-];
 
 export const INDUSTRIES = [
   "Banking & financial services",

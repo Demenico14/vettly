@@ -316,8 +316,34 @@ export interface TestResult {
   flags: string[];
 }
 
+export interface DeliveryIssue {
+  channel: Channel;
+  at: string;
+  reason: string;
+}
+
+export interface HrReview {
+  reviewed: boolean;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  /** A concern for the panel to explore. Never an automatic rejection. */
+  concern?: string;
+  notes: { by: string; at: string; body: string }[];
+}
+
+export type AuditAction = "sent" | "delivered" | "delivery_failed" | "opened" | "consented" | "started" | "completed" | "reminded" | "extended" | "cancelled" | "resent" | "restored" | "reviewed" | "note" | "flagged" | "expired";
+
+export interface AuditEntry {
+  at: string;
+  by: string;
+  action: AuditAction;
+  detail?: string;
+}
+
 export interface InvitationRecord {
   id: string;
+  /** The candidate's link: /t/{token}. */
+  token: string;
   candidateId: string;
   candidateName: string;
   vacancyId: string;
@@ -340,6 +366,11 @@ export interface InvitationRecord {
   results: TestResult[];
   /** Why an invitation ended without results, where known. */
   outcomeNote?: string;
+  deliveryIssues: DeliveryIssue[];
+  review: HrReview;
+  audit: AuditEntry[];
+  /** Untimed questionnaires can be saved part-way; answers so far per test. */
+  progress?: Record<string, number>;
   isMock: true;
 }
 

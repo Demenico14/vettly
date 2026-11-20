@@ -103,8 +103,8 @@ export const mockCandidateProfiles: CandidateProfileService = {
   async tests(name) {
     await wait(300);
     // Shared with the pipeline, so tests sent from the board show here too.
-    const { invitationStore } = await import("./pipeline");
-    return clone(invitationStore.filter((t) => t.candidateName === name));
+    const { invitationStore, summaryOf } = await import("./assessments");
+    return clone(invitationStore.filter((t) => t.candidateName === name).map(summaryOf));
   },
   async moveStage(id, applicationId, stage, note) {
     await wait(600);

@@ -3,7 +3,7 @@
  * Raw scores are generated from target bands against the norm tables, so the standard scores derived with
  * src/lib/psychometrics.ts land where each candidate's story needs them. Dates match application histories.
  */
-import type { Attempt, InvitationRecord, ScaleScore, TestResult } from "../../types/psychometrics";
+import type { Attempt, AuditEntry, HrReview, InvitationRecord, ScaleScore, TestResult } from "../../types/psychometrics";
 import { normTables, tests } from "./catalogue";
 import { batteries } from "./batteries";
 
@@ -32,7 +32,7 @@ function norm(testId: string, normCode: string, scale?: string) {
 }
 
 /** Raw (or theta) score that sits at the target percentile. Theta keeps 2 dp; raw scores 1 dp. */
-function atPercentile(testId: string, normCode: string, pct: number, scale?: string): ScaleScore {
+export function atPercentile(testId: string, normCode: string, pct: number, scale?: string): ScaleScore {
   const t = tests.find((x) => x.id === testId)!;
   const n = norm(testId, normCode, scale);
   const raw = n.mean + probit(pct / 100) * n.sd;
@@ -41,7 +41,7 @@ function atPercentile(testId: string, normCode: string, pct: number, scale?: str
 }
 
 /** Raw score for a target sten (the middle of that sten's band). */
-const atSten = (testId: string, normCode: string, scale: string, st: number) => {
+export const atSten = (testId: string, normCode: string, scale: string, st: number) => {
   const n = norm(testId, normCode, scale);
   const t = tests.find((x) => x.id === testId)!;
   const dp = t.scoringModel === "thurstonian_irt" ? 100 : 10;
@@ -80,14 +80,40 @@ const consent = (at: string, language: InvitationRecord["language"] = "en") => (
   at,
 });
 
-function invite(r: Omit<InvitationRecord, "isMock">): InvitationRecord {
+type Seed = Omit<InvitationRecord, "isMock" | "audit" | "review" | "deliveryIssues"> &
+  Partial<Pick<InvitationRecord, "review" | "deliveryIssues">> & { extraAudit?: AuditEntry[] };
+
+/** Builds the audit trail from the record's own timestamps, so the log always matches the data. */
+function invite({ extraAudit = [], ...r }: Seed): InvitationRecord {
   if (!batteries.some((b) => b.id === r.batteryId)) throw new Error(`Unknown battery ${r.batteryId}`);
-  return { ...r, isMock: true };
+  const audit: AuditEntry[] = [
+    { at: r.sentAt, by: r.sentBy, action: "sent" as const, detail: `${r.channels.join(" and ")} · due ${r.deadline.slice(0, 10)}` },
+    ...(r.openedAt ? [{ at: r.openedAt, by: r.candidateName, action: "opened" as const }] : []),
+    ...(r.consent ? [{ at: r.consent.at, by: r.candidateName, action: "consented" as const, detail: `Notice ${r.consent.noticeVersion}` }] : []),
+    ...r.remindersSent.map((at) => ({ at, by: "Vettly", action: "reminded" as const, detail: "Automatic reminder" })),
+    ...r.extensions.map((e) => ({ at: e.at, by: e.by, action: "extended" as const, detail: e.reason })),
+    ...r.attempts.flatMap((a) => [
+      { at: a.startedAt, by: r.candidateName, action: "started" as const, detail: a.testId },
+      ...(a.completedAt ? [{ at: a.completedAt, by: r.candidateName, action: "completed" as const, detail: a.testId }] : []),
+    ]),
+    ...(r.review?.reviewedAt ? [{ at: r.review.reviewedAt, by: r.review.reviewedBy!, action: "reviewed" as const }] : []),
+    ...extraAudit,
+  ].sort((a, b) => a.at.localeCompare(b.at));
+  const review: HrReview = r.review ?? { reviewed: false, notes: [] };
+  return { ...r, deliveryIssues: r.deliveryIssues ?? [], review, audit, isMock: true };
 }
+
+const reviewed = (by: string, at: string, note?: string): HrReview => ({
+  reviewed: true,
+  reviewedBy: by,
+  reviewedAt: at,
+  notes: note ? [{ by, at, body: note }] : [],
+});
 
 export const invitationRecords: InvitationRecord[] = [
   invite({
     id: "tst_tafadzwa",
+    token: "tafadzwa-fin",
     candidateId: "cnd_tafadzwa",
     candidateName: "Tafadzwa Ncube",
     vacancyId: "vac_fin",
@@ -118,6 +144,7 @@ export const invitationRecords: InvitationRecord[] = [
   }),
   invite({
     id: "tst_chipo",
+    token: "chipo-fin",
     candidateId: "cnd_chipo",
     candidateName: "Chipo Makoni",
     vacancyId: "vac_fin",
@@ -137,9 +164,11 @@ export const invitationRecords: InvitationRecord[] = [
     accommodations: [],
     attempts: [attempt("tst_num_prof", "2026-11-15T12:12:00+02:00", 17), attempt("tst_sjt_prof", "2026-11-15T12:34:00+02:00", 25)],
     results: [result("tst_num_prof", [atPercentile("tst_num_prof", "FS-ZA", 71)]), result("tst_sjt_prof", [atPercentile("tst_sjt_prof", "FS-ZA", 82)])],
+    review: reviewed("Tendai Moyo", "2026-11-16T08:40:00+02:00", "Strong judgement on the client and ethics scenarios. Consistent with her interview so far."),
   }),
   invite({
     id: "tst_nyasha",
+    token: "nyasha-data",
     candidateId: "cnd_nyasha",
     candidateName: "Nyasha Dube",
     vacancyId: "vac_data",
@@ -169,6 +198,7 @@ export const invitationRecords: InvitationRecord[] = [
   }),
   invite({
     id: "tst_ruvimbo",
+    token: "ruvimbo-data",
     candidateId: "cnd_ruvimbo",
     candidateName: "Ruvimbo Gumbo",
     vacancyId: "vac_data",
@@ -193,6 +223,7 @@ export const invitationRecords: InvitationRecord[] = [
   }),
   invite({
     id: "tst_tinashe",
+    token: "tinashe-dev",
     candidateId: "cnd_tinashe",
     candidateName: "Tinashe Mhlanga",
     vacancyId: "vac_swdev",
@@ -212,9 +243,11 @@ export const invitationRecords: InvitationRecord[] = [
     accommodations: [],
     attempts: [attempt("tst_num_prof", "2026-11-11T19:32:00+02:00", 15), attempt("tst_sjt_prof", "2026-11-11T19:51:00+02:00", 21)],
     results: [result("tst_num_prof", [atPercentile("tst_num_prof", "PROF-ZA", 69)]), result("tst_sjt_prof", [atPercentile("tst_sjt_prof", "PROF-ZA", 74)])],
+    review: reviewed("Tendai Moyo", "2026-11-12T10:15:00+02:00"),
   }),
   invite({
     id: "tst_simba",
+    token: "simba-fin",
     candidateId: "cnd_simba",
     candidateName: "Simba Chari",
     vacancyId: "vac_fin",
@@ -237,6 +270,7 @@ export const invitationRecords: InvitationRecord[] = [
   }),
   invite({
     id: "tst_farai",
+    token: "farai-done",
     candidateId: "cnd_farai",
     candidateName: "Farai Mutasa",
     vacancyId: "vac_hro",
@@ -264,5 +298,84 @@ export const invitationRecords: InvitationRecord[] = [
       result("tst_verb_grad", [atPercentile("tst_verb_grad", "GRAD-ZA", 88)]),
       workStyles("GRAD-ZA", { ws_care: 9, ws_consult: 8, ws_sociable: 8, ws_feedback: 8, ws_process: 7, ws_candour: 7, ws_drive: 6, ws_analysis: 5, ws_decisive: 4 }),
     ],
+    review: reviewed("Tendai Moyo", "2026-10-23T09:00:00+02:00", "Explore decisiveness at panel: low sten on taking quick decisions."),
+  }),
+  invite({
+    id: "tst_lindiwe",
+    token: "lindiwe-expired",
+    candidateId: "cnd_lindiwe",
+    candidateName: "Lindiwe Khumalo",
+    vacancyId: "vac_fin",
+    vacancyTitle: "Finance Manager",
+    batteryId: "professional",
+    extraTests: [],
+    status: "expired",
+    channels: ["email"],
+    language: "en",
+    sentBy: "Kudzai Chirwa",
+    sentAt: "2026-11-11T14:00:00+02:00",
+    openedAt: null,
+    deadline: "2026-11-16T17:00:00+02:00",
+    remindersSent: ["2026-11-14T17:00:00+02:00", "2026-11-15T17:00:00+02:00"],
+    extensions: [],
+    consent: null,
+    accommodations: [],
+    attempts: [],
+    results: [],
+    outcomeNote: "Never opened. Two reminders sent. Email only: no phone number for SMS at the time.",
+    extraAudit: [{ at: "2026-11-16T17:00:00+02:00", by: "Vettly", action: "expired", detail: "Deadline passed without a start" }],
+  }),
+  invite({
+    id: "tst_kudakwashe",
+    token: "kudakwashe-dev",
+    candidateId: "cnd_kudakwashe",
+    candidateName: "Kudakwashe Sibanda",
+    vacancyId: "vac_swdev",
+    vacancyTitle: "Software Developer",
+    batteryId: "professional",
+    extraTests: [],
+    status: "sent",
+    channels: ["email", "sms"],
+    language: "en",
+    sentBy: "Tendai Moyo",
+    sentAt: "2026-11-18T07:15:00+02:00",
+    openedAt: null,
+    deadline: "2026-11-23T17:00:00+02:00",
+    remindersSent: [],
+    extensions: [],
+    consent: null,
+    accommodations: [],
+    attempts: [],
+    results: [],
+    deliveryIssues: [{ channel: "email", at: "2026-11-18T07:16:00+02:00", reason: "Mailbox not found (550). Check the address on the CV." }],
+    extraAudit: [
+      { at: "2026-11-18T07:16:00+02:00", by: "Vettly", action: "delivery_failed", detail: "Email bounced: mailbox not found" },
+      { at: "2026-11-18T07:16:30+02:00", by: "Vettly", action: "delivered", detail: "SMS delivered" },
+    ],
+  }),
+  invite({
+    id: "tst_thandiwe",
+    token: "thandiwe-cancelled",
+    candidateId: "cnd_thandiwe",
+    candidateName: "Thandiwe Ndlovu",
+    vacancyId: "vac_mkt",
+    vacancyTitle: "Marketing Executive",
+    batteryId: "graduate",
+    extraTests: [],
+    status: "cancelled",
+    channels: ["email"],
+    language: "en",
+    sentBy: "Kudzai Chirwa",
+    sentAt: "2026-11-17T08:05:00+02:00",
+    openedAt: null,
+    deadline: "2026-11-24T17:00:00+02:00",
+    remindersSent: [],
+    extensions: [],
+    consent: null,
+    accommodations: [],
+    attempts: [],
+    results: [],
+    outcomeNote: "Sent before the CV screen by mistake. Cancelled within the hour; the candidate was told.",
+    extraAudit: [{ at: "2026-11-17T08:52:00+02:00", by: "Kudzai Chirwa", action: "cancelled", detail: "Sent before the CV screen by mistake" }],
   }),
 ];

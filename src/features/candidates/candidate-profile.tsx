@@ -38,6 +38,7 @@ import { PageContainer } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CandidateProfile } from "@/types";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
+import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
 import { ApplicationsTab, AssessmentsTab, DocumentsTab, MoveStageDialog, NotesTab } from "./profile-tabs";
 
 export function CandidateProfileView({ id }: { id: string }) {
@@ -47,6 +48,7 @@ export function CandidateProfileView({ id }: { id: string }) {
   const [moving, setMoving] = React.useState(false);
   const [tagDraft, setTagDraft] = React.useState("");
   const [addingTag, setAddingTag] = React.useState(false);
+  const [sendingTests, setSendingTests] = React.useState(false);
 
   React.useEffect(() => {
     let alive = true;
@@ -314,12 +316,18 @@ export function CandidateProfileView({ id }: { id: string }) {
             </div>
           </Card>
 
-          <Button variant="ghost" className="justify-start" onClick={() => toast.info("Send tests", "Sending tests arrives in Module 9.")}>
+          <Button variant="ghost" className="justify-start" onClick={() => setSendingTests(true)}>
             <ClipboardList />
             Send psychometric tests
           </Button>
         </aside>
       </div>
+      <SendTestsDialog
+        open={sendingTests}
+        onOpenChange={setSendingTests}
+        targets={[{ candidateId: c.id, vacancyId: app.vacancyId, name: c.name, vacancyTitle: app.vacancyTitle }]}
+        onSent={() => setReload((r) => r + 1)}
+      />
       {moving && <MoveStageDialog candidate={c} app={app} open={moving} onOpenChange={setMoving} onMoved={setC} />}
     </PageContainer>
   );

@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bookmark, Download, RefreshCw, Search, SearchX, UsersRound, X } from "@/components/icons";
+import { Bookmark, ClipboardList, Download, RefreshCw, Search, SearchX, UsersRound, X } from "@/components/icons";
+import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
 import {
   Alert,
   Avatar,
@@ -70,6 +71,7 @@ export function CandidateDirectory() {
   const [f, setF] = React.useState<Filters>(NO_FILTERS);
   const [sort, setSort] = React.useState<{ key: SortKey; dir: SortDirection }>({ key: "appliedAt", dir: "desc" });
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [sendingTests, setSendingTests] = React.useState(false);
 
   React.useEffect(() => {
     let alive = true;
@@ -252,6 +254,10 @@ export function CandidateDirectory() {
               <Download />
               Export CSV
             </Button>
+            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => setSendingTests(true)}>
+              <ClipboardList />
+              Send tests
+            </Button>
             <Button size="sm" variant="ghost" className="ml-auto text-ink-300 hover:bg-ink-800 hover:text-white" onClick={() => setSelected(new Set())}>
               Clear
             </Button>
@@ -416,6 +422,14 @@ export function CandidateDirectory() {
           </Card>
         )}
       </div>
+      <SendTestsDialog
+        open={sendingTests}
+        onOpenChange={setSendingTests}
+        targets={(rows ?? [])
+          .filter((c) => selected.has(c.id))
+          .map((c) => ({ candidateId: c.id, vacancyId: c.applications[0]!.vacancyId, name: c.name, vacancyTitle: c.applications[0]!.vacancyTitle }))}
+        onSent={() => setSelected(new Set())}
+      />
     </PageContainer>
   );
 }

@@ -13,6 +13,7 @@ export {
   FilePdf,
   FileImage,
   FileX,
+  Flag,
   FileDoc,
   CloudArrowUp,
   Checks,

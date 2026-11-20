@@ -5,8 +5,8 @@
  * Module 9 (psychometric assessments) extends.
  */
 import type { ApplicationEvent, ApplicationSource, ApplicationStage, AssessmentProvenance, TestInvitationSummary, Vacancy } from "@/types";
-import { testInvitations } from "@/mocks/dashboard";
-import { batterySummary, getBattery, testsForInvitation } from "@/mocks/psychometrics";
+import { batterySummary } from "@/mocks/psychometrics";
+import { batteryById, cancelOpen, createInvitation, deadlineIn, latestFor, summaryOf, testIdsFor } from "./assessments";
 import { MOCK_NOW, users } from "@/mocks/data";
 import { profileSnapshot } from "./candidates";
 import { vacancySnapshot } from "./vacancies";
@@ -55,18 +55,15 @@ export interface PipelineService {
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const me = users[0]!.name;
 
-/** Shared test invitations. Candidate profiles read the same list. */
-export const invitationStore: TestInvitationSummary[] = structuredClone(testInvitations);
-let seq = 0;
-
 export function battery(vacancy: Vacancy) {
-  const b = getBattery(vacancy.assessment.battery);
+  const b = batteryById(vacancy.assessment.battery);
   if (!b) return null;
-  return { label: b.label, tests: testsForInvitation({ batteryId: b.id, extraTests: [] }).length, description: batterySummary(b) };
+  return { label: b.label, tests: testIdsFor({ batteryId: b.id, extraTests: [] }).length, description: batterySummary(b) };
 }
 
-function testsFor(name: string, vacancyTitle: string) {
-  return invitationStore.filter((t) => t.candidateName === name && t.vacancyTitle === vacancyTitle).at(-1) ?? null;
+function testsFor(candidateId: string, vacancyId: string) {
+  const r = latestFor(candidateId, vacancyId);
+  return r ? summaryOf(r) : null;
 }
 
 function locate(t: MoveTarget) {
@@ -76,24 +73,13 @@ function locate(t: MoveTarget) {
   return { c, app };
 }
 
-function issueTests(name: string, vacancy: Vacancy) {
-  const b = battery(vacancy);
+/** Sends the vacancy's battery unless the candidate already has tests open or finished for it. */
+function issueTests(candidateId: string, vacancy: Vacancy) {
+  const b = batteryById(vacancy.assessment.battery);
   if (!b) return false;
-  const existing = testsFor(name, vacancy.title);
+  const existing = latestFor(candidateId, vacancy.id);
   if (existing && !["expired", "cancelled"].includes(existing.status)) return false;
-  const deadline = new Date(new Date(MOCK_NOW).getTime() + vacancy.assessment.deadlineDays * 86400000);
-  deadline.setHours(17, 0, 0, 0);
-  invitationStore.push({
-    id: `tst_new_${++seq}`,
-    candidateName: name,
-    vacancyTitle: vacancy.title,
-    battery: b.label,
-    status: "sent",
-    sentAt: MOCK_NOW,
-    deadline: deadline.toISOString(),
-    completed: 0,
-    total: b.tests,
-  });
+  createInvitation({ candidateId, vacancyId: vacancy.id, batteryId: b.id, extraTests: [], deadline: deadlineIn(vacancy.assessment.deadlineDays), channels: ["email", "sms"], language: "en" });
   return true;
 }
 
@@ -119,7 +105,7 @@ export const mockPipeline: PipelineService = {
           source: a.source,
           appliedAt: a.appliedAt,
           stageSince: a.history.at(-1)?.at ?? a.appliedAt,
-          tests: testsFor(c.name, vacancy.title),
+          tests: testsFor(c.id, vacancy.id),
           history: a.history,
         });
       }
@@ -152,14 +138,11 @@ export const mockPipeline: PipelineService = {
       app.history.push({ stage, at: MOCK_NOW, by: me, ...(note.trim() ? { note: note.trim() } : {}) });
       if (c.applications[0]!.id === app.id) c.stage = stage;
       result.moved++;
-      if (stage === "assessment" && opts?.sendTests && issueTests(c.name, vacancy)) result.testsSent++;
+      if (stage === "assessment" && opts?.sendTests && issueTests(c.id, vacancy)) result.testsSent++;
       if (stage === "rejected") {
         // Don't leave a rejected candidate with live test invitations.
-        const open = testsFor(c.name, vacancy.title);
-        if (open && !["completed", "expired", "cancelled"].includes(open.status)) {
-          open.status = "cancelled";
-          result.testsCancelled++;
-        }
+        const open = latestFor(c.id, vacancy.id);
+        if (open && cancelOpen(open, "Candidate not progressing for this vacancy")) result.testsCancelled++;
       }
     }
     return result;
@@ -175,7 +158,7 @@ export const mockPipeline: PipelineService = {
         result.skipped.push({ name: c.name, reason: "this vacancy has no test battery" });
         continue;
       }
-      if (issueTests(c.name, vacancy)) result.testsSent++;
+      if (issueTests(c.id, vacancy)) result.testsSent++;
       else result.skipped.push({ name: c.name, reason: "already has tests open or finished" });
     }
     return result;

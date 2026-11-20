@@ -142,15 +142,27 @@ export interface OrganisationSetup {
 /** What a candidate sees when opening a psychometric test link (Module 9 builds the test itself). */
 export interface CandidateTestAccess {
   token: string;
-  status: "ready" | "in_progress" | "completed" | "expired";
+  status: "ready" | "in_progress" | "completed" | "expired" | "cancelled";
   candidateName: string;
   candidateEmailMasked: string;
   organisationName: string;
   organisationColour: string;
   vacancyTitle: string;
   deadline: string;
-  tests: { name: string; type: PsychometricTestType; minutes: number; timed: boolean }[];
+  tests: {
+    name: string;
+    type: PsychometricTestType;
+    minutes: number;
+    timed: boolean;
+    /** Present for links backed by the assessments store (Module 9). */
+    id?: string;
+    done?: boolean;
+    /** Questions answered so far on an untimed test that was saved part-way. */
+    saved?: number;
+  }[];
   extraTimePercent: number;
+  /** Consent was already given on an earlier visit. */
+  consented: boolean;
 }
 
 /* ---------- HR dashboard (Module 3) ---------- */

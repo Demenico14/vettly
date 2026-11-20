@@ -13,7 +13,7 @@ export { publishers, families, tests, normTables, familyOf } from "./catalogue";
 export { normGroups } from "./norms";
 export { sampleItems } from "./items";
 export { batteries, batterySummary } from "./batteries";
-export { invitationRecords } from "./invitations";
+export { invitationRecords, atPercentile as rawAtPercentile, atSten as rawAtSten } from "./invitations";
 export { validityBenchmarks, reportTemplates, consentNotice, countryProfiles, candidateFlow } from "./reference";
 
 export const getTest = (id: string): Test | undefined => tests.find((t) => t.id === id);
