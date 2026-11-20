@@ -351,7 +351,7 @@ export type VacancyDraft = Pick<
 
 export type SkillLevel = "Expert" | "Advanced" | "Intermediate" | "Basic";
 export type Availability = "Immediately" | "2 weeks' notice" | "1 month's notice" | "3 months' notice";
-export type ApplicationSource = "Vettly careers page" | "LinkedIn" | "Email (CV upload)" | "Referral" | "Indeed" | "VacancyMail";
+export type ApplicationSource = "Vettly careers page" | "LinkedIn" | "Email (CV upload)" | "Referral" | "Indeed" | "VacancyMail" | "Talent pool";
 
 export interface WorkExperience {
   id: string;

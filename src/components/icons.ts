@@ -87,6 +87,7 @@ export {
   PencilLine as PenLine,
   PencilSimple as Pencil,
   Plus,
+  Play,
   ArrowClockwise as RefreshCw,
   MagnifyingGlass as Search,
   MagnifyingGlassMinus as SearchX,

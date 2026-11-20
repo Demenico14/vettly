@@ -53,7 +53,7 @@ export const NAV: NavGroup[] = [
   {
     label: "Insights",
     items: [
-      { label: "Talent pool", href: "/talent", icon: UsersRound, module: 12, description: "Skills-based discovery, saved searches and talent collections." },
+      { label: "Talent pool", href: "/talent", icon: UsersRound, module: 12, built: true, description: "Skills-based discovery, saved searches and talent collections." },
       { label: "Analytics", href: "/analytics", icon: BarChart3, module: 13, description: "Application trends, time-to-hire, funnel and source reporting." },
     ],
   },

@@ -390,4 +390,4 @@ export const candidateProfiles: CandidateProfile[] = summaries.map((s) => {
 
 export const ALL_SKILLS = [...new Set(candidateProfiles.flatMap((c) => c.skills.map((s) => s.name)))].sort();
 export const ALL_LOCATIONS = [...new Set(candidateProfiles.map((c) => c.location))].sort();
-export const ALL_SOURCES: ApplicationSource[] = ["Vettly careers page", "LinkedIn", "Email (CV upload)", "Referral", "Indeed", "VacancyMail"];
+export const ALL_SOURCES: ApplicationSource[] = ["Vettly careers page", "LinkedIn", "Email (CV upload)", "Referral", "Indeed", "VacancyMail", "Talent pool"];

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Sparkles,
   Users,
+  UsersRound,
 } from "@/components/icons";
 import {
   Alert,
@@ -142,6 +143,14 @@ export function VacancyDetail({ id }: { id: string }) {
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              {v.status === "open" && (
+                <Button variant="secondary" asChild>
+                  <Link href={`/talent?vacancy=${v.id}`}>
+                    <UsersRound />
+                    Find talent
+                  </Link>
+                </Button>
+              )}
               {v.status !== "filled" && (
                 <Button variant="secondary" asChild>
                   <Link href={`/vacancies/${v.id}/edit`}>

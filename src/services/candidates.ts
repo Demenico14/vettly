@@ -2,7 +2,7 @@
  * Candidate service. Phase 1: in-memory profiles seeded from mock data, so stage moves, notes, uploads and
  * talent-pool changes persist while the app is open. Phase 2 replaces this with API calls of the same shape.
  */
-import type { ApplicationStage, Availability, CandidateDocument, CandidateNote, CandidateProfile, CvExtraction, TestInvitationSummary } from "@/types";
+import type { ApplicationSource, ApplicationStage, SkillLevel, Availability, CandidateDocument, CandidateNote, CandidateProfile, CvExtraction, TestInvitationSummary } from "@/types";
 import { assess } from "@/mocks/matching";
 import { vacancySnapshot } from "./vacancies";
 import { candidateProfiles } from "@/mocks/candidates";
@@ -31,6 +31,11 @@ export interface CvCandidateInput {
   vacancyTitle: string;
   fileName: string;
   sizeKb: number;
+  /** Defaults to an emailed CV. */
+  source?: ApplicationSource;
+  /** Known skill levels, e.g. from a talent record; otherwise every skill starts at Intermediate. */
+  skillLevels?: { name: string; level: SkillLevel; years?: number }[];
+  tags?: string[];
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -57,11 +62,11 @@ function application(input: CvCandidateInput, idSuffix: string) {
     vacancyId: input.vacancyId,
     vacancyTitle: input.vacancyTitle,
     appliedAt: MOCK_NOW,
-    source: "Email (CV upload)" as const,
+    source: input.source ?? ("Email (CV upload)" as ApplicationSource),
     stage: "applied" as const,
     matchScore,
     provenance: "ai_illustrative" as const,
-    history: [{ stage: "applied" as const, at: MOCK_NOW, by: me, note: `Added from ${input.fileName}` }],
+    history: [{ stage: "applied" as const, at: MOCK_NOW, by: me, note: input.source === "Talent pool" ? "Added from the talent pool" : `Added from ${input.fileName}` }],
   };
 }
 
@@ -184,13 +189,13 @@ export const mockCandidateProfiles: CandidateProfileService = {
       summary: x.summary,
       experience: x.experience.map((e) => ({ id: e.id, title: e.title, company: e.company, location: e.location, start: e.start, end: e.end, bullets: [] })),
       education: x.education.map((e) => ({ id: e.id, institution: e.institution, qualification: e.qualification, field: e.field, start: e.end ? e.end - 3 : 2020, end: e.end })),
-      skills: x.skills.map((name) => ({ name, level: "Intermediate" as const })),
+      skills: input.skillLevels ?? x.skills.map((name) => ({ name, level: "Intermediate" as const })),
       certifications: [],
       projects: [],
       documents: [cvDocument(input)],
       applications: [app],
       notes: [],
-      tags: [],
+      tags: input.tags ?? [],
       inTalentPool: false,
     };
     store.unshift(c);

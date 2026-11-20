@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Copy,
   ExternalLink,
+  Folder,
   Linkedin,
   Mail,
   MapPin,
@@ -38,6 +39,7 @@ import { PageContainer } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CandidateProfile } from "@/types";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
+import { AddToCollectionDialog } from "@/features/talent/meta";
 import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
 import { ScheduleDialog } from "@/features/interviews/schedule-dialog";
 import { ApplicationsTab, AssessmentsTab, DocumentsTab, MoveStageDialog, NotesTab } from "./profile-tabs";
@@ -50,6 +52,7 @@ export function CandidateProfileView({ id }: { id: string }) {
   const [tagDraft, setTagDraft] = React.useState("");
   const [addingTag, setAddingTag] = React.useState(false);
   const [sendingTests, setSendingTests] = React.useState(false);
+  const [collecting, setCollecting] = React.useState(false);
   const [scheduling, setScheduling] = React.useState(false);
   const [offerId, setOfferId] = React.useState<string | null>(null);
 
@@ -328,10 +331,16 @@ export function CandidateProfileView({ id }: { id: string }) {
             </div>
           </Card>
 
-          <Button variant="ghost" className="justify-start" onClick={() => setSendingTests(true)}>
-            <ClipboardList />
-            Send psychometric tests
-          </Button>
+          <div className="flex flex-col">
+            <Button variant="ghost" className="justify-start" onClick={() => setSendingTests(true)}>
+              <ClipboardList />
+              Send psychometric tests
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => setCollecting(true)}>
+              <Folder />
+              Add to a talent collection
+            </Button>
+          </div>
         </aside>
       </div>
       <ScheduleDialog open={scheduling} onOpenChange={setScheduling} preset={{ candidateId: c.id, vacancyId: app.vacancyId }} onScheduled={() => setReload((r) => r + 1)} />
@@ -341,6 +350,7 @@ export function CandidateProfileView({ id }: { id: string }) {
         targets={[{ candidateId: c.id, vacancyId: app.vacancyId, name: c.name, vacancyTitle: app.vacancyTitle }]}
         onSent={() => setReload((r) => r + 1)}
       />
+      <AddToCollectionDialog open={collecting} onOpenChange={setCollecting} people={[{ id: c.id, kind: "candidate", name: c.name }]} />
       {moving && <MoveStageDialog candidate={c} app={app} open={moving} onOpenChange={setMoving} onMoved={setC} />}
     </PageContainer>
   );
