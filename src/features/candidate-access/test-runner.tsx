@@ -312,7 +312,7 @@ function Answer({ item, format, answers, onChange, disabled }: { item: SampleIte
             <legend className="px-1 text-sm text-fg">{o}</legend>
             <div className="mt-1 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {EFFECTIVE.map((e, r) => (
-                <label key={e} className={cn("flex cursor-pointer items-center justify-center rounded-sm border px-2 py-1.5 text-center text-xs", answers[`${item.id}:${i}`] === r + 1 ? "border-primary-500 bg-primary-50 font-semibold text-primary-800" : "border-line-strong text-fg-muted")}>
+                <label key={e} className={cn("flex min-h-11 cursor-pointer items-center justify-center rounded-sm border px-2 py-1.5 text-center text-sm has-focus-visible:ring-3 has-focus-visible:ring-primary-500/30 sm:text-xs", answers[`${item.id}:${i}`] === r + 1 ? "border-primary-500 bg-primary-50 font-semibold text-primary-800" : "border-line-strong text-fg-muted")}>
                   <input type="radio" name={`${name}-${i}`} className="sr-only" checked={answers[`${item.id}:${i}`] === r + 1} onChange={() => onChange(`${item.id}:${i}`, r + 1)} />
                   {e}
                 </label>

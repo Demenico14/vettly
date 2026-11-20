@@ -44,7 +44,7 @@ export function FilterSelect({
         <button
           type="button"
           className={cn(
-            "pressable inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
+            "pressable inline-flex h-8 max-w-full shrink-0 pointer-coarse:h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
             active ? "border-primary-500/40 bg-primary-50 text-primary-800" : "border-line-strong bg-surface text-fg-muted hover:border-ink-400 hover:text-fg",
           )}
         >

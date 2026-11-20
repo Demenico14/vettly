@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRightLeft, PenLine, Sparkles, UsersRound, X } from "@/components/icons";
-import { Alert, Avatar, Button, Card, Checkbox, EmptyState, Skeleton, Switch, Table, TBody, TD, TH, THead, TR, Tooltip } from "@/components/ui";
+import { LoadError, Avatar, Button, Card, Checkbox, EmptyState, Pagination, Skeleton, Switch, Table, TBody, TD, TH, THead, TR, Tooltip, usePagination } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { IllustrativeNotice, MatchScore, ProvenanceTag } from "@/components/domain/assessment";
 import { StageBadge } from "@/components/domain/status-badge";
@@ -26,12 +26,13 @@ export function MatchingOverview() {
 
   const vacancyId = params.get("vacancy") ?? summaries?.[0]?.vacancy.id ?? null;
 
+  const [attempt, setAttempt] = React.useState(0);
   React.useEffect(() => {
     services.matching
       .vacancies()
       .then(setSummaries)
       .catch((e: Error) => setError(e.message));
-  }, []);
+  }, [attempt]);
 
   React.useEffect(() => {
     if (!vacancyId) return;
@@ -68,9 +69,9 @@ export function MatchingOverview() {
       }
     >
       {error ? (
-        <Alert tone="danger" title="Matching didn't load">
+        <LoadError title="Matching didn't load" onRetry={() => (setError(null), setAttempt((a) => a + 1))}>
           {error}
-        </Alert>
+        </LoadError>
       ) : !summaries ? (
         <div className="flex flex-col gap-4" aria-busy="true">
           <Skeleton className="h-10 w-full max-w-xl rounded-full" />
@@ -100,10 +101,10 @@ export function MatchingOverview() {
                       {s.vacancy.title}
                       <span className={cn("text-xs tabular", active ? "text-white/75" : "text-fg-subtle")}>{s.assessed}</span>
                       {s.toReview > 0 && (
-                        <span
-                          className={cn("size-1.5 rounded-full", active ? "bg-accent-300" : "bg-accent-500")}
-                          aria-label={`${s.toReview} not yet reviewed`}
-                        />
+                        <span className={cn("inline-flex items-center gap-1 text-xs font-semibold", active ? "text-accent-100" : "text-accent-700")}>
+                          <span className={cn("size-1.5 rounded-full", active ? "bg-accent-300" : "bg-accent-500")} aria-hidden />
+                          {s.toReview} to review
+                        </span>
                       )}
                     </button>
                   </li>
@@ -218,15 +219,18 @@ function RankingList({
   const full = picked.length >= MAX_COMPARE;
   const shown = (a: CandidateAssessment) => (withTests && a.scoreWithTests !== null ? a.scoreWithTests : a.score);
   const missing = (a: CandidateAssessment) => a.requirements.filter((r) => r.outcome === "missing").length;
+  const pager = usePagination(rows, { resetKey: String(withTests) });
+  const top = React.useRef<HTMLDivElement>(null);
+  const offset = (pager.page - 1) * pager.pageSize;
 
   return (
-    <>
-      <ol className="md:hidden">
-        {rows.map((a, i) => {
+    <div ref={top} className="scroll-mt-16">
+      <ol className="md:hidden" start={offset + 1}>
+        {pager.items.map((a, i) => {
           const e = essentials(a.requirements);
           return (
             <li key={a.candidateId} className="flex items-start gap-3 border-b border-line px-4 py-3.5 last:border-b-0">
-              <span className="w-5 pt-1.5 text-right text-xs font-semibold text-fg-subtle tabular">{i + 1}</span>
+              <span className="w-6 pt-1.5 text-right text-xs font-semibold text-fg-subtle tabular">{offset + i + 1}</span>
               <Link href={href(a)} className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-3">
                   <span className="truncate text-sm font-semibold text-fg">{a.candidateName}</span>
@@ -265,7 +269,7 @@ function RankingList({
             </TR>
           </THead>
           <TBody>
-            {rows.map((a, i) => {
+            {pager.items.map((a, i) => {
               const e = essentials(a.requirements);
               const on = picked.includes(a.candidateId);
               const gaps = missing(a);
@@ -283,7 +287,7 @@ function RankingList({
                       </span>
                     </Tooltip>
                   </TD>
-                  <TD className="text-right text-xs font-semibold text-fg-subtle tabular">{i + 1}</TD>
+                  <TD className="text-right text-xs font-semibold text-fg-subtle tabular">{offset + i + 1}</TD>
                   <TD>
                     <Link href={href(a)} className="flex items-center gap-3">
                       <Avatar name={a.candidateName} size="sm" />
@@ -346,6 +350,9 @@ function RankingList({
           </TBody>
         </Table>
       </div>
-    </>
+      <div className="border-t border-line px-4 py-2.5">
+        <Pagination p={pager} noun={["candidate", "candidates"]} anchor={top} />
+      </div>
+    </div>
   );
 }

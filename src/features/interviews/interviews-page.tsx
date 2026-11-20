@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { CalendarPlus, ChevronLeft, ChevronRight, Phone, UsersRound, Video } from "@/components/icons";
-import { Alert, Avatar, Button, Card, EmptyState, Segmented, Skeleton, Switch } from "@/components/ui";
+import { Alert, LoadError, Avatar, Button, Card, EmptyState, Segmented, Skeleton, Switch } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW, partsOf, type InterviewListItem } from "@/services";
@@ -77,9 +77,9 @@ export function InterviewsPage() {
       }
     >
       {error ? (
-        <Alert tone="danger" title="Interviews didn't load">
+        <LoadError title="Interviews didn't load" onRetry={() => (setError(null), setReload((r) => r + 1))}>
           {error}
-        </Alert>
+        </LoadError>
       ) : !items ? (
         <Skeleton className="h-[32rem] rounded-lg" />
       ) : (
@@ -210,7 +210,7 @@ function WeekGrid({ items, week, onWeek }: { items: InterviewListItem[]; week: s
                         <FormatIcon format={iv.format} className="size-3 shrink-0" />
                         <span className="truncate">{iv.candidateName}</span>
                       </span>
-                      <span className="block truncate opacity-80">
+                      <span className="block truncate">
                         {t}–{endTime(iv)} · {iv.round}
                       </span>
                       {i.myScorecardDue && <span className="block truncate font-semibold">Your scorecard is due</span>}

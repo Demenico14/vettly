@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CircleAlert, CircleCheck, Info, TriangleAlert } from "@/components/icons";
+import { CircleAlert, CircleCheck, Info, RefreshCw, TriangleAlert } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export function Skeleton({ className }: { className?: string }) {
@@ -32,7 +32,7 @@ export function EmptyState({
       <div className="mb-4 grid size-10 place-items-center rounded-md border border-line bg-surface-muted text-ink-500 [&_svg]:size-5">
         {icon}
       </div>
-      <h3 className="text-sm font-bold text-fg">{title}</h3>
+      <p className="text-sm font-bold text-fg">{title}</p>
       {description && <p className="mt-1 max-w-sm text-sm text-fg-muted">{description}</p>}
       {action && <div className="mt-5 flex gap-2">{action}</div>}
     </div>
@@ -69,7 +69,7 @@ export function Alert({
       <Icon className={cn("mt-0.5 size-4 shrink-0", ic)} aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">{title}</p>
-        {children && <div className="mt-0.5 opacity-90">{children}</div>}
+        {children && <div className="mt-0.5">{children}</div>}
       </div>
       {action && <div className="shrink-0 self-center">{action}</div>}
     </div>
@@ -121,5 +121,24 @@ export function Kbd({ children, className }: { children: React.ReactNode; classN
     >
       {children}
     </kbd>
+  );
+}
+
+/** A failed load, with a way to try again. */
+export function LoadError({ title, children, onRetry, className }: { title: string; children?: React.ReactNode; onRetry: () => void; className?: string }) {
+  return (
+    <Alert
+      tone="danger"
+      title={title}
+      className={className}
+      action={
+        <button type="button" onClick={onRetry} className="pressable inline-flex h-8 items-center gap-1.5 rounded-md border border-danger-100 bg-surface px-3 text-xs font-semibold text-danger-700 hover:bg-danger-50">
+          <RefreshCw className="size-3.5" aria-hidden />
+          Try again
+        </button>
+      }
+    >
+      {children}
+    </Alert>
   );
 }

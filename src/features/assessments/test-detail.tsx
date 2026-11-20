@@ -127,7 +127,7 @@ export function TestDetail({ id }: { id: string }) {
             <div className="flex flex-col gap-5 px-5 pb-5 sm:px-6">
               {domains.map((d) => (
                 <section key={d || "all"}>
-                  {d && <h3 className="mb-2 text-xs font-semibold tracking-wide text-fg-subtle uppercase">{d}</h3>}
+                  {d && <h3 className="mb-2 text-xs font-semibold text-fg-muted">{d}</h3>}
                   <ul className="flex flex-col divide-y divide-line">
                     {t.scales
                       .filter((s) => (s.domain ?? "") === d)

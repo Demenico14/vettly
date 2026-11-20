@@ -27,7 +27,7 @@ export function SettingsShell({ section, children }: { section: SectionId; child
           <div className="sticky top-4 flex flex-col gap-4">
             {groups.map((g) => (
               <div key={g}>
-                <p className="px-3 pb-1 text-2xs font-semibold tracking-wide text-fg-subtle uppercase">{g}</p>
+                <p className="px-3 pb-1 text-xs font-medium text-fg-muted">{g}</p>
                 <ul>
                   {SECTIONS.filter((s) => s.group === g).map((s) => {
                     const active = path === `/settings/${s.id}`;

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Phone, Sparkles, TriangleAlert, UsersRound, Video } from "@/components/icons";
-import { Alert, Button, Checkbox, Field, Input, Modal, ModalClose, ModalContent, Select, Skeleton, Textarea, toast } from "@/components/ui";
+import { Alert, Button, Checkbox, Combobox, Field, Input, Modal, ModalClose, ModalContent, Select, Skeleton, Textarea, toast } from "@/components/ui";
 import { services, MY_INTERVIEWER_ID, harare, partsOf, type Conflict } from "@/services";
 import type { CandidateProfile } from "@/types";
 import type { InterviewFormat, InterviewKind, Interviewer, PanelMember, QuestionSet } from "@/types/interviews";
@@ -19,6 +19,8 @@ const DEFAULT_LOCATION: Record<InterviewFormat, string> = {
   Video: "Microsoft Teams (link created when you schedule)",
   Phone: "",
 };
+
+const STAGE_GROUP: Record<string, string> = { offer: "At offer", interview: "Interviewing", assessment: "Testing", shortlisted: "Shortlisted", screening: "Screening", applied: "Applied" };
 
 export function ScheduleDialog({
   open,
@@ -154,9 +156,14 @@ export function ScheduleDialog({
     }
   };
 
-  const options = (people ?? []).flatMap((p) =>
-    p.applications.filter((a) => !["rejected", "withdrawn", "hired"].includes(a.stage)).map((a) => ({ value: `${p.id}|${a.vacancyId}`, label: `${p.name} · ${a.vacancyTitle}` })),
-  );
+  const ORDER = ["interview", "assessment", "shortlisted", "offer", "screening", "applied"];
+  const options = (people ?? [])
+    .flatMap((p) =>
+      p.applications
+        .filter((a) => ORDER.includes(a.stage))
+        .map((a) => ({ value: `${p.id}|${a.vacancyId}`, label: p.name, description: a.vacancyTitle, group: STAGE_GROUP[a.stage], rank: ORDER.indexOf(a.stage) })),
+    )
+    .sort((x, y) => x.rank - y.rank || x.label.localeCompare(y.label));
 
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
@@ -186,7 +193,7 @@ export function ScheduleDialog({
             )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Candidate" required className="sm:col-span-2">
-                <Select value={app} onValueChange={setApp} placeholder="Choose candidate and vacancy" options={options} disabled={!!preset} />
+                <Combobox value={app} onValueChange={setApp} placeholder="Choose candidate and vacancy" searchPlaceholder="Search by name or vacancy" options={options} disabled={!!preset} />
               </Field>
               <Field label="Type">
                 <Select

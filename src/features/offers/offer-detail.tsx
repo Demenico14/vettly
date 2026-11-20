@@ -384,7 +384,7 @@ function Checklist({ offer: o, onChange }: { offer: Offer; onChange: () => void 
       <CardHeader title="Hiring checklist" description="Pre-hire checks must be done before you mark someone as hired." />
       {(["before_hire", "before_start"] as const).map((phase) => (
         <div key={phase} className="px-5 pb-4">
-          <p className="mb-1.5 text-2xs font-semibold tracking-wide text-fg-subtle uppercase">{phase === "before_hire" ? "Before hiring" : "Before day one"}</p>
+          <p className="mb-1.5 text-xs font-semibold text-fg-muted">{phase === "before_hire" ? "Before hiring" : "Before day one"}</p>
           <ul className="flex flex-col gap-1.5">
             {o.checklist
               .filter((i) => i.phase === phase)

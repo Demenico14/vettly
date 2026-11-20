@@ -19,7 +19,7 @@ export function LetterView({ letter, title }: { letter: Letter | null; title: st
               </span>
               Msasa Financial Group
             </span>
-            <span className="text-2xs text-ink-500">Msasa House, Harare · Private and confidential</span>
+            <span className="text-xs text-fg-subtle">Msasa House, Harare · Private and confidential</span>
           </div>
           {letter.map((p, i) => (
             <div key={i} className="mb-3">

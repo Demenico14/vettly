@@ -29,7 +29,7 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
         aria-hidden
       />
       {!collapsed && <span className="truncate">{item.label}</span>}
-      {!collapsed && item.badge && <span className="ml-auto text-xs text-ink-400 tabular">{item.badge}</span>}
+      {!collapsed && item.badge && <span className="ml-auto text-xs text-shell-fg-muted tabular">{item.badge}</span>}
       {collapsed && <span className="sr-only">{item.label}</span>}
     </Link>
   );
@@ -101,7 +101,7 @@ export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: bool
         return (
           <div key={group.label}>
             {!collapsed ? (
-              <p className="mb-1 px-2 text-xs font-medium text-ink-400">{group.label}</p>
+              <p className="mb-1 px-2 text-xs font-medium text-shell-fg-muted">{group.label}</p>
             ) : (
               <div className="mx-auto mb-2 h-px w-5 bg-shell-line" aria-hidden />
             )}
@@ -139,7 +139,7 @@ function PlanLine() {
   const { organisation } = useSession();
   if (!organisation) return null;
   return (
-    <Link href="/settings" className="flex items-center justify-between rounded-sm px-2 py-1.5 text-xs text-ink-500 hover:bg-shell-raised">
+    <Link href="/settings" className="flex items-center justify-between rounded-sm px-2 py-1.5 text-xs text-shell-fg-muted hover:bg-shell-raised">
       <span className="capitalize">{organisation.plan} plan</span>
       <span className="tabular">
         {organisation.seatsUsed} of {organisation.seatsTotal} seats

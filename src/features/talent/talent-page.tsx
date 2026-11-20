@@ -78,7 +78,7 @@ export function TalentPage() {
           <TabsTrigger value="search">Search</TabsTrigger>
           <TabsTrigger value="saved" count={searches?.length}>
             Saved searches
-            {fresh > 0 && <span className="size-1.5 rounded-full bg-accent-500" aria-label={`${fresh} new matches`} />}
+            {fresh > 0 && <span className="rounded-full bg-accent-50 px-1.5 text-2xs leading-4 font-bold text-accent-700 tabular">{fresh} new</span>}
           </TabsTrigger>
           <TabsTrigger value="collections" count={cols?.length}>
             Collections
@@ -124,7 +124,7 @@ function SavedSearches({ rows, onRun, onChanged }: { rows: (SavedSearch & { matc
             <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-[0.9375rem] font-semibold text-fg">{s.name}</h3>
+                  <h2 className="text-[0.9375rem] font-semibold text-fg">{s.name}</h2>
                   {s.newSinceLastRun > 0 && (
                     <Badge tone="accent" size="sm" dot>
                       {s.newSinceLastRun} new

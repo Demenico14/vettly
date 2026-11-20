@@ -12,6 +12,8 @@ import {
   Card,
   Checkbox,
   EmptyState,
+  Pagination,
+  usePagination,
   Input,
   Select,
   Skeleton,
@@ -124,7 +126,9 @@ export function CandidateDirectory() {
   };
   const toggleSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: key === "name" ? "asc" : "desc" }));
-  const allSelected = filtered.length > 0 && filtered.every((c) => selected.has(c.id));
+  const pager = usePagination(filtered, { resetKey: JSON.stringify([query, f, sort]) });
+  const listTop = React.useRef<HTMLDivElement>(null);
+  const allSelected = pager.items.length > 0 && pager.items.every((c) => selected.has(c.id));
 
   const vacancyOptions = [...new Set((rows ?? []).flatMap((c) => c.applications.map((a) => a.vacancyTitle)))].sort();
 
@@ -278,7 +282,7 @@ export function CandidateDirectory() {
             {error}
           </Alert>
         ) : (
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden scroll-mt-16" ref={listTop}>
             {!rows ? (
               <div className="flex flex-col gap-4 p-5" aria-busy="true">
                 {Array.from({ length: 7 }).map((_, i) => (
@@ -312,7 +316,7 @@ export function CandidateDirectory() {
             ) : (
               <>
                 <ul className="md:hidden">
-                  {filtered.map((c) => (
+                  {pager.items.map((c) => (
                     <li key={c.id}>
                       <Link href={`/candidates/${c.id}`} className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-b-0 hover:bg-surface-muted">
                         <Avatar name={c.name} size="sm" />
@@ -336,9 +340,15 @@ export function CandidateDirectory() {
                       <TR>
                         <TH className="w-10 pr-0">
                           <Checkbox
-                            aria-label="Select all candidates shown"
+                            aria-label="Select all candidates on this page"
                             checked={allSelected ? true : selected.size > 0 ? "indeterminate" : false}
-                            onCheckedChange={() => setSelected(allSelected ? new Set() : new Set(filtered.map((c) => c.id)))}
+                            onCheckedChange={() =>
+                              setSelected((s) => {
+                                const n = new Set(s);
+                                pager.items.forEach((c) => (allSelected ? n.delete(c.id) : n.add(c.id)));
+                                return n;
+                              })
+                            }
                           />
                         </TH>
                         <SortableTH label="Candidate" active={sort.key === "name"} direction={sort.dir} onSort={() => toggleSort("name")} />
@@ -351,7 +361,7 @@ export function CandidateDirectory() {
                       </TR>
                     </THead>
                     <TBody>
-                      {filtered.map((c) => {
+                      {pager.items.map((c) => {
                         const app = primary(c);
                         return (
                           <TR key={c.id} selected={selected.has(c.id)} className="cursor-pointer" onClick={() => router.push(`/candidates/${c.id}`)}>
@@ -395,11 +405,11 @@ export function CandidateDirectory() {
                             </TD>
                             <TD>
                               <span className="flex items-center gap-1 whitespace-nowrap">
-                                <Tag className="h-5 max-w-36 px-1.5 text-2xs">
+                                <Tag className="h-5 max-w-36 px-1.5 text-xs">
                                   <span className="truncate">{c.skills[0]?.name}</span>
                                 </Tag>
                                 {c.skills.length > 1 && (
-                                  <span className="text-2xs text-fg-subtle" title={c.skills.slice(1).map((x) => x.name).join(", ")}>
+                                  <span className="text-xs text-fg-subtle" title={c.skills.slice(1).map((x) => x.name).join(", ")}>
                                     +{c.skills.length - 1}
                                   </span>
                                 )}
@@ -413,10 +423,15 @@ export function CandidateDirectory() {
                     </TBody>
                   </Table>
                 </div>
-                <p className="border-t border-line px-4 py-2.5 text-xs text-fg-subtle" aria-live="polite">
-                  {filtered.length} of {rows.length} candidates
-                  {f.skills.length > 1 && ` with all of: ${f.skills.join(", ")}`}
-                </p>
+                <div className="border-t border-line px-4 py-2.5">
+                  <Pagination p={pager} noun={["candidate", "candidates"]} anchor={listTop} />
+                  {(filtered.length < rows.length || f.skills.length > 1) && (
+                    <p className="mt-1 text-xs text-fg-subtle">
+                      Filtered from {rows.length} candidates
+                      {f.skills.length > 1 && `, with all of: ${f.skills.join(", ")}`}
+                    </p>
+                  )}
+                </div>
               </>
             )}
           </Card>

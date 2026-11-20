@@ -13,3 +13,5 @@ export * from "./modal";
 export * from "./menu";
 export * from "./feedback";
 export { toast } from "./toast";
+export * from "./pagination";
+export * from "./combobox";

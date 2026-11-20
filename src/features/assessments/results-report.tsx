@@ -325,7 +325,7 @@ function TraitProfile({ res, test }: { res: ScoredResult; test: Test }) {
     <div className="flex flex-col gap-5 px-5 py-5 sm:px-6">
       {domains.map((d) => (
         <section key={d}>
-          <h4 className="mb-2 text-xs font-semibold tracking-wide text-fg-subtle uppercase">{d}</h4>
+          <h4 className="mb-2 text-xs font-semibold text-fg-muted">{d}</h4>
           <ul className="flex flex-col gap-2.5">
             {test.scales
               .filter((s) => (s.domain ?? "Scales") === d)

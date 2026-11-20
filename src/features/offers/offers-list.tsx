@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileSignature, Plus, Search } from "@/components/icons";
-import { Alert, Avatar, Button, Card, EmptyState, Input, Modal, ModalClose, ModalContent, Field, Select, Skeleton, Table, TBody, TD, TH, THead, TR } from "@/components/ui";
+import { Clock, FileSignature, Plus, Search } from "@/components/icons";
+import { Alert, LoadError, Avatar, Button, Card, EmptyState, Input, Modal, ModalClose, ModalContent, Field, Skeleton, Table, TBody, TD, TH, THead, TR, Pagination, usePagination, Combobox } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW, type OfferView } from "@/services";
@@ -23,12 +23,13 @@ export function OffersList() {
   const [tile, setTile] = React.useState<Tile>(null);
   const [creating, setCreating] = React.useState(false);
 
+  const [attempt, setAttempt] = React.useState(0);
   React.useEffect(() => {
     services.offers
       .list()
       .then(setRows)
       .catch((e: Error) => setError(e.message));
-  }, []);
+  }, [attempt]);
 
   const all = rows ?? [];
   const TILES: Record<Exclude<Tile, null>, (v: OfferView) => boolean> = {
@@ -44,6 +45,8 @@ export function OffersList() {
       (!tile || TILES[tile](v)),
   );
   const mine = all.filter((v) => v.myApprovalStep !== null).length;
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, status, tile]) });
+  const top = React.useRef<HTMLDivElement>(null);
 
   return (
     <PageContainer
@@ -61,9 +64,9 @@ export function OffersList() {
       }
     >
       {error ? (
-        <Alert tone="danger" title="Offers didn't load">
+        <LoadError title="Offers didn't load" onRetry={() => (setError(null), setAttempt((a) => a + 1))}>
           {error}
-        </Alert>
+        </LoadError>
       ) : !rows ? (
         <Skeleton className="h-96 rounded-lg" />
       ) : rows.length === 0 ? (
@@ -109,13 +112,13 @@ export function OffersList() {
             <FilterSelect label="Status" value={status} onChange={setStatus} options={Object.entries(OFFER_STATUS).filter(([k]) => all.some((v) => v.offer.status === k)).map(([value, m]) => ({ value, label: m.label }))} />
           </div>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden scroll-mt-16" ref={top}>
             {shown.length === 0 ? (
               <EmptyState icon={<Search />} title="No offers match" description="Clear the filters to see every offer." />
             ) : (
               <>
                 <ul className="md:hidden">
-                  {shown.map((v) => (
+                  {pager.items.map((v) => (
                     <li key={v.offer.id} className="border-b border-line last:border-b-0">
                       <Link href={`/offers/${v.offer.id}`} className="block px-4 py-3.5">
                         <span className="flex items-center justify-between gap-3">
@@ -143,7 +146,7 @@ export function OffersList() {
                       </TR>
                     </THead>
                     <TBody>
-                      {shown.map((v) => (
+                      {pager.items.map((v) => (
                         <TR key={v.offer.id}>
                           <TD>
                             <Link href={`/offers/${v.offer.id}`} className="flex items-center gap-3">
@@ -178,6 +181,9 @@ export function OffersList() {
                       ))}
                     </TBody>
                   </Table>
+                </div>
+                <div className="border-t border-line px-4 py-2.5">
+                  <Pagination p={pager} noun={["offer", "offers"]} anchor={top} />
                 </div>
               </>
             )}
@@ -216,8 +222,15 @@ function Next({ v }: { v: OfferView }) {
                     return n ? `${n} pre-hire ${n === 1 ? "check" : "checks"} left` : "Ready to mark as hired";
                   })()
                 : (o.withdrawnReason ?? o.response?.declineReason ?? "Closed");
-  const urgent = !!v.myApprovalStep || o.status === "countered" || (hoursLeft !== null && hoursLeft < 48 && (o.status === "sent" || o.status === "viewed"));
-  return <span className={cn("mt-1 block text-xs md:mt-0", urgent ? "font-semibold text-accent-700" : "text-fg-muted")}>{text}</span>;
+  // Copper means "needs you"; a deadline closing in is a warning, shown in ochre with a clock.
+  const needsYou = !!v.myApprovalStep || o.status === "countered";
+  const closing = hoursLeft !== null && hoursLeft < 48 && (o.status === "sent" || o.status === "viewed");
+  return (
+    <span className={cn("mt-1 flex items-center gap-1 text-xs md:mt-0", needsYou ? "font-semibold text-accent-700" : closing ? "font-semibold text-warning-700" : "text-fg-muted")}>
+      {closing && !needsYou && <Clock className="size-3.5 shrink-0" aria-hidden />}
+      {text}
+    </span>
+  );
 }
 
 function NewOfferDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -227,8 +240,11 @@ function NewOfferDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
   React.useEffect(() => {
     if (open) services.profiles.list().then(setPeople);
   }, [open]);
+  const ORDER = ["interview", "offer", "assessment", "shortlisted"];
+  const GROUP: Record<string, string> = { interview: "Interviewing", offer: "At offer", assessment: "Earlier stages", shortlisted: "Earlier stages" };
   const options = (people ?? [])
-    .flatMap((p) => p.applications.filter((a) => ["interview", "offer", "assessment", "shortlisted"].includes(a.stage)).map((a) => ({ value: `${p.id}|${a.vacancyId}`, label: `${p.name} · ${a.vacancyTitle}`, description: a.stage === "interview" ? "Interviewing" : a.stage === "offer" ? "At offer" : "Earlier stage" })));
+    .flatMap((p) => p.applications.filter((a) => ORDER.includes(a.stage)).map((a) => ({ value: `${p.id}|${a.vacancyId}`, label: p.name, description: a.vacancyTitle, group: GROUP[a.stage], rank: ORDER.indexOf(a.stage) })))
+    .sort((x, y) => x.rank - y.rank || x.label.localeCompare(y.label));
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent
@@ -256,7 +272,7 @@ function NewOfferDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
           <Skeleton className="h-10 rounded-md" />
         ) : (
           <Field label="Candidate">
-            <Select value={app} onValueChange={setApp} placeholder="Choose candidate and vacancy" options={options.sort((a, b) => (a.description === "Interviewing" ? -1 : 1) - (b.description === "Interviewing" ? -1 : 1))} />
+            <Combobox value={app} onValueChange={setApp} placeholder="Choose candidate and vacancy" searchPlaceholder="Search by name or vacancy" options={options} />
           </Field>
         )}
       </ModalContent>

@@ -446,7 +446,7 @@ export function ApplicationsPanel({ applications, loading }: { applications?: Re
         />
       ) : (
         <ul className="border-t border-line">
-          {applications.map((a) => (
+          {applications.slice(0, 6).map((a) => (
             <li key={a.id}>
               <Link href={`/candidates/${a.id}`} className="flex items-center gap-3 border-b border-line px-5 py-3 hover:bg-surface-muted">
                 <Avatar name={a.name} size="sm" />
@@ -481,18 +481,18 @@ const ACTIVITY_ICON: Record<ActivityKind, { Icon: typeof Inbox; cls: string }> =
 export function ActivityPanel({ events, loading }: { events?: ActivityEvent[]; loading: boolean }) {
   return (
     <Card className="flex flex-col">
-      <CardHeader title="Recruitment activity" description="Everything is also kept in the audit log" />
+      <CardHeader title="Recruitment activity" description="The latest six. The audit log has everything." actions={<PanelLink href="/settings/audit">Audit log</PanelLink>} />
       {loading || !events ? (
         <PanelSkeleton rows={6} />
       ) : events.length === 0 ? (
         <EmptyState icon={<FileStack />} title="No activity yet" description="Applications, stage moves, tests and offers will be listed here as they happen." className="py-8" />
       ) : (
         <ol className="border-t border-line px-5 py-4">
-          {events.map((e, i) => {
+          {events.slice(0, 6).map((e, i) => {
             const { Icon, cls } = ACTIVITY_ICON[e.kind];
             return (
               <li key={e.id} className="relative flex gap-3 pb-4 last:pb-0">
-                {i < events.length - 1 && <span className="absolute top-7 left-3.5 h-[calc(100%-1.75rem)] w-px bg-line" aria-hidden />}
+                {i < Math.min(events.length, 6) - 1 && <span className="absolute top-7 left-3.5 h-[calc(100%-1.75rem)] w-px bg-line" aria-hidden />}
                 <span className={cn("relative grid size-7 shrink-0 place-items-center rounded-full border border-line bg-surface", cls)}>
                   <Icon className="size-3.5" aria-hidden />
                 </span>

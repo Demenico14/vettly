@@ -20,6 +20,8 @@ import {
   Input,
   Modal,
   ModalClose,
+  Pagination,
+  usePagination,
   ModalContent,
   Progress,
   Select,
@@ -56,13 +58,13 @@ export function UsersSection() {
     services.settings.members().then(setData);
   }, [reload]);
 
-  if (!data) return <SectionSkeleton />;
   const refresh = () => setReload((r) => r + 1);
-  const shown = data.members.filter(
-    (m) => (!query || `${m.name} ${m.email} ${m.title} ${m.department}`.toLowerCase().includes(query.toLowerCase())) && (!roleFilter.length || roleFilter.includes(m.role)),
-  );
   const order = { active: 0, invited: 1, deactivated: 2 };
-  shown.sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+  const shown = (data?.members ?? [])
+    .filter((m) => (!query || `${m.name} ${m.email} ${m.title} ${m.department}`.toLowerCase().includes(query.toLowerCase())) && (!roleFilter.length || roleFilter.includes(m.role)))
+    .sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, roleFilter]) });
+  if (!data) return <SectionSkeleton />;
   const free = data.seatsTotal - data.seatsUsed;
   const no2fa = data.members.filter((m) => m.status === "active" && !m.twoFactor);
 
@@ -120,10 +122,10 @@ export function UsersSection() {
               </TR>
             </THead>
             <TBody>
-              {shown.map((m) => {
+              {pager.items.map((m) => {
                 const isMe = m.id === data.me;
                 return (
-                  <TR key={m.id} className={m.status === "deactivated" ? "opacity-60" : undefined}>
+                  <TR key={m.id} className={m.status === "deactivated" ? "bg-surface-muted" : undefined}>
                     <TD className="min-w-56">
                       <span className="flex items-center gap-3">
                         <Avatar name={m.name} size="sm" />
@@ -203,6 +205,9 @@ export function UsersSection() {
               })}
             </TBody>
           </Table>
+        </div>
+        <div className="border-t border-line px-4 py-2.5">
+          <Pagination p={pager} noun={["person", "people"]} />
         </div>
       </Card>
 
@@ -331,7 +336,7 @@ export function RolesSection() {
               {groups.map((g) => (
                 <React.Fragment key={g}>
                   <TR>
-                    <TD colSpan={5} className="bg-surface-muted py-1.5 text-2xs font-semibold tracking-wide text-fg-subtle uppercase">
+                    <TD colSpan={5} className="bg-surface-muted py-1.5 text-xs font-semibold text-fg-muted">
                       {g}
                     </TD>
                   </TR>

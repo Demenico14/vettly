@@ -39,7 +39,7 @@ export function RequirementRow({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <OutcomeChip outcome={r.outcome} />
-          <span className="text-2xs font-semibold tracking-wide text-fg-subtle uppercase">
+          <span className="text-xs font-semibold text-fg-muted">
             {KIND[r.requirement.kind]}
             {r.requirement.years ? ` · ${r.requirement.years}+ yrs` : ""}
           </span>

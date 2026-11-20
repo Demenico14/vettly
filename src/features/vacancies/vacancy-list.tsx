@@ -22,6 +22,8 @@ import {
   THead,
   TR,
   type SortDirection,
+  Pagination,
+  usePagination,
 } from "@/components/ui";
 import { VacancyStatusBadge } from "@/components/domain/status-badge";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
@@ -95,6 +97,8 @@ export function VacancyList() {
     });
   }, [rows, view, query, dept, loc, sort]);
 
+  const pager = usePagination(filtered, { resetKey: JSON.stringify([view, query, dept, loc]) });
+  const top = React.useRef<HTMLDivElement>(null);
   const filtersOn = view !== "all" || query || dept !== "all" || loc !== "all";
   const clear = () => {
     setView("all");
@@ -172,7 +176,7 @@ export function VacancyList() {
             {error}
           </Alert>
         ) : (
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden scroll-mt-16" ref={top}>
             {!rows ? (
               <div className="flex flex-col gap-4 p-5" aria-busy="true">
                 {Array.from({ length: 6 }).map((_, i) => (
@@ -207,7 +211,7 @@ export function VacancyList() {
             ) : (
               <>
                 <ul className="md:hidden">
-                  {filtered.map((v) => (
+                  {pager.items.map((v) => (
                     <li key={v.id} className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-b-0">
                       <Link href={`/vacancies/${v.id}`} className="min-w-0 flex-1">
                         <span className="flex items-center gap-2">
@@ -245,7 +249,7 @@ export function VacancyList() {
                       </TR>
                     </THead>
                     <TBody>
-                      {filtered.map((v) => {
+                      {pager.items.map((v) => {
                         const soon = v.closesAt && v.status === "open" && new Date(v.closesAt).getTime() - NOW.getTime() < 3 * 86400000;
                         return (
                           <TR key={v.id} className="cursor-pointer" onClick={() => router.push(`/vacancies/${v.id}`)}>
@@ -296,14 +300,17 @@ export function VacancyList() {
                     </TBody>
                   </Table>
                 </div>
-                <p className="border-t border-line px-4 py-2.5 text-xs text-fg-subtle" aria-live="polite">
-                  {filtered.length} of {rows.length} vacancies{filtersOn ? " match your filters" : ""}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line px-4 py-2.5">
+                  <Pagination p={pager} noun={["vacancy", "vacancies"]} anchor={top} className="flex-1" />
                   {filtersOn && (
-                    <button type="button" onClick={clear} className="ml-2 font-semibold text-primary-700 hover:underline">
-                      Clear
-                    </button>
+                    <span className="text-xs text-fg-subtle">
+                      Filtered from {rows.length}.{" "}
+                      <button type="button" onClick={clear} className="font-semibold text-primary-700 hover:underline">
+                        Clear filters
+                      </button>
+                    </span>
                   )}
-                </p>
+                </div>
               </>
             )}
           </Card>

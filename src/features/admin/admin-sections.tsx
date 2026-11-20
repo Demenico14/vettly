@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Download, Search } from "@/components/icons";
-import { Alert, Badge, Button, Card, Field, Input, Progress, Select, Skeleton, Switch, Table, TBody, TD, TH, THead, TR, Tooltip, toast } from "@/components/ui";
+import { Alert, Badge, Button, Card, Field, Input, Pagination, Progress, Select, Skeleton, Switch, Table, TBody, TD, TH, THead, TR, Tooltip, toast, usePagination } from "@/components/ui";
 import { services } from "@/services";
 import { normGroups, normTables, tests as catalogue } from "@/mocks/psychometrics";
 import type { AiTask, AssessmentProvider, PlatformAuditEvent, PlatformSnapshot } from "@/types/platform";
@@ -413,8 +413,9 @@ export function AuditTab() {
   React.useEffect(() => {
     services.platform.audit().then(setRows);
   }, []);
+  const shown = (rows ?? []).filter((r) => !query || `${r.actor} ${r.action} ${r.target} ${r.detail}`.toLowerCase().includes(query.toLowerCase()));
+  const pager = usePagination(shown, { resetKey: query });
   if (!rows) return <Skeleton className="h-80 rounded-lg" />;
-  const shown = rows.filter((r) => !query || `${r.actor} ${r.action} ${r.target} ${r.detail}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -429,7 +430,7 @@ export function AuditTab() {
       </div>
       <Card className="overflow-hidden">
         <ul className="divide-y divide-line">
-          {shown.map((r) => (
+          {pager.items.map((r) => (
             <li key={r.id} className="grid grid-cols-1 gap-1 px-5 py-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4">
               <span className="text-xs whitespace-nowrap text-fg-subtle tabular sm:pt-0.5">{stamp(r.at)}</span>
               <span className="min-w-0">
@@ -441,6 +442,9 @@ export function AuditTab() {
             </li>
           ))}
         </ul>
+        <div className="border-t border-line px-4 py-2.5">
+          <Pagination p={pager} noun={["entry", "entries"]} />
+        </div>
       </Card>
     </div>
   );

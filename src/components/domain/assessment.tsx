@@ -111,7 +111,7 @@ export function IllustrativeNotice({ className, children }: { className?: string
   return (
     <p
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-xs border border-dashed border-ink-300 bg-surface px-2 py-1 text-2xs font-semibold text-fg-subtle",
+        "inline-flex items-center gap-1.5 rounded-xs border border-dashed border-ink-300 bg-surface px-2 py-1 text-xs font-semibold text-fg-subtle",
         className,
       )}
     >

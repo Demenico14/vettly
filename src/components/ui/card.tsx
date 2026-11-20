@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /** A bordered panel. Use for grouped content, not as the default container for every element. */
-export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("rounded-lg bg-surface shadow-platter", className)} {...props} />;
 }
 
@@ -20,7 +20,7 @@ export function CardHeader({
   return (
     <div className={cn("flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 pt-4 pb-3", className)}>
       <div className="min-w-0">
-        <h3 className="text-[0.9375rem] font-semibold text-fg">{title}</h3>
+        <h2 className="text-[0.9375rem] font-semibold text-fg">{title}</h2>
         {description && <p className="mt-0.5 text-xs text-fg-subtle">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

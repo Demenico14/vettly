@@ -92,7 +92,7 @@ export function AnalyticsPage() {
             {TABS.map(([k, label]) => (
               <TabsTrigger key={k} value={k}>
                 {label}
-                {k === "fairness" && flagged > 0 && <span className="size-1.5 rounded-full bg-warning-500" aria-label={`${flagged} to review`} />}
+                {k === "fairness" && flagged > 0 && <span className="rounded-full bg-warning-50 px-1.5 text-2xs leading-4 font-bold text-warning-700 tabular">{flagged} to review</span>}
               </TabsTrigger>
             ))}
           </TabsList>

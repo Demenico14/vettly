@@ -69,6 +69,7 @@ export function ConfirmModal({
   description,
   confirmLabel,
   tone = "danger",
+  cancelLabel = "Back",
   onConfirm,
 }: {
   open: boolean;
@@ -77,11 +78,14 @@ export function ConfirmModal({
   description: React.ReactNode;
   confirmLabel: string;
   tone?: "danger" | "primary";
+  /** The dismiss button. Defaults to "Back" so it never reads like the confirm action. */
+  cancelLabel?: string;
   onConfirm: () => Promise<void> | void;
 }) {
   const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   return (
-    <Modal open={open} onOpenChange={onOpenChange}>
+    <Modal open={open} onOpenChange={(o) => (onOpenChange(o), !o && setError(null))}>
       <ModalContent
         size="sm"
         title={title}
@@ -89,16 +93,19 @@ export function ConfirmModal({
         footer={
           <>
             <ModalClose asChild>
-              <Button variant="secondary">Cancel</Button>
+              <Button variant="secondary">{cancelLabel}</Button>
             </ModalClose>
             <Button
               variant={tone}
               loading={busy}
               onClick={async () => {
                 setBusy(true);
+                setError(null);
                 try {
                   await onConfirm();
                   onOpenChange(false);
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "That didn't work. Try again.");
                 } finally {
                   setBusy(false);
                 }
@@ -108,7 +115,13 @@ export function ConfirmModal({
             </Button>
           </>
         }
-      />
+      >
+        {error && (
+          <p role="alert" className="rounded-md bg-danger-50 px-3 py-2 text-sm text-danger-700">
+            {error}
+          </p>
+        )}
+      </ModalContent>
     </Modal>
   );
 }

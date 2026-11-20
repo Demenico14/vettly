@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Checks, CloudArrowUp, MoreHorizontal, PenLine, RotateCcw, Trash2, TriangleAlert } from "@/components/icons";
 import {
+  Pagination,
+  usePagination,
   Alert,
   Button,
   Card,
@@ -295,20 +297,22 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
 
 function BatchCard({ batch, full }: { batch: CvBatch; full: CvBatch }) {
   const [adding, setAdding] = React.useState(false);
+  const pager = usePagination(batch.files, { pageSize: 10, resetKey: batch.files.length === full.files.length ? "all" : "filtered" });
+  const top = React.useRef<HTMLDivElement>(null);
   const ready = full.files.filter((f) => f.status === "ready" && !f.duplicateOf);
   const active = full.files.filter((f) => IN_PROGRESS.includes(f.status));
   const done = full.files.length - active.length;
   const tally = (s: CvFileStatus) => full.files.filter((f) => f.status === s).length;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden scroll-mt-16" ref={top}>
       <div className="flex flex-col gap-3 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h3 className="text-[0.9375rem] font-semibold text-fg">
+          <h2 className="text-[0.9375rem] font-semibold text-fg">
             <Link href={`/vacancies/${full.vacancyId}`} className="hover:underline">
               {full.vacancyTitle}
             </Link>
-          </h3>
+          </h2>
           <p className="mt-0.5 text-xs text-fg-subtle">
             {full.files.length} {full.files.length === 1 ? "CV" : "CVs"} · uploaded by {full.uploadedBy} {timeAgo(full.uploadedAt, NOW)}
             {active.length === 0 && (
@@ -352,10 +356,15 @@ function BatchCard({ batch, full }: { batch: CvBatch; full: CvBatch }) {
         )}
       </div>
       <ul>
-        {batch.files.map((f) => (
+        {pager.items.map((f) => (
           <FileRow key={f.id} f={f} />
         ))}
       </ul>
+      {batch.files.length > 10 && (
+        <div className="border-t border-line px-5 py-2.5">
+          <Pagination p={pager} noun={["CV", "CVs"]} sizes={[10, 25, 50, 100]} anchor={top} />
+        </div>
+      )}
     </Card>
   );
 }

@@ -16,6 +16,8 @@ import {
   Input,
   Modal,
   ModalClose,
+  Pagination,
+  usePagination,
   ModalContent,
   Select,
   Skeleton,
@@ -76,6 +78,8 @@ export function TalentSearch({ initial, vacancyId, onSaved }: { initial: TalentF
   const vacancy = vacancies.find((v) => v.id === forVacancy);
   const hits = result?.hits ?? [];
   const n = activeCount(f);
+  const pager = usePagination(hits, { pageSize: 10, resetKey: JSON.stringify(f) });
+  const top = React.useRef<HTMLUListElement>(null);
 
   function toggle(h: TalentHit) {
     setSelected((s) => {
@@ -216,11 +220,14 @@ export function TalentSearch({ initial, vacancyId, onSaved }: { initial: TalentF
               />
             </Card>
           ) : (
-            <ul className="flex flex-col gap-3">
-              {hits.map((h) => (
+            <>
+            <ul className="flex scroll-mt-16 flex-col gap-3" ref={top}>
+              {pager.items.map((h) => (
                 <ResultCard key={h.id} h={h} f={f} selected={selected.has(h.id)} onSelect={() => toggle(h)} onOpen={() => setOpen(h)} onCollect={() => setCollecting([h])} />
               ))}
             </ul>
+            <Pagination p={pager} noun={["person", "people"]} sizes={[10, 25, 50]} anchor={top} className="px-1" />
+            </>
           )}
         </div>
       </div>
@@ -334,7 +341,7 @@ function FilterPanel({ f, set, facets }: { f: TalentFilters; set: (p: Partial<Ta
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold text-fg-muted">Skills (all of them)</h3>
+        <h2 className="text-xs font-semibold text-fg-muted">Skills (all of them)</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -381,14 +388,14 @@ function FilterPanel({ f, set, facets }: { f: TalentFilters; set: (p: Partial<Ta
 
       <section className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
-          <h3 className="text-xs font-semibold text-fg-muted">Experience</h3>
+          <h2 className="text-xs font-semibold text-fg-muted">Experience</h2>
           <span className="text-xs font-semibold text-fg tabular">{f.minYears ? `${f.minYears}+ years` : "Any"}</span>
         </div>
         <Slider label="Minimum years of experience" min={0} max={15} step={1} value={[f.minYears]} onValueChange={([v]) => set({ minYears: v ?? 0 })} />
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold text-fg-muted">Test results</h3>
+        <h2 className="text-xs font-semibold text-fg-muted">Test results</h2>
         <Select
           value={f.test?.family ?? "none"}
           onValueChange={(v) => set({ test: v === "none" ? null : { family: v as TestFilterFamily, min: f.test?.min ?? 70 } })}
@@ -407,7 +414,7 @@ function FilterPanel({ f, set, facets }: { f: TalentFilters; set: (p: Partial<Ta
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold text-fg-muted">Where and when</h3>
+        <h2 className="text-xs font-semibold text-fg-muted">Where and when</h2>
         <div className="flex flex-wrap gap-2">
           <FilterSelect label="Country" value={f.countries} onChange={(v) => set({ countries: v as CountryCode[] })} options={(Object.keys(COUNTRY) as CountryCode[]).map((c) => ({ value: c, label: COUNTRY[c], count: facets?.countries.find((x) => x.code === c)?.count }))} />
           <FilterSelect label="Availability" value={f.availability} onChange={(v) => set({ availability: v as TalentFilters["availability"] })} options={AVAILABILITY.map((a) => ({ value: a, label: a }))} />

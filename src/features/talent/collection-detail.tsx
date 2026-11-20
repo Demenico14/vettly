@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Folder, MapPin, NotePencil, Trash2, Users, X } from "@/components/icons";
-import { Alert, Avatar, Badge, Button, Card, ConfirmModal, EmptyState, Skeleton, Textarea, toast } from "@/components/ui";
+import { LoadError, Avatar, Badge, Button, Card, ConfirmModal, EmptyState, Pagination, Skeleton, Textarea, toast, usePagination } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { Collection, TalentHit } from "@/types/talent";
@@ -36,9 +36,9 @@ export function CollectionDetail({ id }: { id: string }) {
   if (error)
     return (
       <PageContainer header={<PageHeader title="Collection" />}>
-        <Alert tone="danger" title="Collection didn't load">
+        <LoadError title="Collection didn't load" onRetry={() => (setError(null), setReload((r) => r + 1))}>
           {error}
-        </Alert>
+        </LoadError>
       </PageContainer>
     );
   if (!data)
@@ -103,11 +103,9 @@ export function CollectionDetail({ id }: { id: string }) {
           />
         </Card>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {data.hits.map((m) => (
+        <CollectionMembers hits={data.hits} render={(m) => (
             <MemberRow key={m.id} m={m} collectionId={c.id} onOpen={() => setOpen(m)} onRemove={() => remove(m)} />
-          ))}
-        </ul>
+          )} />
       )}
       <TalentDrawer hit={open} onOpenChange={(o) => !o && setOpen(null)} onChanged={() => setReload((r) => r + 1)} onCollect={setCollecting} />
       <AddToCollectionDialog open={!!collecting} onOpenChange={(o) => !o && setCollecting(null)} people={collecting ? [{ id: collecting.id, kind: collecting.kind, name: collecting.name }] : []} onAdded={() => setReload((r) => r + 1)} />
@@ -125,6 +123,19 @@ export function CollectionDetail({ id }: { id: string }) {
         }}
       />
     </PageContainer>
+  );
+}
+
+function CollectionMembers({ hits, render }: { hits: Member[]; render: (m: Member) => React.ReactNode }) {
+  const pager = usePagination(hits, { pageSize: 10 });
+  const top = React.useRef<HTMLUListElement>(null);
+  return (
+    <div className="flex flex-col gap-3">
+      <ul className="flex scroll-mt-16 flex-col gap-3" ref={top}>
+        {pager.items.map(render)}
+      </ul>
+      <Pagination p={pager} noun={["person", "people"]} sizes={[10, 25, 50]} anchor={top} className="px-1" />
+    </div>
   );
 }
 

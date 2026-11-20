@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarPlus, ClipboardList, DotsSixVertical, FileSignature, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -23,6 +22,7 @@ import {
   Skeleton,
   Switch,
   toast,
+  LoadError,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
@@ -47,6 +47,8 @@ const COLUMN_HINT: Partial<Record<ApplicationStage, string>> = {
   rejected: "Kept for the audit record",
 };
 
+const COLUMN_STEP = 20;
+
 export function PipelineBoard() {
   const router = useRouter();
   const params = useSearchParams();
@@ -64,6 +66,8 @@ export function PipelineBoard() {
   const [dragging, setDragging] = React.useState<string[] | null>(null);
   const [over, setOver] = React.useState<ApplicationStage | null>(null);
   const [scheduleFor, setScheduleFor] = React.useState<SchedulePreset | null>(null);
+  /** Cards shown per column; long columns grow in steps so the board stays quick to scan. */
+  const [limits, setLimits] = React.useState<Partial<Record<ApplicationStage, number>>>({});
 
   const vacancyId = params.get("vacancy") ?? vacancies?.[0]?.vacancy.id ?? null;
 
@@ -72,7 +76,7 @@ export function PipelineBoard() {
       .vacancies()
       .then((v) => setVacancies(v.filter((x) => x.vacancy.status !== "filled" || x.assessed > 0)))
       .catch((e: Error) => setError(e.message));
-  }, []);
+  }, [reload]);
 
   React.useEffect(() => {
     if (!vacancyId) return;
@@ -144,9 +148,9 @@ export function PipelineBoard() {
       }
     >
       {error ? (
-        <Alert tone="danger" title="The pipeline didn't load">
+        <LoadError title="The pipeline didn't load" onRetry={() => (setError(null), setReload((r) => r + 1))}>
           {error}
-        </Alert>
+        </LoadError>
       ) : !vacancies ? (
         <Skeleton className="h-[30rem] rounded-lg" />
       ) : vacancies.length === 0 ? (
@@ -288,7 +292,7 @@ export function PipelineBoard() {
                             {STAGE_META[stage].label}
                             <span className="text-xs font-medium text-fg-subtle tabular">{filtered ? `${inCol.length}/${total}` : total}</span>
                           </h2>
-                          <p className="truncate text-2xs text-fg-subtle">{stage === "assessment" && batteryLabel ? batteryLabel : COLUMN_HINT[stage] ?? " "}</p>
+                          <p className="truncate text-xs text-fg-subtle">{stage === "assessment" && batteryLabel ? batteryLabel : COLUMN_HINT[stage] ?? " "}</p>
                         </div>
                         {inCol.length > 0 && (
                           <Checkbox
@@ -306,7 +310,7 @@ export function PipelineBoard() {
                         )}
                       </div>
                       <ul className="flex min-h-24 flex-1 flex-col gap-2 px-2 pb-2">
-                        {inCol.map((c) => (
+                        {inCol.slice(0, limits[stage] ?? COLUMN_STEP).map((c) => (
                           <BoardCard
                             key={key(c)}
                             c={c}
@@ -327,6 +331,18 @@ export function PipelineBoard() {
                             }}
                           />
                         ))}
+                        {inCol.length > (limits[stage] ?? COLUMN_STEP) && (
+                          <li>
+                            <button
+                              type="button"
+                              onClick={() => setLimits((l) => ({ ...l, [stage]: (l[stage] ?? COLUMN_STEP) + COLUMN_STEP }))}
+                              className="pressable w-full rounded-md border border-dashed border-line-strong px-3 py-2 text-xs font-medium text-fg-muted hover:border-primary-500 hover:text-primary-700"
+                            >
+                              Show {Math.min(COLUMN_STEP, inCol.length - (limits[stage] ?? COLUMN_STEP))} more
+                              <span className="text-fg-subtle"> · {inCol.length - (limits[stage] ?? COLUMN_STEP)} hidden</span>
+                            </button>
+                          </li>
+                        )}
                         {inCol.length === 0 && (
                           <li
                             className={cn(
@@ -509,7 +525,7 @@ function BoardCard({
 
       <div className="mt-2.5 flex items-center justify-between gap-2 pl-6">
         <MatchScore score={c.matchScore} provenance={c.provenance} size="sm" />
-        <span className={cn("text-2xs tabular", days >= 7 && !CLOSED_STAGES.includes(c.stage) && !closed ? "font-semibold text-accent-700" : "text-fg-subtle")}>
+        <span className={cn("text-xs tabular", days >= 7 && !CLOSED_STAGES.includes(c.stage) && !closed ? "font-semibold text-warning-700" : "text-fg-subtle")}>
           {days === 0 ? "Today" : `${days}d in stage`}
         </span>
       </div>

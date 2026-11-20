@@ -43,8 +43,9 @@ const KPI_STYLE: Record<string, { Icon: IconComponent; label: string; tile: stri
   open: { Icon: Briefcase, label: "text-ink-700", tile: "bg-ink-200/70 text-ink-700", bar: "bg-ink-600", barMuted: "bg-ink-200" },
   applications: { Icon: Inbox, label: "text-secondary-700", tile: "bg-secondary-100 text-secondary-700", bar: "bg-secondary-500", barMuted: "bg-secondary-100" },
   shortlisted: { Icon: KanbanSquare, label: "text-primary-700", tile: "bg-primary-100 text-primary-700", bar: "bg-primary-500", barMuted: "bg-primary-100" },
-  tests: { Icon: ClipboardList, label: "text-warning-700", tile: "bg-warning-100 text-warning-700", bar: "bg-warning-500", barMuted: "bg-warning-100" },
-  interviews: { Icon: CalendarCheck, label: "text-success-700", tile: "bg-success-100 text-success-700", bar: "bg-success-500", barMuted: "bg-success-100" },
+  // Neutral tiles: ochre and leaf green keep their single meanings (warning, confirmed).
+  tests: { Icon: ClipboardList, label: "text-ink-700", tile: "bg-ink-200/70 text-ink-700", bar: "bg-ink-600", barMuted: "bg-ink-200" },
+  interviews: { Icon: CalendarCheck, label: "text-secondary-700", tile: "bg-secondary-50 text-secondary-700", bar: "bg-secondary-300", barMuted: "bg-secondary-50" },
   tth: { Icon: Clock, label: "text-ink-700", tile: "bg-ink-200/70 text-ink-700", bar: "bg-ink-600", barMuted: "bg-ink-200" },
 };
 const FALLBACK = KPI_STYLE.open!;

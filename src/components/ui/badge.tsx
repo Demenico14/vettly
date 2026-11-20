@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { X } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export const badgeVariants = cva(
@@ -20,7 +21,7 @@ export const badgeVariants = cva(
         solid: "bg-primary-600 text-white",
       },
       size: {
-        sm: "h-5 px-2 text-2xs",
+        sm: "h-5 px-2 text-xs",
         md: "h-6 px-2.5 text-xs",
       },
     },
@@ -64,12 +65,10 @@ export function Tag({
         <button
           type="button"
           onClick={onRemove}
-          className="-mr-1 grid size-4 place-items-center rounded-xs text-ink-500 hover:bg-ink-200 hover:text-fg"
+          className="-my-0.5 -mr-1.5 grid size-6 place-items-center rounded-sm text-ink-600 hover:bg-ink-200 hover:text-fg"
           aria-label={`Remove ${typeof children === "string" ? children : "tag"}`}
         >
-          <svg viewBox="0 0 12 12" className="size-2.5" aria-hidden>
-            <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
+          <X className="size-3" weight="bold" aria-hidden />
         </button>
       )}
     </span>

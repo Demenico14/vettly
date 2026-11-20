@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export const controlBase =
-  "w-full rounded-md border border-line-strong bg-surface text-sm text-fg shadow-xs transition-[border-color,box-shadow] duration-150 placeholder:text-ink-500 hover:border-ink-400 focus-visible:border-primary-500 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-500/20 disabled:cursor-not-allowed disabled:bg-ink-50 disabled:text-fg-subtle aria-invalid:border-danger-500 aria-invalid:focus-visible:ring-danger-500/20";
+  "w-full rounded-md border border-line-strong bg-surface text-base text-fg shadow-xs sm:text-sm transition-[border-color,box-shadow] duration-150 placeholder:text-ink-500 hover:border-ink-400 focus-visible:border-primary-500 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-500/20 disabled:cursor-not-allowed disabled:bg-ink-50 disabled:text-fg-subtle aria-invalid:border-danger-500 aria-invalid:focus-visible:ring-danger-500/20";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Icon rendered inside the leading edge. */

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, Download, Search } from "@/components/icons";
-import { Badge, Button, Card, EmptyState, Input, Progress, Skeleton, Table, TBody, TD, TH, THead, TR, toast } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Pagination, Progress, Skeleton, Table, TBody, TD, TH, THead, TR, toast, usePagination } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { services } from "@/services";
 import type { AuditCategory, AuditEvent, Subscription } from "@/types/settings";
@@ -124,8 +124,9 @@ export function AuditSection() {
   React.useEffect(() => {
     services.settings.audit().then(setRows);
   }, []);
+  const shown = (rows ?? []).filter((r) => (!cats.length || cats.includes(r.category)) && (!actors.length || actors.includes(r.actor)) && (!query || `${r.action} ${r.detail} ${r.actor}`.toLowerCase().includes(query.toLowerCase())));
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, cats, actors]) });
   if (!rows) return <Skeleton className="h-96 rounded-lg" />;
-  const shown = rows.filter((r) => (!cats.length || cats.includes(r.category)) && (!actors.length || actors.includes(r.actor)) && (!query || `${r.action} ${r.detail} ${r.actor}`.toLowerCase().includes(query.toLowerCase())));
   const people = [...new Set(rows.map((r) => r.actor))].sort();
   return (
     <div className="flex flex-col gap-4">
@@ -153,7 +154,7 @@ export function AuditSection() {
           <EmptyState icon={<Search />} title="Nothing matches" description="Clear the filters to see the whole log." />
         ) : (
           <ul className="divide-y divide-line">
-            {shown.map((r) => (
+            {pager.items.map((r) => (
               <li key={r.id} className="grid grid-cols-1 gap-1 px-5 py-3 sm:grid-cols-[8.5rem_minmax(0,1fr)_auto] sm:gap-4">
                 <span className="text-xs whitespace-nowrap text-fg-subtle tabular sm:pt-0.5">{stamp(r.at)}</span>
                 <span className="min-w-0">
@@ -171,6 +172,11 @@ export function AuditSection() {
               </li>
             ))}
           </ul>
+        )}
+        {shown.length > 0 && (
+          <div className="border-t border-line px-4 py-2.5">
+            <Pagination p={pager} noun={["entry", "entries"]} />
+          </div>
         )}
       </Card>
     </div>

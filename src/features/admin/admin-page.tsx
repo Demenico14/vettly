@@ -17,6 +17,7 @@ import {
   EmptyState,
   Field,
   Input,
+  Pagination,
   Progress,
   Select,
   Skeleton,
@@ -31,6 +32,7 @@ import {
   TabsList,
   TabsTrigger,
   toast,
+  usePagination,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
@@ -103,7 +105,7 @@ export function AdminPage() {
           {TABS.map(([k, label]) => (
             <TabsTrigger key={k} value={k}>
               {label}
-              {k === "health" && degraded > 0 && <span className="size-1.5 rounded-full bg-warning-500" aria-label={`${degraded} services degraded`} />}
+              {k === "health" && degraded > 0 && <span className="rounded-full bg-warning-50 px-1.5 text-2xs leading-4 font-bold text-warning-700 tabular">{degraded} degraded</span>}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -212,6 +214,7 @@ function Organisations({ s, onChanged }: { s: PlatformSnapshot; onChanged: () =>
   const [open, setOpen] = React.useState<string | null>(null);
   const shown = s.tenants.filter((t) => (!query || `${t.name} ${t.country} ${t.industry} ${t.adminName}`.toLowerCase().includes(query.toLowerCase())) && (!status.length || status.includes(t.status)) && (!plan.length || plan.includes(t.plan)));
   const current = s.tenants.find((t) => t.id === open) ?? null;
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, status, plan]) });
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -236,7 +239,7 @@ function Organisations({ s, onChanged }: { s: PlatformSnapshot; onChanged: () =>
               </TR>
             </THead>
             <TBody>
-              {shown.map((t) => {
+              {pager.items.map((t) => {
                 const pct = Math.round((100 * t.testCreditsUsed) / t.testCreditsTotal);
                 return (
                   <TR key={t.id}>
@@ -276,6 +279,9 @@ function Organisations({ s, onChanged }: { s: PlatformSnapshot; onChanged: () =>
               })}
             </TBody>
           </Table>
+        </div>
+        <div className="border-t border-line px-4 py-2.5">
+          <Pagination p={pager} noun={["organisation", "organisations"]} />
         </div>
       </Card>
       <TenantDrawer t={current} onOpenChange={(o) => !o && setOpen(null)} onChanged={onChanged} />
@@ -427,6 +433,7 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
   const [kind, setKind] = React.useState<string[]>([]);
   const [act, setAct] = React.useState<{ u: PlatformUser; kind: "lock" | "unlock" | "2fa" } | null>(null);
   const shown = s.users.filter((u) => (!query || `${u.name} ${u.email} ${u.tenant ?? ""}`.toLowerCase().includes(query.toLowerCase())) && (!kind.length || kind.includes(u.kind)));
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, kind]) });
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-fg-muted">Vettly staff and each organisation&rsquo;s admins. Organisations manage their other users themselves.</p>
@@ -451,7 +458,7 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
               </TR>
             </THead>
             <TBody>
-              {shown.map((u) => (
+              {pager.items.map((u) => (
                 <TR key={u.id}>
                   <TD className="min-w-56">
                     <span className="flex items-center gap-3">
@@ -501,6 +508,9 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
               ))}
             </TBody>
           </Table>
+        </div>
+        <div className="border-t border-line px-4 py-2.5">
+          <Pagination p={pager} noun={["account", "accounts"]} />
         </div>
       </Card>
       <ReasonDialog

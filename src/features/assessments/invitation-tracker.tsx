@@ -44,6 +44,8 @@ import {
   Textarea,
   toast,
   Tooltip,
+  Pagination,
+  usePagination,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer } from "@/components/layout/page-header";
@@ -99,6 +101,9 @@ export function InvitationTracker() {
       (!deliveryOnly || (r.record.deliveryIssues.length > 0 && OPEN.includes(r.record.status))),
   );
   const picked = shown.filter((r) => selected.has(r.record.id));
+  const pager = usePagination(shown, { resetKey: JSON.stringify([query, status, vacancy, test, deliveryOnly]) });
+  const top = React.useRef<HTMLDivElement>(null);
+  const pagePicked = pager.items.filter((r) => selected.has(r.record.id));
   const filtered = !!(query || status.length || vacancy.length || test.length || deliveryOnly);
 
   const undoable = (u: Undo, title: string, detail: string) =>
@@ -264,13 +269,13 @@ export function InvitationTracker() {
             </div>
           )}
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden scroll-mt-16" ref={top}>
             {shown.length === 0 ? (
               <EmptyState icon={<Search />} title="No invitations match" description="Remove a filter or search for something broader." />
             ) : (
               <>
                 <ul className="md:hidden">
-                  {shown.map((r) => (
+                  {pager.items.map((r) => (
                     <li key={r.record.id} className="flex items-start gap-3 border-b border-line px-4 py-3.5 last:border-b-0">
                       <Checkbox aria-label={`Select ${r.record.candidateName}`} checked={selected.has(r.record.id)} onCheckedChange={() => toggle(r.record.id)} className="mt-1" />
                       <div className="min-w-0 flex-1">
@@ -298,9 +303,16 @@ export function InvitationTracker() {
                       <TR>
                         <TH className="w-10 pr-0">
                           <Checkbox
-                            aria-label="Select all invitations shown"
-                            checked={picked.length && picked.length === shown.length ? true : picked.length ? "indeterminate" : false}
-                            onCheckedChange={() => setSelected(picked.length === shown.length ? new Set() : new Set(shown.map((r) => r.record.id)))}
+                            aria-label="Select all invitations on this page"
+                            checked={pagePicked.length && pagePicked.length === pager.items.length ? true : picked.length ? "indeterminate" : false}
+                            onCheckedChange={() =>
+                              setSelected((s) => {
+                                const n = new Set(s);
+                                const all = pagePicked.length === pager.items.length;
+                                pager.items.forEach((r) => (all ? n.delete(r.record.id) : n.add(r.record.id)));
+                                return n;
+                              })
+                            }
                           />
                         </TH>
                         <TH>Candidate</TH>
@@ -315,7 +327,7 @@ export function InvitationTracker() {
                       </TR>
                     </THead>
                     <TBody>
-                      {shown.map((r) => (
+                      {pager.items.map((r) => (
                         <TR key={r.record.id} selected={selected.has(r.record.id)}>
                           <TD className="pr-0">
                             <Checkbox aria-label={`Select ${r.record.candidateName}`} checked={selected.has(r.record.id)} onCheckedChange={() => toggle(r.record.id)} />
@@ -370,6 +382,9 @@ export function InvitationTracker() {
                       ))}
                     </TBody>
                   </Table>
+                </div>
+                <div className="border-t border-line px-4 py-2.5">
+                  <Pagination p={pager} noun={["invitation", "invitations"]} anchor={top} />
                 </div>
               </>
             )}

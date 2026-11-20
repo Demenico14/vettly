@@ -117,7 +117,7 @@ export function ResultsCompare() {
                     return (
                       <React.Fragment key={tid}>
                         <div role="row" className="grid border-b border-line bg-ink-50" style={grid}>
-                          <div role="rowheader" className="sticky left-0 bg-ink-50 px-5 py-2 text-2xs font-semibold tracking-wide text-fg-subtle uppercase">
+                          <div role="rowheader" className="sticky left-0 bg-ink-50 px-5 py-2 text-xs font-semibold text-fg-muted">
                             {t.name} · stens
                           </div>
                           {picked.map((v) => (

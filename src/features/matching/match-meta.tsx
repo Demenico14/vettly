@@ -30,12 +30,12 @@ export function OutcomeChip({ outcome, className }: { outcome: RequirementOutcom
 /** One small mark per requirement, in order: a scannable fingerprint of a candidate's fit. */
 export function OutcomeDots({ items, className }: { items: RequirementAssessment[]; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1", className)}>
+    <span className={cn("inline-flex items-center gap-1", className)} role="img" aria-label={`${items.filter((r) => r.outcome === "met").length} of ${items.length} requirements met`}>
       {items.map((r) => {
         const o = OUTCOME[r.outcome];
         return (
           <Tooltip key={r.requirement.id} content={`${r.requirement.text}: ${o.label}`}>
-            <span tabIndex={0} aria-label={`${r.requirement.text}: ${o.label}`} className={cn("grid size-4.5 place-items-center rounded-full", o.dot)}>
+            <span aria-hidden className={cn("grid size-4.5 place-items-center rounded-full", o.dot)}>
               <o.Icon className="size-2.5" weight="bold" aria-hidden />
             </span>
           </Tooltip>
