@@ -28,7 +28,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | 11 | Offers & hiring | Approved |
 | 12 | Talent intelligence | Approved |
 | 13 | Analytics & reporting | Approved |
-| 14 | Organisation settings | Not started |
+| 14 | Organisation settings | In review |
 | 15 | Platform administration | Not started |
 
 ---

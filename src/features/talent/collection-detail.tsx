@@ -9,6 +9,9 @@ import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { Collection, TalentHit } from "@/types/talent";
 import { timeAgo } from "@/lib/utils";
+import { MOCK_NOW } from "@/mocks/data";
+
+const MOCK_DATE = new Date(MOCK_NOW);
 import { AddToCollectionDialog, COUNTRY, ConsentBadge, TestChips } from "./meta";
 import { TalentDrawer } from "./talent-drawer";
 
@@ -81,7 +84,7 @@ export function CollectionDetail({ id }: { id: string }) {
             </span>
             <span>· owned by {c.owner}</span>
             <span>· {c.sharedWith.length ? `shared with ${c.sharedWith.join(", ")}` : "only you"}</span>
-            <span>· updated {timeAgo(c.updatedAt)}</span>
+            <span>· updated {timeAgo(c.updatedAt, MOCK_DATE)}</span>
           </p>
         </div>
       }
@@ -190,7 +193,7 @@ function MemberRow({ m, collectionId, onOpen, onRemove }: { m: Member; collectio
                 <span className="min-w-0 flex-1 text-sm">
                   {note ? <span className="text-fg">{note}</span> : <span className="text-fg-subtle">Add a note</span>}
                   <span className="mt-0.5 block text-2xs text-fg-subtle">
-                    Added by {m.addedBy} {timeAgo(m.addedAt)}
+                    Added by {m.addedBy} {timeAgo(m.addedAt, MOCK_DATE)}
                   </span>
                 </span>
               </button>

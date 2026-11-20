@@ -60,7 +60,7 @@ export const NAV: NavGroup[] = [
   {
     label: "Organisation",
     items: [
-      { label: "Settings", href: "/settings", icon: Settings, module: 14, description: "Organisation profile, users, roles, configuration, privacy and audit log." },
+      { label: "Settings", href: "/settings", icon: Settings, module: 14, built: true, description: "Organisation profile, users, roles, configuration, privacy and audit log." },
       { label: "Platform admin", href: "/admin", icon: ShieldCheck, module: 15, description: "Super administrator: tenants, subscriptions, system health and AI configuration.", roles: ["super_admin"] },
       { label: "Design system", href: "/design-system", icon: Palette, module: 1, built: true, description: "Vettly brand, tokens and component library." },
     ],

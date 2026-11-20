@@ -17,6 +17,7 @@ import { mockInterviews } from "./interviews";
 import { mockOffers } from "./offers";
 import { mockTalent } from "./talent";
 import { mockAnalytics } from "./analytics";
+import { mockSettings } from "./settings";
 
 export type { CandidateProfileService, CvCandidateInput } from "./candidates";
 export type { CvProcessingService, UploadInput } from "./cv";
@@ -32,6 +33,7 @@ export type { TalentService, TalentSearchResult } from "./talent";
 export { EMPTY_FILTERS, consentValid, talentSkillVocabulary } from "./talent";
 export type { AnalyticsService } from "./analytics";
 export { IMPACT_THRESHOLD, MIN_GROUP } from "./analytics";
+export type { SettingsService } from "./settings";
 
 export type { VacancyService, AssistAction } from "./vacancies";
 export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
@@ -157,6 +159,7 @@ export const services = {
   offers: mockOffers,
   talent: mockTalent,
   analytics: mockAnalytics,
+  settings: mockSettings,
   candidateAccess: mockCandidateAccess,
   session: mockSession,
   notifications: mockNotifications,

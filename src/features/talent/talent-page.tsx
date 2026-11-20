@@ -31,6 +31,9 @@ import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { Collection, SavedSearch, TalentFilters } from "@/types/talent";
 import { timeAgo } from "@/lib/utils";
+import { MOCK_NOW } from "@/mocks/data";
+
+const MOCK_DATE = new Date(MOCK_NOW);
 import { describe } from "./meta";
 import { TalentSearch } from "./talent-search";
 
@@ -131,7 +134,7 @@ function SavedSearches({ rows, onRun, onChanged }: { rows: (SavedSearch & { matc
                 <p className="mt-0.5 text-sm text-fg-muted">{describe(s.filters)}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-fg-subtle">
                   <span>{s.owner}</span>
-                  <span>· last run {timeAgo(s.lastRunAt)}</span>
+                  <span>· last run {timeAgo(s.lastRunAt, MOCK_DATE)}</span>
                   <span className="inline-flex items-center gap-1">
                     · {s.alert === "off" ? <BellOff className="size-3" /> : <Bell className="size-3" />}
                     {s.alert === "off" ? "No emails" : `${s.alert === "daily" ? "Daily" : "Weekly"} email`}
@@ -229,7 +232,7 @@ function Collections({ rows, onChanged }: { rows: Collection[] | null; onChanged
                   </span>
                   <span>· {c.owner}</span>
                   {c.sharedWith.length > 0 && <span>· shared with {c.sharedWith.length}</span>}
-                  <span>· updated {timeAgo(c.updatedAt)}</span>
+                  <span>· updated {timeAgo(c.updatedAt, MOCK_DATE)}</span>
                 </span>
               </Link>
             </li>
