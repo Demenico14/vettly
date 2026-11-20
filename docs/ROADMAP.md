@@ -118,4 +118,6 @@ Organisations, subscriptions, platform usage, users, system health, AI provider 
 
 ## Backend integration gate
 
+Plan: [`docs/BACKEND_PLAN.md`](BACKEND_PLAN.md) (draft for approval).
+
 After all 15 modules are approved: real APIs replace mock services; authentication; database; document storage; CV processing; AI matching; **psychometric test delivery, scoring and provider integration**; audit logging; permission and tenant-isolation checks.
