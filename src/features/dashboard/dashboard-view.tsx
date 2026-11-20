@@ -11,18 +11,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Segmented,
-  toast,
 } from "@/components/ui";
-import { IllustrativeNotice } from "@/components/domain/assessment";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/layout/session-provider";
-import { MOCK_NOW, services, type DashboardScenario } from "@/services";
-import { PERIOD_LABEL } from "@/mocks/dashboard";
+import { MOCK_NOW, services } from "@/services";
+import { PERIOD_LABEL } from "@/lib/dashboard";
 import type { DashboardPeriod, DashboardSnapshot, FunnelStep } from "@/types";
 import { Funnel, KpiStrip } from "./kpi-funnel";
 import { ActivityPanel, ApplicationsPanel, AttentionPanel, InterviewsPanel, TestsPanel, VacanciesPanel } from "./panels";
 
-const SCENARIOS: DashboardScenario[] = ["sample", "empty", "error"];
 
 function greeting(iso: string) {
   const h = new Date(iso).getHours();
@@ -35,8 +32,6 @@ export function DashboardView() {
   const params = useSearchParams();
   const { user } = useSession();
 
-  const scenarioParam = params.get("scenario") as DashboardScenario | null;
-  const scenario: DashboardScenario = scenarioParam && SCENARIOS.includes(scenarioParam) ? scenarioParam : "sample";
   const periodParam = params.get("period") as DashboardPeriod | null;
   const period: DashboardPeriod = periodParam && periodParam in PERIOD_LABEL ? periodParam : "30d";
 
@@ -65,14 +60,14 @@ export function DashboardView() {
     setLoading(true);
     setError(null);
     services.dashboard
-      .getSnapshot(period, scenario)
+      .getSnapshot(period)
       .then((s) => alive && setSnapshot(s))
       .catch((e: Error) => alive && setError(e.message))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
-  }, [period, scenario, reload]);
+  }, [period, reload]);
 
   React.useEffect(() => {
     let alive = true;
@@ -80,14 +75,14 @@ export function DashboardView() {
     setFunnelLoading(true);
     setFunnelError(null);
     services.dashboard
-      .getFunnel(period, vacancyId, scenario)
+      .getFunnel(period, vacancyId)
       .then((f) => alive && setFunnel(f))
       .catch((e: Error) => alive && setFunnelError(e.message))
       .finally(() => alive && setFunnelLoading(false));
     return () => {
       alive = false;
     };
-  }, [period, vacancyId, scenario, funnelReload]);
+  }, [period, vacancyId, funnelReload]);
 
   const first = user?.name.split(" ")[0];
   const today = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(MOCK_NOW));
@@ -95,10 +90,10 @@ export function DashboardView() {
   const busy = loading && !error;
 
   const actions = {
-    vacancy: () => toast.info("Create vacancy", "The vacancy editor arrives in Module 4."),
+    vacancy: () => router.push("/vacancies/new"),
     upload: () => router.push("/cv-processing"),
     tests: () => router.push("/assessments"),
-    interview: () => toast.info("Schedule interview", "Scheduling arrives in Module 10."),
+    interview: () => router.push("/interviews"),
   };
 
   return (
@@ -115,7 +110,6 @@ export function DashboardView() {
                 onChange={(v) => setParam("period", v, "30d")}
                 options={(Object.keys(PERIOD_LABEL) as DashboardPeriod[]).map((p) => ({ value: p, label: PERIOD_LABEL[p] }))}
               />
-              <IllustrativeNotice />
             </>
           }
           actions={
@@ -212,23 +206,6 @@ export function DashboardView() {
             </div>
           </>
         )}
-
-        <details className="rounded-md border border-dashed border-line-strong bg-surface text-xs text-fg-muted">
-          <summary className="cursor-pointer px-3 py-2 font-semibold text-fg-subtle select-none">Prototype: preview other dashboard states</summary>
-          <div className="flex flex-wrap items-center gap-3 border-t border-dashed border-line-strong px-3 py-2.5">
-            <span>Data:</span>
-            <Segmented
-              label="Dashboard data scenario"
-              value={scenario}
-              onChange={(v) => setParam("scenario", v, "sample")}
-              options={[
-                { value: "sample", label: "Sample organisation" },
-                { value: "empty", label: "New, empty workspace" },
-                { value: "error", label: "Service error" },
-              ]}
-            />
-          </div>
-        </details>
       </div>
     </PageContainer>
   );

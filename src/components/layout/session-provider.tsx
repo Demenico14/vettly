@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { services } from "@/services";
-import { users as mockUsers } from "@/mocks/data";
+import { setCurrentUserId } from "@/lib/current-user";
 import type { Organisation, User } from "@/types";
 
 interface SessionContextValue {
@@ -11,9 +11,6 @@ interface SessionContextValue {
   organisations: Organisation[];
   switching: boolean;
   switchOrganisation: (id: string) => Promise<void>;
-  /** Prototype only: preview the app as another mock user (e.g. super admin). */
-  previewAs: (userId: string) => void;
-  previewUsers: User[];
 }
 
 const SessionContext = React.createContext<SessionContextValue | null>(null);
@@ -32,6 +29,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       services.session.getOrganisations(),
     ]).then(([u, o, os]) => {
       if (!alive) return;
+      setCurrentUserId(u.id);
       setUser(u);
       setOrganisation(o);
       setOrganisations(os);
@@ -50,14 +48,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const previewAs = React.useCallback((userId: string) => {
-    const next = mockUsers.find((u) => u.id === userId);
-    if (next) setUser(next);
-  }, []);
 
   const value = React.useMemo(
-    () => ({ user, organisation, organisations, switching, switchOrganisation, previewAs, previewUsers: mockUsers }),
-    [user, organisation, organisations, switching, switchOrganisation, previewAs],
+    () => ({ user, organisation, organisations, switching, switchOrganisation }),
+    [user, organisation, organisations, switching, switchOrganisation],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

@@ -49,3 +49,6 @@ next-env.d.ts
 .env
 .env*.local
 !.env.example
+
+# Local file storage when S3_ENDPOINT is unset
+/.data/

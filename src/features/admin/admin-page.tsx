@@ -56,7 +56,7 @@ const TABS: [Tab, string][] = [
 const PLAN_LABEL: Record<PlanId, string> = { starter: "Starter", growth: "Growth", enterprise: "Enterprise" };
 
 export function AdminPage() {
-  const { user, previewAs } = useSession();
+  const { user } = useSession();
   const params = useSearchParams();
   const router = useRouter();
   const tab = (params.get("tab") as Tab) || "overview";
@@ -77,11 +77,6 @@ export function AdminPage() {
             icon={<Lock />}
             title="Only Vettly platform administrators can open this"
             description="It manages every organisation on Vettly: plans, system health, AI models and assessment providers. Organisation settings are under Settings."
-            action={
-              <Button size="sm" variant="secondary" onClick={() => (previewAs("usr_admin"), toast.info("Previewing as Grace Nyathi", "Super administrator"))}>
-                Preview as Grace Nyathi (prototype)
-              </Button>
-            }
           />
         </Card>
       </PageContainer>
@@ -478,7 +473,7 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
                       <Badge tone="status" size="sm" dot dotClassName={u.status === "active" ? "bg-success-500" : u.status === "locked" ? "bg-danger-500" : "bg-warning-500"}>
                         {u.status === "active" ? "Active" : u.status === "locked" ? "Locked" : "Invited"}
                       </Badge>
-                      {u.twoFactor ? <ShieldCheck className="size-4 text-success-600" aria-label="Two-step verification on" /> : u.status === "active" && <span className="text-2xs text-accent-700">No two-step</span>}
+                      {u.twoFactor && <ShieldCheck className="size-4 text-success-600" aria-label="Two-step verification on" />}
                     </span>
                   </TD>
                   <TD className="text-sm whitespace-nowrap text-fg-muted">{u.lastSignInAt ? stamp(u.lastSignInAt) : "Never"}</TD>

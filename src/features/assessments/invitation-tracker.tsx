@@ -141,7 +141,7 @@ export function InvitationTracker() {
         <AssessmentsHeader
           actions={
             <>
-              <IllustrativeNotice className="hidden lg:inline-flex">Illustrative tests and results</IllustrativeNotice>
+              <IllustrativeNotice className="hidden lg:inline-flex">Sample tests · scores are not validated</IllustrativeNotice>
               <Button onClick={() => setSending(true)}>
                 <Send />
                 Send tests

@@ -7,13 +7,12 @@ import type { TestInvitationSummary } from "../../types";
 import { standardise } from "../../lib/psychometrics";
 import { normTables, tests } from "./catalogue";
 import { batteries, batterySummary } from "./batteries";
-import { invitationRecords } from "./invitations";
 
 export { publishers, families, tests, normTables, familyOf } from "./catalogue";
 export { normGroups } from "./norms";
 export { sampleItems } from "./items";
 export { batteries, batterySummary } from "./batteries";
-export { invitationRecords, atPercentile as rawAtPercentile, atSten as rawAtSten } from "./invitations";
+export { atPercentile as rawAtPercentile, atSten as rawAtSten } from "./scoring";
 export { validityBenchmarks, reportTemplates, consentNotice, countryProfiles, candidateFlow } from "./reference";
 
 export const getTest = (id: string): Test | undefined => tests.find((t) => t.id === id);
@@ -51,26 +50,6 @@ export function toSummary(r: InvitationRecord): TestInvitationSummary {
   };
 }
 
-/** Percentile per completed ability/SJT test; questionnaires report a profile instead (percentile 0). */
-export function resultsByCandidate() {
-  const out: Record<string, { test: string; percentile: number; band: string }[]> = {};
-  for (const r of invitationRecords) {
-    for (const res of r.results) {
-      const t = getTest(res.testId)!;
-      const scored = scoreResult(res);
-      const profile = t.family === "personality" || t.family === "motivation" || t.family === "emotional_intelligence";
-      const first = scored[0]!;
-      (out[r.candidateName] ??= []).push({
-        test: t.shortName === "Numerical" ? "Numerical reasoning" : t.shortName === "Verbal" ? "Verbal reasoning" : t.name.replace(/ ·.*$/, ""),
-        percentile: profile ? 0 : first.percentile,
-        band: profile ? "Profile report" : BAND_TEXT[first.band],
-      });
-    }
-  }
-  return out;
-}
-
-const BAND_TEXT = { A: "Well above average", B: "Above average", C: "Average", D: "Below average", E: "Well below average" } as const;
 
 /** Options for battery pickers (vacancy editor, setup wizard). */
 export const batteryOptions = batteries.map((b) => ({ value: b.id, label: b.label, description: `${batterySummary(b)} · about ${b.totalMinutes} min` }));

@@ -21,7 +21,7 @@ import {
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CvBatch, CvExtraction, CvFile } from "@/types";
-import { FAILURE_COPY, nameFromFile } from "@/mocks/cv";
+import { FAILURE_COPY, nameFromFile } from "@/lib/cv";
 import { cn } from "@/lib/utils";
 import { CvStatusBadge, FIELD_LABEL, IN_PROGRESS, flagsOf, sizeLabel } from "./cv-meta";
 import { CvPreview } from "./cv-preview";

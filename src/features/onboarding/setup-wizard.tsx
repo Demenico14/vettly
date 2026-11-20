@@ -6,7 +6,7 @@ import { ArrowDown, ArrowUp, Check, Plus, Trash2, Upload, X } from "@/components
 import { Alert, Button, Field, Input, RadioGroup, Select, SwitchField, Tag, toast } from "@/components/ui";
 import { Stepper, type Step } from "@/components/ui/stepper";
 import { services } from "@/services";
-import { BRAND_COLOURS, DEFAULT_STAGES, TEST_BATTERIES, TIMEZONES } from "@/mocks/auth";
+import { BRAND_COLOURS, DEFAULT_STAGES, TEST_BATTERIES, TIMEZONES } from "@/lib/onboarding";
 import type { OrganisationSetup, Role } from "@/types";
 import { cn } from "@/lib/utils";
 import { readFlow } from "@/features/auth/session-store";

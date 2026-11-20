@@ -8,7 +8,6 @@ import { Briefcase, CornerDownLeft, Plus, Search, UserRound } from "@/components
 import { ALL_NAV_ITEMS } from "@/lib/navigation";
 import { services, type SearchResult } from "@/services";
 import { Kbd, Spinner } from "@/components/ui";
-import { toast } from "@/components/ui/toast";
 
 const group =
   "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-fg-subtle";
@@ -93,7 +92,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                       value="create-vacancy"
                       onSelect={() => {
                         onOpenChange(false);
-                        toast.info("Create vacancy", "The vacancy editor is built in Module 4.");
+                        router.push("/vacancies/new");
                       }}
                       className={item}
                     >

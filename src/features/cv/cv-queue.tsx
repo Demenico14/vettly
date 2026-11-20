@@ -23,9 +23,9 @@ import {
   toast,
 } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
-import { services, MOCK_NOW, type UploadInput } from "@/services";
+import { services, MOCK_NOW, uploadFile, type UploadInput } from "@/services";
 import type { CvBatch, CvFile, CvFileStatus, Vacancy } from "@/types";
-import { FAILURE_COPY } from "@/mocks/cv";
+import { FAILURE_COPY } from "@/lib/cv";
 import { cn, timeAgo } from "@/lib/utils";
 import { CvStatusBadge, FileIcon, IN_PROGRESS, flagsOf, personLine, sizeLabel } from "./cv-meta";
 
@@ -174,7 +174,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
       setVacancyError("Choose the vacancy these CVs are for first.");
       return;
     }
-    const ok: UploadInput[] = [];
+    const ok: File[] = [];
     const bad: string[] = [];
     const seen = new Set<string>();
     for (const f of Array.from(list)) {
@@ -186,7 +186,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
       else if (ok.length >= MAX_FILES) bad.push(`${f.name} wasn't added. A batch holds up to ${MAX_FILES} CVs.`);
       else {
         seen.add(key);
-        ok.push({ name: f.name, sizeKb: Math.max(0, Math.round(f.size / 1024)) });
+        ok.push(f);
       }
     }
     setSkipped(bad);
@@ -194,9 +194,20 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
     if (ok.length === 0) return;
     setBusy(true);
     try {
-      await services.cv.upload(vacancy.id, vacancy.title, ok);
-      toast.success(`${ok.length} ${ok.length === 1 ? "CV" : "CVs"} added to the queue`, `For ${vacancy.title}`);
+      // Upload the files themselves (three at a time), then queue them for reading.
+      const uploaded: UploadInput[] = [];
+      const failed: string[] = [];
+      for (let i = 0; i < ok.length; i += 3) {
+        const results = await Promise.allSettled(ok.slice(i, i + 3).map((f) => uploadFile(f)));
+        results.forEach((r, j) => (r.status === "fulfilled" ? uploaded.push(r.value) : failed.push(r.reason instanceof Error ? r.reason.message : `${ok[i + j]!.name} didn't upload.`)));
+      }
+      if (failed.length) setSkipped((s) => [...s, ...failed]);
+      if (!uploaded.length) return;
+      await services.cv.upload(vacancy.id, vacancy.title, uploaded);
+      toast.success(`${uploaded.length} ${uploaded.length === 1 ? "CV" : "CVs"} uploaded`, `Vettly is reading them now, for ${vacancy.title}.`);
       onUploaded();
+    } catch (e) {
+      toast.error("The upload didn't finish", e instanceof Error ? e.message : undefined);
     } finally {
       setBusy(false);
     }

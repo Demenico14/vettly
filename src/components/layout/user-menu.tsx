@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Building2, ChevronDown, CircleHelp, Eye, Keyboard, LogOut, Settings, UserRound, Sparkles } from "@/components/icons";
+import { Building2, ChevronDown, CircleHelp, Keyboard, LogOut, Settings, UserRound, Sparkles } from "@/components/icons";
 import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import { services } from "@/services";
 import { ROLE_LABEL, useSession } from "./session-provider";
 
 export function UserMenu({ onShowShortcuts }: { onShowShortcuts: () => void }) {
-  const { user, organisation, organisations, switchOrganisation, previewAs, previewUsers } = useSession();
+  const { user, organisation, organisations, switchOrganisation } = useSession();
   const router = useRouter();
   const [confirmSignOut, setConfirmSignOut] = React.useState(false);
 
@@ -102,32 +102,12 @@ export function UserMenu({ onShowShortcuts }: { onShowShortcuts: () => void }) {
             <Keyboard />
             Keyboard shortcuts
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => toast.info("Help centre", "The help centre arrives with backend integration.")}>
-            <CircleHelp />
-            Help & support
+          <DropdownMenuItem asChild>
+            <a href="mailto:support@vettly.example">
+              <CircleHelp />
+              Help & support
+            </a>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="flex items-center gap-1.5">
-            <Eye className="size-3.5" aria-hidden />
-            Preview as · prototype only
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={user.id}
-            onValueChange={(id) => {
-              previewAs(id);
-              const u = previewUsers.find((x) => x.id === id);
-              toast.info(`Previewing as ${u?.name}`, u ? ROLE_LABEL[u.role] : undefined);
-            }}
-          >
-            {previewUsers.map((u) => (
-              <DropdownMenuRadioItem key={u.id} value={u.id}>
-                <span className="flex flex-col">
-                  <span className="font-medium">{u.name}</span>
-                  <span className="text-2xs text-fg-subtle">{ROLE_LABEL[u.role]}</span>
-                </span>
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem tone="danger" onSelect={() => setConfirmSignOut(true)}>
             <LogOut />

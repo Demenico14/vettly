@@ -89,7 +89,7 @@ export function TestDetail({ id }: { id: string }) {
             <PageTitle className="mt-1">{t.name}</PageTitle>
             <p className="mt-2 max-w-3xl text-md text-fg-muted">{t.summary}</p>
             <div className="mt-3">
-              <IllustrativeNotice>Fictional test and evidence · Phase 1 prototype</IllustrativeNotice>
+              <IllustrativeNotice>Sample test and evidence · not a validated instrument</IllustrativeNotice>
             </div>
           </div>
         </div>
@@ -272,7 +272,7 @@ export function TestDetail({ id }: { id: string }) {
                 ) : t.regulatoryClass === "skills_knowledge" ? (
                   "A skills or knowledge test, not a psychological test."
                 ) : t.regulatoryClass === "psychological_hpcsa_classified" ? (
-                  "Measures a psychological construct but isn't on the HPCSA classified list in this prototype. Validity, reliability and fairness evidence still applies (EEA s.8)."
+                  "Measures a psychological construct but isn't on the HPCSA classified list. Validity, reliability and fairness evidence still applies (EEA s.8)."
                 ) : (
                   "Not a psychological test. Validity and fairness evidence still applies (EEA s.8: other similar assessments)."
                 )}

@@ -164,8 +164,8 @@ export function VacancyEditor({ id }: { id?: string }) {
       }
       setInitial(JSON.stringify(draft));
       toast.success(
-        mode === "publish" ? (isDraft ? "Vacancy published (simulated)" : "Changes saved") : "Draft saved",
-        mode === "publish" && isDraft ? `${v.title} is live on ${v.channels.length} ${v.channels.length === 1 ? "channel" : "channels"}.` : v.title,
+        mode === "publish" ? (isDraft ? "Vacancy opened" : "Changes saved") : "Draft saved",
+        mode === "publish" && isDraft ? `${v.title} is open for applications. Post the advert on the channels you chose.` : v.title,
       );
       router.push(`/vacancies/${v.id}`);
     } catch (err) {
@@ -265,7 +265,7 @@ export function VacancyEditor({ id }: { id?: string }) {
                   Save draft
                 </Button>
                 <Button loading={saving === "publish"} disabled={!!saving} onClick={() => save("publish")}>
-                  {draft.channels.length ? `Publish to ${draft.channels.length} ${draft.channels.length === 1 ? "channel" : "channels"}` : "Publish"}
+                  Open vacancy
                 </Button>
               </>
             ) : (

@@ -20,8 +20,9 @@ import {
 } from "@/components/ui";
 import { StageBadge, STAGE_META } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
-import { services, MOCK_NOW } from "@/services";
-import { TEST_RESULTS } from "@/mocks/matching";
+import { services, MOCK_NOW, fileUrl, uploadFile } from "@/services";
+import { FileView } from "@/components/domain/file-view";
+import { useSession } from "@/components/layout/session-provider";
 import type { ApplicationStage, CandidateApplication, CandidateDocument, CandidateProfile, TestInvitationSummary } from "@/types";
 import { cn, formatDate, timeAgo } from "@/lib/utils";
 
@@ -191,9 +192,8 @@ const TEST_STATUS: Record<TestInvitationSummary["status"], string> = {
 };
 
 /** Illustrative per-test results for completed invitations, keyed by candidate. */
-const RESULTS = TEST_RESULTS;
 
-export function AssessmentsTab({ c }: { c: CandidateProfile }) {
+export function AssessmentsTab({ c, onSend }: { c: CandidateProfile; onSend: () => void }) {
   const [tests, setTests] = React.useState<TestInvitationSummary[] | null>(null);
   React.useEffect(() => {
     let alive = true;
@@ -212,7 +212,7 @@ export function AssessmentsTab({ c }: { c: CandidateProfile }) {
           title="No psychometric tests sent"
           description="Tests are sent when a candidate reaches the Assessment stage, or by hand from the pipeline."
           action={
-            <Button size="sm" variant="secondary" onClick={() => toast.info("Send tests", "Sending tests arrives in Module 9.")}>
+            <Button size="sm" variant="secondary" onClick={onSend}>
               Send tests
             </Button>
           }
@@ -223,7 +223,7 @@ export function AssessmentsTab({ c }: { c: CandidateProfile }) {
   return (
     <div className="flex flex-col gap-4">
       {tests.map((t) => {
-        const results = t.status === "completed" ? RESULTS[c.name] : undefined;
+        const results = t.results?.length ? t.results : undefined;
         return (
           <Card key={t.id} className="overflow-hidden">
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
@@ -279,13 +279,16 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
   const upload = async (file?: File) => {
     if (!file) return;
     if (!ACCEPT.includes(file.type)) return setError(`${file.name} isn't a PDF, Word document or image.`);
-    if (file.size > 10 * 1024 * 1024) return setError(`${file.name} is larger than 10 MB.`);
+    if (file.size > 15 * 1024 * 1024) return setError(`${file.name} is larger than 15 MB.`);
     setError(null);
     setUploading(file.name);
     try {
-      const next = await services.profiles.uploadDocument(c.id, { name: file.name, sizeKb: Math.round(file.size / 1024), kind });
+      const stored = await uploadFile(file);
+      const next = await services.profiles.uploadDocument(c.id, { fileId: stored.fileId, name: stored.name, sizeKb: stored.sizeKb, kind });
       onChange(next);
       toast.success("Document uploaded", file.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : `${file.name} didn't upload. Try again.`);
     } finally {
       setUploading(null);
     }
@@ -311,9 +314,13 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
                   <Eye />
                   Preview
                 </Button>
-                <Button size="icon-sm" variant="ghost" aria-label={`Download ${d.name}`} onClick={() => toast.success("Download started (simulated)", d.name)}>
-                  <Download />
-                </Button>
+                {d.fileId && (
+                  <Button asChild size="icon-sm" variant="ghost">
+                    <a href={fileUrl(d.fileId, true)} download={d.name} aria-label={`Download ${d.name}`}>
+                      <Download />
+                    </a>
+                  </Button>
+                )}
                 <Button
                   size="icon-sm"
                   variant="ghost"
@@ -370,7 +377,7 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
                 <button type="button" onClick={() => fileRef.current?.click()} className="font-semibold text-primary-700 hover:underline">
                   choose one
                 </button>
-                <span className="w-full text-center text-xs text-fg-subtle">PDF, Word or image, up to 10 MB</span>
+                <span className="w-full text-center text-xs text-fg-subtle">PDF, Word or image, up to 15 MB</span>
               </>
             )}
             <input ref={fileRef} type="file" className="sr-only" aria-label="Upload document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => upload(e.target.files?.[0])} />
@@ -386,41 +393,7 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
       <Modal open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         {preview && (
           <ModalContent size="lg" title={preview.name} description={`${preview.kind} · ${preview.pages} ${preview.pages === 1 ? "page" : "pages"}`}>
-            <div className="rounded-md bg-ink-100 p-4 sm:p-6">
-              <div className="mx-auto max-w-[36rem] rounded-sm bg-white px-8 py-10 font-serif text-[0.8125rem] leading-relaxed text-ink-900 shadow-md">
-                {preview.kind === "CV" ? (
-                  <>
-                    <p className="text-xl font-bold tracking-tight">{c.name}</p>
-                    <p className="text-ink-600">
-                      {c.location} · {c.email} · {c.phone}
-                    </p>
-                    <p className="mt-4">{c.summary}</p>
-                    <p className="mt-5 text-xs font-bold tracking-wider uppercase">Experience</p>
-                    {c.experience.map((e) => (
-                      <div key={e.id} className="mt-2">
-                        <p className="font-bold">
-                          {e.title}, {e.company}
-                        </p>
-                        <ul className="list-disc pl-4">
-                          {e.bullets.map((b) => (
-                            <li key={b}>{b}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                    <p className="mt-5 text-xs font-bold tracking-wider uppercase">Education</p>
-                    {c.education.map((e) => (
-                      <p key={e.id}>
-                        {e.qualification} {e.field}, {e.institution} ({e.end ?? "current"})
-                      </p>
-                    ))}
-                  </>
-                ) : (
-                  <p className="py-16 text-center text-ink-500">Preview of {preview.name}</p>
-                )}
-              </div>
-            </div>
-            <p className="mt-3 text-2xs text-fg-subtle">Illustrative preview rendered from the candidate record. Real files are shown here after backend integration.</p>
+            <FileView fileId={preview.fileId} name={preview.name} />
           </ModalContent>
         )}
       </Modal>
@@ -431,6 +404,7 @@ export function DocumentsTab({ c, onChange }: { c: CandidateProfile; onChange: (
 /* ---------- Notes ---------- */
 
 export function NotesTab({ c, onChange }: { c: CandidateProfile; onChange: (c: CandidateProfile) => void }) {
+  const me = useSession().user?.name;
   const [body, setBody] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   return (
@@ -473,7 +447,7 @@ export function NotesTab({ c, onChange }: { c: CandidateProfile; onChange: (c: C
                   </p>
                   <p className="mt-0.5 text-sm whitespace-pre-line text-fg-muted">{n.body}</p>
                 </div>
-                {n.author === "Tendai Moyo" && (
+                {n.author === me && (
                   <Button
                     size="icon-sm"
                     variant="ghost"

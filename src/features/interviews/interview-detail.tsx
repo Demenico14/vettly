@@ -7,7 +7,8 @@ import { Alert, Avatar, Button, Card, CardHeader, Checkbox, Field, Input, Modal,
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { MatchScore } from "@/components/domain/assessment";
 import { STAGE_META, StageBadge } from "@/components/domain/status-badge";
-import { services, MOCK_NOW, MY_INTERVIEWER_ID, harare, partsOf, type CandidateContext, type Conflict, type InterviewListItem } from "@/services";
+import { services, MOCK_NOW, harare, partsOf, type CandidateContext, type Conflict, type InterviewListItem } from "@/services";
+import { currentUserId } from "@/lib/current-user";
 import type { ApplicationStage } from "@/types";
 import type { DecisionOutcome, Interview, Interviewer, Question, QuestionSet } from "@/types/interviews";
 import { cn } from "@/lib/utils";
@@ -61,7 +62,7 @@ export function InterviewDetail({ id }: { id: string }) {
   const iv = item.interview;
   const started = new Date(iv.startsAt).getTime() <= NOW;
   const Icon = iv.format === "Video" ? Video : iv.format === "Phone" ? Phone : UsersRound;
-  const myCard = iv.scorecards.find((s) => s.interviewerId === MY_INTERVIEWER_ID);
+  const myCard = iv.scorecards.find((s) => s.interviewerId === currentUserId());
 
   return (
     <PageContainer
@@ -211,7 +212,7 @@ export function InterviewDetail({ id }: { id: string }) {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-fg">
                         {ivr?.name}
-                        {p.interviewerId === MY_INTERVIEWER_ID && <span className="text-fg-subtle"> (you)</span>}
+                        {p.interviewerId === currentUserId() && <span className="text-fg-subtle"> (you)</span>}
                       </span>
                       <span className="block truncate text-xs text-fg-subtle">
                         {p.role === "lead" ? "Lead" : p.role === "observer" ? "Observer" : "Panellist"} · {ivr?.title}
@@ -497,7 +498,7 @@ function Decision({ data, onDone }: { data: Data; onDone: () => void }) {
   const [moveTo, setMoveTo] = React.useState<ApplicationStage>(stage ? (NEXT_STAGE[stage] ?? "interview") : "interview");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const lead = iv.panel.find((p) => p.role === "lead")?.interviewerId === MY_INTERVIEWER_ID;
+  const lead = iv.panel.find((p) => p.role === "lead")?.interviewerId === currentUserId();
   if (iv.decision)
     return (
       <Card className="flex items-start gap-3 p-5">

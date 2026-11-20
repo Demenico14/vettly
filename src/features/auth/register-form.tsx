@@ -11,8 +11,7 @@ import { Alert, Button, CheckboxField, Field, Input, toast } from "@/components/
 import { PasswordInput, PasswordStrength, isStrongPassword } from "@/components/ui/password-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
-import { AuthHeading, Divider, PrototypeHint } from "./auth-layout";
-import { SsoButtons } from "./sso-buttons";
+import { AuthHeading } from "./auth-layout";
 import { writeFlow } from "./session-store";
 
 const FREE_DOMAINS = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
@@ -66,8 +65,6 @@ export function RegisterForm() {
         title="Create your Vettly account"
         description="Set up recruitment for your organisation. You can invite your team afterwards."
       />
-      <SsoButtons disabled={isSubmitting} />
-      <Divider label="or with email" />
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {error && (
           <Alert tone="danger" title="Account not created">
@@ -135,14 +132,6 @@ export function RegisterForm() {
           Sign in
         </Link>
       </p>
-      <PrototypeHint>
-        <p>
-          <code>taken@msasafinancial.example</code> shows the “email already registered” error.
-        </p>
-        <p>
-          Example strong password: <code>Harare-2026!</code>
-        </p>
-      </PrototypeHint>
     </>
   );
 }

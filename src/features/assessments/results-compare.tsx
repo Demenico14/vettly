@@ -56,7 +56,7 @@ export function ResultsCompare() {
             className="mt-4"
             title="Compare results"
             description={`Side by side on the same tests${vacancyTitle && vacancyId ? ` for ${vacancyTitle}` : ""}. Use it to plan interviews, not to rank people on scores alone.`}
-            meta={<IllustrativeNotice>Illustrative results</IllustrativeNotice>}
+            meta={<IllustrativeNotice>Sample tests · scores are not validated for hiring decisions</IllustrativeNotice>}
           />
         </div>
       }

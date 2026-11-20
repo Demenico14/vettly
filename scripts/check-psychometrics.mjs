@@ -67,8 +67,9 @@ for (const t of db.tests) {
 for (const n of db.normTables) ok(testIds.has(n.testId), `Norm table for unknown test ${n.testId}`);
 
 /* Batteries */
-const vacancyBatteries = [...readFileSync(path.join(root, "src/mocks/vacancies.ts"), "utf8").matchAll(/battery: "([a-z_]+)"/g)].map((m) => m[1]);
-for (const id of vacancyBatteries) ok(db.getBattery(id), `A vacancy uses unknown battery "${id}"`);
+// Default batteries used by new organisations and new vacancies must exist.
+const defaults = readFileSync(path.join(root, "src/lib/settings-defaults.ts"), "utf8") + readFileSync(path.join(root, "src/lib/workflow.ts"), "utf8");
+for (const id of [...defaults.matchAll(/(?:battery: |": )"([a-z_]+)"/g)].map((m) => m[1]).filter((id) => db.batteries.some((b) => b.id === id) || /^(finance|software|sales|operations|professional|leadership|graduate|customer_service|technical|administrative)$/.test(id))) ok(db.getBattery(id), `A default uses unknown battery "${id}"`);
 for (const b of db.batteries) {
   for (const c of b.components) ok(testIds.has(c.testId), `${b.id}: unknown test ${c.testId}`);
   const w = Object.values(b.weights).reduce((s, v) => s + v, 0);
@@ -93,26 +94,6 @@ ok(answer("itm_num_5") === String(24 * 12 - 37), "itm_num_5 key");
 ok(answer("itm_ind_1") === "42", "itm_ind_1 key");
 ok(answer("itm_ind_2") === String.fromCharCode("L".charCodeAt(0) + 3), "itm_ind_2 key");
 
-/* Invitations */
-const candidates = ["cnd_rutendo", "cnd_tafadzwa", "cnd_nyasha", "cnd_farai", "cnd_thandiwe", "cnd_blessing", "cnd_tinashe", "cnd_lindiwe", "cnd_chipo", "cnd_simba", "cnd_ruvimbo", "cnd_kudakwashe"];
-const T = (s) => (s ? new Date(s).getTime() : null);
-for (const r of db.invitationRecords) {
-  ok(candidates.includes(r.candidateId), `${r.id}: unknown candidate ${r.candidateId}`);
-  ok(db.getBattery(r.batteryId), `${r.id}: unknown battery`);
-  const expected = db.testsForInvitation(r);
-  for (const res of r.results) ok(expected.includes(res.testId), `${r.id}: result for a test that wasn't sent (${res.testId})`);
-  if (r.status === "completed") ok(r.results.length === expected.length, `${r.id}: completed but ${r.results.length}/${expected.length} results`);
-  if (r.status === "sent") ok(!r.openedAt && !r.consent, `${r.id}: sent but already opened or consented`);
-  if (r.results.length || r.attempts.length) ok(r.consent?.assessment, `${r.id}: tested without consent`);
-  ok(T(r.sentAt) < T(r.deadline), `${r.id}: deadline before send`);
-  if (r.openedAt) ok(T(r.openedAt) >= T(r.sentAt), `${r.id}: opened before sent`);
-  for (const a of r.attempts) {
-    ok(T(a.startedAt) >= T(r.consent?.at ?? r.sentAt), `${r.id}/${a.testId}: started before consent`);
-    if (a.completedAt) ok(T(a.completedAt) <= T(r.deadline), `${r.id}/${a.testId}: completed after the deadline`);
-  }
-  for (const res of r.results) db.scoreResult(res);
-}
-
 /* Scoring */
 ok(Math.abs(lib.normalCdf(1.96) - 0.975) < 0.0005, "normalCdf(1.96) ≠ .975");
 ok(lib.sten(0) === 6 && lib.sten(-0.01) === 5, "sten mid-point");
@@ -134,9 +115,7 @@ for (let i = 0; i < N; i++) {
 counts.forEach((c, i) => ok(Math.abs((c / N) * 100 - lib.STEN_DISTRIBUTION[i]) < 0.4, `sten ${i + 1}: ${(c / N * 100).toFixed(2)}% vs expected ${lib.STEN_DISTRIBUTION[i]}%`));
 
 /* Report */
-const results = db.resultsByCandidate();
-console.log(`Tests ${db.tests.length} · families ${db.families.length} · norm groups ${db.normGroups.length} · norm rows ${db.normTables.length} · batteries ${db.batteries.length} · sample items ${db.sampleItems.length} · invitations ${db.invitationRecords.length}`);
-for (const [name, list] of Object.entries(results)) console.log(`  ${name}: ${list.map((r) => `${r.test} ${r.percentile || r.band}`).join(" · ")}`);
+console.log(`Tests ${db.tests.length} · families ${db.families.length} · norm groups ${db.normGroups.length} · norm rows ${db.normTables.length} · batteries ${db.batteries.length} · sample items ${db.sampleItems.length}`);
 for (const b of db.batteries) console.log(`  ${b.label.padEnd(28)} ${String(b.totalMinutes).padStart(3)} min  ${db.batterySummary(b)}`);
 if (problems.length) {
   console.error(`\n${problems.length} problem(s):\n- ${problems.join("\n- ")}`);

@@ -16,8 +16,8 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { ProvenanceTag } from "@/components/domain/assessment";
 import { services, type AssistAction } from "@/services";
-import { CHANNELS, DEPARTMENTS, HIRING_MANAGERS, LOCATIONS } from "@/mocks/vacancies";
-import { TEST_BATTERIES } from "@/mocks/auth";
+import { CHANNELS, DEPARTMENTS, LOCATIONS } from "@/lib/catalog";
+import { TEST_BATTERIES } from "@/lib/onboarding";
 import type { Requirement, RequirementKind, RequirementPriority, ScreeningWeights, VacancyDraft } from "@/types";
 import { cn } from "@/lib/utils";
 import { REQUIREMENT_KIND, WEIGHT_LABELS } from "./vacancy-meta";
@@ -59,6 +59,14 @@ export function EditorSection({
 
 export function BasicsSection({ draft, set, errors }: Props) {
   const toDate = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
+  const [people, setPeople] = React.useState<string[]>([]);
+  React.useEffect(() => {
+    services.settings
+      .members()
+      .then((m) => setPeople(m.members.filter((x) => x.status === "active").map((x) => x.name).sort()))
+      .catch(() => undefined);
+  }, []);
+  const managers = [...new Set([...people, ...(draft.hiringManager ? [draft.hiringManager] : [])])];
   return (
     <EditorSection id="basics" title="Basics" description="Where the role sits and what it pays. Candidates see everything except hidden salary.">
       <Field label="Job title" required error={errors.title} hint="Use the title candidates search for, e.g. “Finance Manager”, not internal grades.">
@@ -69,7 +77,7 @@ export function BasicsSection({ draft, set, errors }: Props) {
           <Select value={draft.department} onValueChange={(v) => set("department", v)} placeholder="Choose department" options={DEPARTMENTS.map((d) => ({ value: d, label: d }))} />
         </Field>
         <Field label="Hiring manager" required error={errors.hiringManager} hint="Reviews the shortlist and joins interview panels.">
-          <Select value={draft.hiringManager} onValueChange={(v) => set("hiringManager", v)} placeholder="Choose a person" options={HIRING_MANAGERS.map((d) => ({ value: d, label: d }))} />
+          <Select value={draft.hiringManager} onValueChange={(v) => set("hiringManager", v)} placeholder="Choose a person" options={managers.map((d) => ({ value: d, label: d }))} />
         </Field>
         <Field label="Location" required error={errors.location}>
           <Select value={draft.location} onValueChange={(v) => set("location", v)} placeholder="Choose location" options={LOCATIONS.map((d) => ({ value: d, label: d }))} />
@@ -292,7 +300,7 @@ export function DescriptionSection({ draft, set, errors }: Props) {
             <Sparkles className="size-4" />
             Writing assistant
           </p>
-          <span className="text-2xs font-medium text-accent-700">Simulated in this prototype · nothing is sent to an AI model</span>
+          <span className="text-2xs font-medium text-accent-700">Fixed rewriting rules · nothing is sent to an AI model</span>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {ASSIST_ACTIONS.map((a) => (
@@ -530,7 +538,7 @@ export function RequirementsSection({ draft, set, errors }: Props) {
         <div>
           <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-accent-700">
             <Sparkles className="size-3.5" />
-            Suggested for {draft.department || "this role"} · simulated
+            Common for {draft.department || "this role"}
           </p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((s) => (
@@ -662,7 +670,7 @@ export function PublishSection({ draft, set, errors, orgName }: Props & { orgNam
   const salary =
     draft.salaryVisible && draft.salaryMin && draft.salaryMax ? `${draft.currency} ${draft.salaryMin.toLocaleString("en-GB")}–${draft.salaryMax.toLocaleString("en-GB")} a month` : null;
   return (
-    <EditorSection id="publishing" title="Publishing" description="Where the advert appears when you publish. Channel posting is simulated in this prototype.">
+    <EditorSection id="publishing" title="Publishing" description="Where you plan to post the advert. Vettly doesn&apos;t post to job boards yet, so copy the advert to each one yourself.">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
           {CHANNELS.map((c) => (

@@ -118,6 +118,8 @@ Organisations, subscriptions, platform usage, users, system health, AI provider 
 
 ## Backend integration gate
 
-Plan: [`docs/BACKEND_PLAN.md`](BACKEND_PLAN.md) (draft for approval).
+Plan: [`docs/BACKEND_PLAN.md`](BACKEND_PLAN.md).
+
+**Status: first version built, awaiting review** (branch `backend-docker`). Real API, PostgreSQL, document storage, email, built-in auth, server-side permissions and tenant scoping; all sample data removed. CV extraction and matching use fixed rules until the AI branch. Not yet connected: AI models, text recognition, SMS, SSO, two-step verification, job boards, validated psychometric content.
 
 After all 15 modules are approved: real APIs replace mock services; authentication; database; document storage; CV processing; AI matching; **psychometric test delivery, scoring and provider integration**; audit logging; permission and tenant-isolation checks.

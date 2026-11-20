@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Check, CircleAlert } from "@/components/icons";
 import { Alert, Button, Field, Input, Select, Spinner, toast } from "@/components/ui";
 import { services } from "@/services";
-import { COUNTRIES, INDUSTRIES } from "@/mocks/auth";
+import { COUNTRIES, INDUSTRIES } from "@/lib/onboarding";
 import type { OrganisationSize } from "@/types";
 import { cn } from "@/lib/utils";
 import { AuthHeading } from "@/features/auth/auth-layout";
@@ -208,10 +208,6 @@ export function CreateOrganisation() {
         <Button type="submit" size="lg" loading={isSubmitting} disabled={slugState === "checking"} className="mt-1 w-full">
           {isSubmitting ? "Creating organisation…" : "Create organisation"}
         </Button>
-        <p className="text-xs text-fg-subtle">
-          Prototype: the addresses <code className="font-mono">msasa</code>, <code className="font-mono">matobo</code> and{" "}
-          <code className="font-mono">vettly</code> are taken.
-        </p>
       </form>
     </>
   );

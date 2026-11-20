@@ -1,0 +1,105 @@
+/**
+ * Service contracts: what the screens can ask the backend for. Type-only, so the browser bundle never
+ * includes server code. Implementations live in src/server/services and are reached through /api/rpc.
+ */
+import type { AppNotification, CandidateSummary, CandidateTestAccess, Organisation, OrganisationDraft, OrganisationSetup, Session, TeamInvitation, User, Vacancy, VacancyDraft, VacancyStatus } from "@/types";
+
+export type { CandidateProfileService, CvCandidateInput } from "@/server/services/candidates";
+export type { CvProcessingService, UploadInput } from "@/server/services/cv";
+export type { MatchingService, VacancyMatchSummary } from "@/server/services/matching";
+export type { PipelineService, PipelineCard, MoveTarget, MoveResult } from "@/server/services/pipeline";
+export type { AssessmentsService, InvitationView, ScoredResult, SendInput, SendResult, BatteryDraft, Undo } from "@/server/services/assessments";
+export type { InterviewsService, InterviewListItem, CandidateContext, Conflict, ScheduleInput } from "@/server/services/interviews";
+export type { OffersService, OfferView, Band } from "@/server/services/offers";
+export type { TalentService, TalentSearchResult } from "@/server/services/talent";
+export type { AnalyticsService } from "@/server/services/analytics";
+export type { SettingsService } from "@/server/services/settings";
+export type { PlatformService } from "@/server/services/platform";
+export type { DashboardService } from "@/server/services/dashboard";
+
+export type AssistAction = "draft" | "inclusive" | "concise" | "formal";
+
+export interface VacancyService {
+  list(): Promise<Vacancy[]>;
+  get(id: string): Promise<Vacancy>;
+  candidatesFor(id: string): Promise<CandidateSummary[]>;
+  create(draft: VacancyDraft, publish: boolean): Promise<Vacancy>;
+  update(id: string, draft: VacancyDraft): Promise<Vacancy>;
+  setStatus(id: string, status: VacancyStatus, reason?: string): Promise<Vacancy>;
+  duplicate(id: string): Promise<Vacancy>;
+  remove(id: string): Promise<void>;
+  /** Writing help in the editor: rewrites text with fixed rules (no AI model). Streams words for progress. */
+  assist(action: AssistAction, input: { title: string; department: string; summary: string; responsibilities: string[] }): AsyncGenerator<string>;
+}
+
+export interface AuthService {
+  signIn(email: string, password: string, remember: boolean): Promise<Session>;
+  signInWithProvider(provider: "google" | "microsoft"): Promise<Session>;
+  register(input: { name: string; email: string; password: string }): Promise<{ email: string }>;
+  verifyEmail(email: string, code: string): Promise<void>;
+  resendCode(email: string): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  checkResetToken(token: string): Promise<{ email: string }>;
+  resetPassword(token: string, password: string): Promise<void>;
+  getInvitation(token: string): Promise<TeamInvitation>;
+  acceptInvitation(token: string, input: { name: string; password: string }): Promise<Session>;
+  checkSlug(slug: string): Promise<boolean>;
+  createOrganisation(draft: OrganisationDraft): Promise<{ id: string }>;
+  completeSetup(orgId: string, setup: OrganisationSetup): Promise<void>;
+}
+
+export interface CandidateTest {
+  id: string;
+  name: string;
+  family: string;
+  instructions: string;
+  timeLimitMin: number | null;
+  extraTimePercent: number;
+  calculatorAllowed: boolean;
+  itemFormat: string;
+  practice: import("@/types/psychometrics").SampleItem[];
+  questions: import("@/types/psychometrics").SampleItem[];
+  /** Full length of the published test, for the "short form" note. */
+  fullLength: number;
+}
+
+export interface CandidateAccessService {
+  open(token: string): Promise<CandidateTestAccess>;
+  sendCode(token: string): Promise<void>;
+  verify(token: string, code: string): Promise<void>;
+  recordConsent(token: string): Promise<void>;
+  loadTest(token: string, testId: string): Promise<CandidateTest>;
+  saveProgress(token: string, testId: string, answered: number): Promise<void>;
+  /** Submits answers. Returns true when every test in the invitation is finished. */
+  submit(token: string, testId: string, answers: Record<string, number>, minutes: number): Promise<boolean>;
+}
+
+export interface SessionService {
+  getCurrentUser(): Promise<User>;
+  getOrganisations(): Promise<Organisation[]>;
+  getActiveOrganisation(): Promise<Organisation>;
+  switchOrganisation(id: string): Promise<Organisation>;
+  signOut(): Promise<void>;
+}
+
+export interface NotificationService {
+  list(): Promise<AppNotification[]>;
+  markRead(id: string): Promise<void>;
+  markAllRead(): Promise<void>;
+}
+
+export interface SearchResult {
+  id: string;
+  type: "candidate" | "vacancy";
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
+export interface SearchService {
+  search(query: string): Promise<SearchResult[]>;
+}
+
+export interface CandidateService {
+  listSummaries(): Promise<CandidateSummary[]>;
+}

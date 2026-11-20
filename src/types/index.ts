@@ -92,6 +92,8 @@ export type AuthErrorCode =
   | "code_expired"
   | "token_invalid"
   | "token_expired"
+  | "email_unverified"
+  | "unavailable"
   | "network";
 
 export class AuthError extends Error {
@@ -251,6 +253,8 @@ export interface TestInvitationSummary {
   deadline: string;
   completed: number;
   total: number;
+  /** Scores for finished tests: percentile for ability and judgement tests, 0 for questionnaires (a profile). */
+  results?: { test: string; percentile: number; band: string }[];
 }
 
 export interface RecentApplication extends CandidateSummary {
@@ -396,6 +400,8 @@ export interface Project {
 
 export interface CandidateDocument {
   id: string;
+  /** The stored file, when the document was uploaded (download at /api/files/<fileId>). */
+  fileId?: string;
   name: string;
   kind: "CV" | "Cover letter" | "Certificate" | "Transcript" | "Other";
   sizeKb: number;
@@ -501,6 +507,8 @@ export interface CvExtraction {
 export interface CvFile {
   id: string;
   batchId: string;
+  /** The stored upload (view at /api/files/<fileId>). */
+  fileId?: string;
   name: string;
   sizeKb: number;
   format: CvFormat;

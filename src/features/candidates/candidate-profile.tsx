@@ -221,7 +221,7 @@ export function CandidateProfileView({ id }: { id: string }) {
               <ApplicationsTab c={c} onChange={setC} />
             </TabsContent>
             <TabsContent value="tests">
-              <AssessmentsTab c={c} />
+              <AssessmentsTab c={c} onSend={() => setSendingTests(true)} />
             </TabsContent>
             <TabsContent value="documents">
               <DocumentsTab c={c} onChange={setC} />

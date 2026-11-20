@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Briefcase, Check, ClipboardList, FileUp, Paintbrush, Sparkles, UserPlus, X } from "@/components/icons";
-import { Button, Card, Progress, toast, Tooltip } from "@/components/ui";
+import { Button, Card, Progress, Tooltip } from "@/components/ui";
+import { services } from "@/services";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/layout/session-provider";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,7 @@ interface Task {
   body: string;
   icon: React.ReactNode;
   action: string;
-  href?: string;
-  module?: number;
+  href: string;
 }
 
 const TASKS: Task[] = [
@@ -27,7 +27,7 @@ const TASKS: Task[] = [
     body: "Branding, currency, pipeline stages and test defaults.",
     icon: <Paintbrush />,
     action: "Review settings",
-    href: "/settings",
+    href: "/settings/organisation",
   },
   {
     id: "vacancy",
@@ -35,7 +35,7 @@ const TASKS: Task[] = [
     body: "Write the job description and set essential and desirable requirements. Vettly scores every CV against them.",
     icon: <Briefcase />,
     action: "Create vacancy",
-    module: 4,
+    href: "/vacancies/new",
   },
   {
     id: "cvs",
@@ -59,14 +59,14 @@ const TASKS: Task[] = [
     body: "Add recruiters and hiring managers so they can review shortlists and score interviews.",
     icon: <UserPlus />,
     action: "Invite people",
-    href: "/settings",
+    href: "/settings/users",
   },
 ];
 
 const FLOW = [
   { label: "Vacancy", note: "Requirements and weights" },
   { label: "CVs", note: "Extracted to profiles" },
-  { label: "Evidence", note: "AI suggests, HR confirms", ai: true },
+  { label: "Evidence", note: "Vettly suggests, HR confirms", ai: true },
   { label: "Tests", note: "Psychometric results" },
   { label: "Interview", note: "Panel scorecards" },
   { label: "Offer", note: "Hire recorded" },
@@ -77,7 +77,9 @@ const KEY = "vettly:onboarding-done";
 export function WelcomeChecklist() {
   const router = useRouter();
   const { user, organisation } = useSession();
-  const [done, setDone] = React.useState<Set<string>>(new Set(["brand"]));
+  // Ticked by hand, kept in this browser; steps the workspace data shows are done are added on top.
+  const [done, setDone] = React.useState<Set<string>>(new Set());
+  const [derived, setDerived] = React.useState<Set<string>>(new Set(["brand"]));
   const [hidden, setHidden] = React.useState(false);
   const [flow, setFlow] = React.useState<{ org?: string; name?: string }>({});
 
@@ -92,6 +94,28 @@ export function WelcomeChecklist() {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  React.useEffect(() => {
+    let alive = true;
+    const has = (p: Promise<unknown[]>) => p.then((r) => r.length > 0).catch(() => false);
+    Promise.all([
+      has(services.vacancies.list()),
+      has(services.cv.listBatches()),
+      has(services.assessments.invitations()),
+      services.settings.members().then((r) => r.members.length > 1).catch(() => false),
+    ]).then(([vacancy, cvs, tests, team]) => {
+      if (!alive) return;
+      const d = new Set(["brand"]);
+      if (vacancy) d.add("vacancy");
+      if (cvs) d.add("cvs");
+      if (tests) d.add("tests");
+      if (team) d.add("team");
+      setDerived(d);
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const persist = (s: Set<string>) => {
@@ -112,7 +136,8 @@ export function WelcomeChecklist() {
 
   const firstName = (flow.name ?? user?.name)?.split(" ")[0];
   const orgName = flow.org ?? organisation?.name;
-  const complete = done.size;
+  const isDoneId = (id: string) => done.has(id) || derived.has(id);
+  const complete = TASKS.filter((t) => isDoneId(t.id)).length;
   const pct = (complete / TASKS.length) * 100;
 
   return (
@@ -162,15 +187,17 @@ export function WelcomeChecklist() {
             </div>
             <ul>
               {TASKS.map((t) => {
-                const isDone = done.has(t.id);
+                const isDone = isDoneId(t.id);
+                const automatic = derived.has(t.id);
                 return (
                   <li key={t.id} className="flex flex-col gap-3 border-b border-line px-5 py-4 last:border-b-0 sm:flex-row sm:items-center">
                     <button
                       type="button"
                       role="checkbox"
                       aria-checked={isDone}
-                      aria-label={`Mark “${t.title}” as ${isDone ? "not done" : "done"}`}
-                      onClick={() => toggle(t.id)}
+                      aria-label={automatic ? `“${t.title}” is done` : `Mark “${t.title}” as ${isDone ? "not done" : "done"}`}
+                      onClick={() => !automatic && toggle(t.id)}
+                      aria-disabled={automatic || undefined}
                       className={cn(
                         "grid size-6 shrink-0 place-items-center rounded-full border transition-colors",
                         isDone ? "border-success-600 bg-success-600 text-white" : "border-line-strong text-transparent hover:border-primary-500",
@@ -189,10 +216,7 @@ export function WelcomeChecklist() {
                       variant={isDone ? "ghost" : "secondary"}
                       size="sm"
                       className="self-start sm:self-center"
-                      onClick={() => {
-                        if (t.module) toast.info(t.action, `This arrives in Module ${t.module}.`);
-                        else if (t.href) router.push(t.href);
-                      }}
+                      onClick={() => router.push(t.href)}
                     >
                       {isDone ? "Revisit" : t.action}
                     </Button>

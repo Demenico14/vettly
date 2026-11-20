@@ -130,7 +130,7 @@ export function ResultsReport({ id }: { id: string }) {
                     { value: "interview", label: "Interview guide" },
                   ]}
                 />
-                <IllustrativeNotice>Illustrative results · not real scores</IllustrativeNotice>
+                <IllustrativeNotice>Sample tests · scores are not validated for hiring decisions</IllustrativeNotice>
               </div>
 
               {kind === "hr" && (

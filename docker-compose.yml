@@ -58,7 +58,8 @@ services:
         condition: service_healthy
     entrypoint: ["/bin/sh", "-c"]
     command:
-      - "echo 's3.bucket.create -name ${S3_BUCKET:-vettly-documents}' | weed shell -master=storage:9333 && echo bucket ready"
+      # Creates the bucket once; later runs find it and succeed.
+      - "echo 's3.bucket.list' | weed shell -master=storage:9333 | grep -qw '${S3_BUCKET:-vettly-documents}' || echo 's3.bucket.create -name ${S3_BUCKET:-vettly-documents}' | weed shell -master=storage:9333; echo 's3.bucket.list' | weed shell -master=storage:9333 | grep -qw '${S3_BUCKET:-vettly-documents}' && echo bucket ready"
     restart: "no"
 
   # Catches all outgoing email. Inbox: http://localhost:8025

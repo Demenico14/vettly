@@ -62,22 +62,6 @@ export function AuthHeading({ title, description }: { title: string; description
   );
 }
 
-/** Discloses the prototype's test rules so reviewers can reach every state. Removed at backend integration. */
-export function PrototypeHint({ children }: { children: React.ReactNode }) {
-  return (
-    <details className="group mt-8 rounded-md border border-dashed border-line-strong bg-surface-muted text-xs text-fg-muted">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 font-semibold text-fg-subtle select-none">
-        Prototype: how to try each state
-        <span className="text-fg-subtle transition-transform group-open:rotate-90" aria-hidden>
-          ›
-        </span>
-      </summary>
-      <div className="flex flex-col gap-1 border-t border-dashed border-line-strong px-3 py-2.5 [&_code]:rounded-xs [&_code]:bg-ink-100 [&_code]:px-1 [&_code]:font-mono [&_code]:text-2xs [&_code]:text-fg">
-        {children}
-      </div>
-    </details>
-  );
-}
 
 export function Divider({ label }: { label: string }) {
   return (

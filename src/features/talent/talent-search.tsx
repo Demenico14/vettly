@@ -29,7 +29,7 @@ import {
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { Slider } from "@/components/ui/slider";
-import { services, EMPTY_FILTERS, talentSkillVocabulary, type TalentSearchResult } from "@/services";
+import { services, EMPTY_FILTERS, type TalentSearchResult } from "@/services";
 import type { SkillLevel, Vacancy } from "@/types";
 import type { CountryCode } from "@/types/psychometrics";
 import type { SavedSearch, TalentFilters, TalentHit, TestFilterFamily } from "@/types/talent";
@@ -326,7 +326,10 @@ function ResultCard({ h, f, selected, onSelect, onOpen, onCollect }: { h: Talent
 }
 
 function FilterPanel({ f, set, facets }: { f: TalentFilters; set: (p: Partial<TalentFilters>) => void; facets?: TalentSearchResult["facets"] }) {
-  const vocab = React.useMemo(() => talentSkillVocabulary(), []);
+  const [vocab, setVocab] = React.useState<string[]>([]);
+  React.useEffect(() => {
+    services.talent.skills().then(setVocab).catch(() => undefined);
+  }, []);
   const [skill, setSkill] = React.useState("");
   const suggestions = skill.trim() ? vocab.filter((s) => s.toLowerCase().includes(skill.trim().toLowerCase()) && !f.skills.includes(s)).slice(0, 6) : [];
   const add = (s: string) => {

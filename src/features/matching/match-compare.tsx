@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, X } from "@/components/icons";
 import { Alert, Avatar, Button, Card, Skeleton, Tooltip } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
-import { IllustrativeNotice, MatchScore, ProvenanceTag } from "@/components/domain/assessment";
+import { MatchScore, ProvenanceTag } from "@/components/domain/assessment";
 import { StageBadge } from "@/components/domain/status-badge";
 import { services } from "@/services";
 import type { CandidateAssessment, Vacancy } from "@/types";
@@ -63,7 +63,6 @@ export function MatchCompare({ vacancyId }: { vacancyId: string }) {
             className="mt-4"
             title="Compare candidates"
             description="Each requirement side by side, with the evidence Vettly found. Pick who goes forward on the evidence, not the score alone."
-            meta={<IllustrativeNotice>Illustrative assessments</IllustrativeNotice>}
           />
         </div>
       }

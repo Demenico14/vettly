@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@/components/icons";
 import { Alert, Button, Card, ConfirmModal, Field, Skeleton, Textarea, toast } from "@/components/ui";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
-import { services, MY_INTERVIEWER_ID, type CandidateContext, type InterviewListItem } from "@/services";
+import { services, type CandidateContext, type InterviewListItem } from "@/services";
+import { currentUserId } from "@/lib/current-user";
 import type { Interviewer, QuestionSet, Rating, Recommendation } from "@/types/interviews";
-import { RATING_ANCHORS } from "@/mocks/interviews";
+import { RATING_ANCHORS } from "@/lib/interview";
 import { cn } from "@/lib/utils";
 import { RECOMMENDATION, dayLong, time } from "./meta";
 
@@ -27,7 +28,7 @@ export function ScorecardForm({ id }: { id: string }) {
   React.useEffect(() => {
     services.interviews.get(id).then((d) => {
       setData(d);
-      const mine = d.item.interview.scorecards.find((s) => s.interviewerId === MY_INTERVIEWER_ID);
+      const mine = d.item.interview.scorecards.find((s) => s.interviewerId === currentUserId());
       if (mine) {
         setRatings(Object.fromEntries(mine.ratings.map((r) => [r.competencyId, r])));
         setRecommendation(mine.recommendation);
@@ -43,7 +44,7 @@ export function ScorecardForm({ id }: { id: string }) {
       </PageContainer>
     );
   const iv = data.item.interview;
-  const mine = iv.scorecards.find((s) => s.interviewerId === MY_INTERVIEWER_ID);
+  const mine = iv.scorecards.find((s) => s.interviewerId === currentUserId());
   const comps = data.questionSet.competencies;
   const done = comps.filter((c) => ratings[c.id]?.rating && (ratings[c.id]?.evidence.trim().length ?? 0) >= 15).length;
   const set = (cid: string, patch: Partial<Rating>) =>

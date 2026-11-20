@@ -96,8 +96,21 @@ Prototype rules (shown on each screen under "Prototype: how to try each state"):
 - [x] In-memory vacancy service (`services.vacancies`); dashboard figures now derive from the same records
 - [x] Tested at 1440 and 375 wide; typecheck, lint, detector and build pass
 
+## Backend (first version) checklist — awaiting review
+
+- [x] Docker stack: app, PostgreSQL 16, SeaweedFS, Mailpit; migrations run at start-up
+- [x] Single API endpoint with per-service access levels and per-action role permissions; only a service's own methods callable
+- [x] Auth: registration, email codes, sign-in with lockout, sessions, password reset, team invitations, organisation creation and setup
+- [x] Every service implemented on the server; all mock data deleted (the sample psychometric catalogue stays as reference content)
+- [x] Files: upload, download and preview of CVs and candidate documents
+- [x] Rule-based CV extraction (PDF, Word) and matching, labelled as such
+- [x] Emails for every candidate- and team-facing step
+- [x] Candidate test link with emailed code; answer keys kept on the server
+- [x] Prototype hints, scenario switches, simulated toasts and hard-coded names removed from the screens
+- [x] Verified end to end through the API and in the browser (desktop and 375 wide); typecheck, lint, psychometrics check and build pass
+- [ ] Automated tests, row-level security, job queue, multi-instance support (see `docs/BACKEND_PLAN.md` §0)
+
 ## Known gaps carried forward
 
 - Dark mode not built; the light granite workspace with bush-green shell is the chosen direction. Revisit if users ask.
 - No automated tests yet; add component tests with Module 2 forms.
-- No real session yet: the app shell does not gate routes behind sign-in, and shows the mock Msasa Financial user after onboarding. Real sessions arrive at backend integration.

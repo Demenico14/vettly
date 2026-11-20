@@ -11,7 +11,7 @@ import { Button, Field, Input, Skeleton, toast } from "@/components/ui";
 import { PasswordInput, PasswordStrength, isStrongPassword } from "@/components/ui/password-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
-import { AuthHeading, PrototypeHint } from "./auth-layout";
+import { AuthHeading } from "./auth-layout";
 
 function IconTile({ tone = "neutral", children }: { tone?: "neutral" | "success" | "danger"; children: React.ReactNode }) {
   const cls =
@@ -65,12 +65,6 @@ export function ForgotPasswordForm() {
           Use a different email
         </Button>
         <BackToSignIn />
-        <PrototypeHint>
-          <p>
-            Open the reset screen with a working link: <Link href="/reset-password?token=valid-reset" className="underline">valid</Link>{" "}
-            or an <Link href="/reset-password?token=expired-reset" className="underline">expired</Link> one.
-          </p>
-        </PrototypeHint>
       </>
     );
   }

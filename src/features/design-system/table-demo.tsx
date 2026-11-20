@@ -135,7 +135,7 @@ export function TableSection() {
       description="The workhorse layout for screening. Sortable headers, row selection with a bulk action bar, filters that report what they scope, and explicit loading, empty and error states."
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <IllustrativeNotice />
+        <IllustrativeNotice>Sample tests · scores are not validated</IllustrativeNotice>
         <div className="flex items-center gap-2">
           <span className="text-xs text-fg-subtle">Simulate</span>
           <Segmented

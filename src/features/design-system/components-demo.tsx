@@ -147,7 +147,7 @@ export function BadgesSection() {
               <MatchScore score={74} provenance="ai_illustrative" showTag />
               <MatchScore score={41} provenance="hr_overridden" showTag />
             </div>
-            <IllustrativeNotice />
+            <IllustrativeNotice>Sample tests · scores are not validated</IllustrativeNotice>
           </div>
         </Specimen>
       </div>

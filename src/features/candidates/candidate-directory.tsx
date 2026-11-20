@@ -35,7 +35,6 @@ import { StageBadge, STAGE_META } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW } from "@/services";
-import { ALL_LOCATIONS, ALL_SKILLS, ALL_SOURCES } from "@/mocks/candidates";
 import type { ApplicationStage, AssessmentProvenance, Availability, CandidateProfile } from "@/types";
 import { timeAgo } from "@/lib/utils";
 
@@ -132,6 +131,9 @@ export function CandidateDirectory() {
   const listTop = React.useRef<HTMLDivElement>(null);
   const allSelected = pager.items.length > 0 && pager.items.every((c) => selected.has(c.id));
 
+  const ALL_SKILLS = [...new Set((rows ?? []).flatMap((c) => c.skills.map((s) => s.name)))].sort();
+  const ALL_LOCATIONS = [...new Set((rows ?? []).map((c) => c.location).filter(Boolean))].sort();
+  const ALL_SOURCES = [...new Set((rows ?? []).flatMap((c) => c.applications.map((a) => a.source)))].sort();
   const vacancyOptions = [...new Set((rows ?? []).flatMap((c) => c.applications.map((a) => a.vacancyTitle)))].sort();
 
   return (
@@ -417,7 +419,14 @@ export function CandidateDirectory() {
             Add to talent pool
           </BulkAction>
           <BulkAction
-            onClick={() => toast.success("Export ready (simulated)", `candidates-${selected.size}.csv`)}
+            onClick={() => {
+              const picked = (rows ?? []).filter((c) => selected.has(c.id));
+              downloadCsv(`candidates-${new Date().toISOString().slice(0, 10)}.csv`, [
+                ["Name", "Email", "Phone", "Current role", "Current employer", "Location", "Applications", "Tags"],
+                ...picked.map((c) => [c.name, c.email, c.phone, c.headline, c.currentEmployer ?? "", c.location, c.applications.map((a) => `${a.vacancyTitle} (${a.stage})`).join("; "), c.tags.join("; ")]),
+              ]);
+              toast.success(`Exported ${picked.length} ${picked.length === 1 ? "candidate" : "candidates"}`);
+            }}
           >
             <Download />
             Export CSV
@@ -438,4 +447,14 @@ export function CandidateDirectory() {
       />
     </PageContainer>
   );
+}
+
+/** Saves rows as a CSV file. Cells are quoted, and ones that start like a formula are made inert for spreadsheets. */
+function downloadCsv(name: string, rows: string[][]) {
+  const cell = (v: string) => `"${(/^[=+\-@\t\r]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`;
+  const blob = new Blob(["\ufeff" + rows.map((r) => r.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

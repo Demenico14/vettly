@@ -28,7 +28,7 @@ import {
 import { VacancyStatusBadge } from "@/components/domain/status-badge";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW } from "@/services";
-import { DEPARTMENTS, LOCATIONS } from "@/mocks/vacancies";
+import { DEPARTMENTS, LOCATIONS } from "@/lib/catalog";
 import type { Vacancy, VacancyStatus } from "@/types";
 import { cn, timeAgo } from "@/lib/utils";
 import { StatusDialog, VacancyActionsMenu } from "./status-actions";

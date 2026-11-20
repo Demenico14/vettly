@@ -3,7 +3,8 @@
 import * as React from "react";
 import { Phone, Sparkles, TriangleAlert, UsersRound, Video } from "@/components/icons";
 import { Alert, Button, Checkbox, Combobox, Field, Input, Modal, ModalClose, ModalContent, Select, Skeleton, Textarea, toast } from "@/components/ui";
-import { services, MY_INTERVIEWER_ID, harare, partsOf, type Conflict } from "@/services";
+import { services, harare, partsOf, type Conflict } from "@/services";
+import { currentUserId } from "@/lib/current-user";
 import type { CandidateProfile } from "@/types";
 import type { InterviewFormat, InterviewKind, Interviewer, PanelMember, QuestionSet } from "@/types/interviews";
 import { cn } from "@/lib/utils";
@@ -15,8 +16,8 @@ export interface SchedulePreset {
 }
 
 const DEFAULT_LOCATION: Record<InterviewFormat, string> = {
-  "In person": "Msasa House, 2nd floor meeting room, Harare",
-  Video: "Microsoft Teams (link created when you schedule)",
+  "In person": "",
+  Video: "",
   Phone: "",
 };
 
@@ -59,7 +60,7 @@ export function ScheduleDialog({
     setError(null);
     setAnyway(false);
     setMessage("");
-    setPanel([{ interviewerId: MY_INTERVIEWER_ID, role: "lead" }]);
+    setPanel([{ interviewerId: currentUserId(), role: "lead" }]);
     setDate("");
     Promise.all([services.profiles.list(), services.interviews.interviewers(), services.interviews.questionSets()]).then(([p, i, q]) => {
       setPeople(p);
@@ -225,7 +226,7 @@ export function ScheduleDialog({
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-fg">
                           {i.name}
-                          {i.id === MY_INTERVIEWER_ID && <span className="text-fg-subtle"> (you)</span>}
+                          {i.id === currentUserId() && <span className="text-fg-subtle"> (you)</span>}
                         </span>
                         <span className="block truncate text-xs text-fg-subtle">
                           {i.title}
@@ -337,7 +338,7 @@ export function ScheduleDialog({
                 </div>
               </div>
               <Field label={format === "Phone" ? "Number to call" : format === "Video" ? "Meeting" : "Place"} required>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder={format === "Video" ? "Paste the meeting link" : format === "Phone" ? "e.g. +263 77 123 4567" : "e.g. Head office, 2nd floor meeting room"} />
               </Field>
             </div>
             <Field label="Note to the candidate" optional hint="Added to the invitation, e.g. what to bring or prepare.">

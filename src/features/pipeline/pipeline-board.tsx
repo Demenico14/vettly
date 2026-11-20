@@ -32,7 +32,7 @@ import { MatchScore } from "@/components/domain/assessment";
 import { STAGE_META } from "@/components/domain/status-badge";
 import { services, MOCK_NOW, PIPELINE_STAGES, CLOSED_STAGES, type PipelineCard, type VacancyMatchSummary } from "@/services";
 import type { ApplicationStage, Vacancy } from "@/types";
-import { TEST_BATTERIES } from "@/mocks/auth";
+import { TEST_BATTERIES } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
 import { MoveDialog, type MoveRequest } from "./move-dialog";
 import { ScheduleDialog, type SchedulePreset } from "@/features/interviews/schedule-dialog";

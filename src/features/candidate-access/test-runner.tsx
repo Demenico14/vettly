@@ -4,7 +4,7 @@ import * as React from "react";
 import { ArrowLeft, Check, Clock, Info, Timer, X } from "@/components/icons";
 import { Alert, Button, Skeleton, toast } from "@/components/ui";
 import { services } from "@/services";
-import type { CandidateTest } from "@/services/auth";
+import type { CandidateTest } from "@/services";
 import type { SampleItem } from "@/types/psychometrics";
 import { cn } from "@/lib/utils";
 import { Stimulus } from "@/features/assessments/meta";
@@ -122,11 +122,6 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
             </li>
           )}
         </ul>
-        {test.questions.length < test.fullLength && (
-          <p className="mt-5 rounded-md border border-dashed border-line-strong px-3 py-2 text-xs text-fg-subtle">
-            Prototype: shortened to {test.questions.length} {test.questions.length === 1 ? "question" : "questions"} (the real test has {test.fullLength}).
-          </p>
-        )}
         <Button size="lg" className="mt-6 w-full sm:w-auto" onClick={() => (test.practice.length ? (setPhase("practice"), setIndex(0), setPracticeChecked(false)) : start())}>
           {test.practice.length ? "Try a practice question" : "Start"}
         </Button>
@@ -149,9 +144,9 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
         <h1 ref={heading} tabIndex={-1} className="text-xl font-bold text-fg outline-none">
           {test.name}
         </h1>
-        <p className="mt-2 text-sm text-fg-muted">This test opens in its own player (a spreadsheet, code editor or typing box). In this prototype, record a completion instead.</p>
+        <p className="mt-2 text-sm text-fg-muted">This test needs its own player (a spreadsheet, code editor or typing box), which isn&apos;t available online yet. Continue, and the recruitment team will arrange it with you.</p>
         <div className="mt-6 flex gap-3">
-          <Button onClick={() => submit()}>Simulate finishing</Button>
+          <Button onClick={() => submit()}>Continue</Button>
           <Button variant="secondary" onClick={onExit}>
             Back
           </Button>

@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSession } from "@/components/layout/session-provider";
 import { ArrowDown, ArrowUp, Plus, X } from "@/components/icons";
 import { Button, Checkbox, Input, Select, SwitchField, Textarea } from "@/components/ui";
 import { Slider } from "@/components/ui/slider";
-import { TEST_BATTERIES } from "@/mocks/auth";
+import { TEST_BATTERIES } from "@/lib/onboarding";
 import type { AssessmentSettings } from "@/types/settings";
 import { cn } from "@/lib/utils";
 import { Group, Row, SaveBar, SectionSkeleton, useSection } from "./settings-shell";
@@ -116,12 +117,15 @@ const SAMPLE: Record<string, string> = {
   deadline: "Mon 23 Nov, 17:00",
   minutes: "65",
   link: "https://tests.vettly.example/t/8Kq2",
-  org: "Msasa Financial",
-  sign_off: "Kind regards,\nThe Msasa Financial recruitment team",
 };
-const fill = (t: string) => t.replace(/\{\{(\w+)\}\}/g, (m, k: string) => SAMPLE[k] ?? m);
+/** Fills a template with a sample candidate and this organisation's name. */
+const fill = (t: string, org: string) => {
+  const vars: Record<string, string> = { ...SAMPLE, org, sign_off: `Kind regards,\nThe ${org} recruitment team` };
+  return t.replace(/\{\{(\w+)\}\}/g, (m, k: string) => vars[k] ?? m);
+};
 
 export function AssessmentsSection() {
+  const org = useSession().organisation?.name ?? "Your organisation";
   const s = useSection("assessments");
   const [preview, setPreview] = React.useState(false);
   const a = s.draft;
@@ -185,12 +189,12 @@ export function AssessmentsSection() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
             <div className="rounded-md border border-line bg-surface-muted p-4">
               <p className="text-xs text-fg-subtle">To: chipo.makoni@example.com</p>
-              <p className="mt-1 text-sm font-semibold text-fg">{fill(a.inviteEmailSubject)}</p>
-              <p className="mt-3 text-sm whitespace-pre-line text-fg">{fill(a.inviteEmailBody)}</p>
+              <p className="mt-1 text-sm font-semibold text-fg">{fill(a.inviteEmailSubject, org)}</p>
+              <p className="mt-3 text-sm whitespace-pre-line text-fg">{fill(a.inviteEmailBody, org)}</p>
             </div>
             <div className="self-start rounded-2xl bg-ink-100 p-3">
               <p className="text-2xs text-fg-subtle">SMS</p>
-              <p className="mt-1 rounded-xl rounded-bl-sm bg-surface px-3 py-2 text-sm text-fg shadow-sm">{fill(a.inviteSms)}</p>
+              <p className="mt-1 rounded-xl rounded-bl-sm bg-surface px-3 py-2 text-sm text-fg shadow-sm">{fill(a.inviteSms, org)}</p>
             </div>
           </div>
         ) : (
@@ -206,7 +210,7 @@ export function AssessmentsSection() {
             <label className="flex flex-col gap-1.5">
               <span className="flex items-baseline justify-between text-sm font-medium text-fg">
                 SMS
-                <span className={cn("text-xs font-normal tabular", fill(a.inviteSms).length > 160 ? "text-danger-700" : "text-fg-subtle")}>{fill(a.inviteSms).length} of 160 characters, filled in</span>
+                <span className={cn("text-xs font-normal tabular", fill(a.inviteSms, org).length > 160 ? "text-danger-700" : "text-fg-subtle")}>{fill(a.inviteSms, org).length} of 160 characters, filled in</span>
               </span>
               <Textarea rows={2} value={a.inviteSms} onChange={(e) => s.set("inviteSms", e.target.value)} className="font-mono text-xs" />
             </label>

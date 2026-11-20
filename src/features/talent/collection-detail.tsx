@@ -9,7 +9,7 @@ import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { Collection, TalentHit } from "@/types/talent";
 import { timeAgo } from "@/lib/utils";
-import { MOCK_NOW } from "@/mocks/data";
+import { MOCK_NOW } from "@/services";
 
 const MOCK_DATE = new Date(MOCK_NOW);
 import { AddToCollectionDialog, COUNTRY, ConsentBadge, TestChips } from "./meta";

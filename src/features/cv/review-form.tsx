@@ -4,7 +4,7 @@ import * as React from "react";
 import { Briefcase, Check, CircleCheck, GraduationCap, Plus, Sparkles, Trash2, UserRound } from "@/components/icons";
 import { Button, Card, Checkbox, Field, Input, Select, Tag, Textarea } from "@/components/ui";
 import type { CvExtraction, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
-import { AVAILABILITY_OPTIONS } from "@/mocks/cv";
+import { AVAILABILITY_OPTIONS } from "@/lib/cv";
 import { cn } from "@/lib/utils";
 import { FIELD_LABEL } from "./cv-meta";
 

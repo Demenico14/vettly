@@ -40,7 +40,7 @@ import {
 } from "@/components/ui";
 import { VacancyStatusBadge } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
-import { MOCK_NOW } from "@/services";
+import { MOCK_NOW, deadlineIn, services } from "@/services";
 import type {
   ActivityEvent,
   ActivityKind,
@@ -173,7 +173,7 @@ export function VacanciesPanel({ vacancies, loading }: { vacancies?: VacancySumm
           title="No vacancies yet"
           description="Create a vacancy with its requirements and Vettly starts scoring applications against it."
           action={
-            <Button size="sm" onClick={() => toast.info("Create vacancy", "The vacancy editor arrives in Module 4.")}>
+            <Button size="sm" onClick={() => router.push("/vacancies/new")}>
               Create vacancy
             </Button>
           }
@@ -393,16 +393,21 @@ export function TestsPanel({ tests, loading }: { tests?: TestInvitationSummary[]
                   </p>
                 </div>
                 {t.status === "completed" ? (
-                  <Button size="sm" variant="soft" onClick={() => toast.info("Results open in Module 9", `${t.candidateName} · ${t.battery}`)}>
+                  <Button size="sm" variant="soft" onClick={() => router.push(`/assessments/results/${t.id}`)}>
                     View results
                   </Button>
                 ) : t.status === "expired" ? (
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => {
-                      setRows((r) => r?.map((x) => (x.id === t.id ? { ...x, status: "sent", sentAt: MOCK_NOW, deadline: "2026-11-23T17:00:00+02:00" } : x)));
-                      toast.success("New test link sent (simulated)", `${t.candidateName} · due in 5 days`);
+                    onClick={async () => {
+                      try {
+                        const r = await services.assessments.resend(t.id, deadlineIn(5));
+                        setRows((rs) => rs?.map((x) => (x.id === t.id ? { ...x, status: "sent", sentAt: r.sentAt, deadline: r.deadline } : x)));
+                        toast.success("New test link sent", `${t.candidateName} · due in 5 days`);
+                      } catch (e) {
+                        toast.error("Not sent", e instanceof Error ? e.message : undefined);
+                      }
                     }}
                   >
                     Resend
@@ -412,9 +417,15 @@ export function TestsPanel({ tests, loading }: { tests?: TestInvitationSummary[]
                     size="sm"
                     variant="ghost"
                     disabled={reminded.has(t.id)}
-                    onClick={() => {
-                      setReminded((s) => new Set(s).add(t.id));
-                      toast.success("Reminder sent (simulated)", t.candidateName);
+                    onClick={async () => {
+                      try {
+                        const r = await services.assessments.remind([t.id]);
+                        if (!r.reminded) return toast.error("Reminder not sent", r.skipped[0]?.reason);
+                        setReminded((s) => new Set(s).add(t.id));
+                        toast.success("Reminder sent", t.candidateName);
+                      } catch (e) {
+                        toast.error("Reminder not sent", e instanceof Error ? e.message : undefined);
+                      }
                     }}
                   >
                     {reminded.has(t.id) ? "Reminded" : "Remind"}

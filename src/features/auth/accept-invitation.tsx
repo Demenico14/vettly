@@ -13,7 +13,7 @@ import { ROLE_LABEL } from "@/components/layout/session-provider";
 import { services } from "@/services";
 import { AuthError, type TeamInvitation } from "@/types";
 import { formatDate } from "@/lib/utils";
-import { AuthHeading, PrototypeHint } from "./auth-layout";
+import { AuthHeading } from "./auth-layout";
 
 const ROLE_SUMMARY: Record<TeamInvitation["role"], string> = {
   super_admin: "Full platform access.",
@@ -94,8 +94,7 @@ export function AcceptInvitation({ token }: { token: string }) {
         <Button asChild variant="secondary" size="lg" className="w-full">
           <Link href="/login">Go to sign in</Link>
         </Button>
-        <InviteHint />
-      </>
+        </>
     );
   }
 
@@ -166,26 +165,6 @@ export function AcceptInvitation({ token }: { token: string }) {
           . Invitation valid until {formatDate(inv.expiresAt)}.
         </p>
       </form>
-      <InviteHint />
     </>
-  );
-}
-
-function InviteHint() {
-  return (
-    <PrototypeHint>
-      <p>
-        <Link href="/invite/msasa-kudzai" className="underline">
-          /invite/msasa-kudzai
-        </Link>{" "}
-        is a valid invitation.
-      </p>
-      <p>
-        <Link href="/invite/matobo-expired" className="underline">
-          /invite/matobo-expired
-        </Link>{" "}
-        has expired; any other token is invalid.
-      </p>
-    </PrototypeHint>
   );
 }

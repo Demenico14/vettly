@@ -40,8 +40,8 @@ import { StageBadge, VacancyStatusBadge, VACANCY_META } from "@/components/domai
 import { MatchScore } from "@/components/domain/assessment";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, STATUS_MOVES, MOCK_NOW } from "@/services";
-import { CHANNELS } from "@/mocks/vacancies";
-import { TEST_BATTERIES } from "@/mocks/auth";
+import { CHANNELS } from "@/lib/catalog";
+import { TEST_BATTERIES } from "@/lib/onboarding";
 import type { CandidateSummary, Requirement, Vacancy, VacancyStatus } from "@/types";
 import { cn, formatDate, timeAgo } from "@/lib/utils";
 import { StatusDialog, VacancyActionsMenu, moveLabel } from "./status-actions";
@@ -411,7 +411,7 @@ export function VacancyDetail({ id }: { id: string }) {
                     </TBody>
                   </Table>
                   <p className="border-t border-line px-4 py-2.5 text-xs text-fg-subtle">
-                    Showing {cands.length} sample records of {v.applicants} applicants. Full candidate management arrives in Module 5.
+                    {cands.length} of {v.applicants} {v.applicants === 1 ? "applicant" : "applicants"}. See everyone, stage by stage, in the pipeline.
                   </p>
                 </div>
               )}

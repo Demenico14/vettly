@@ -7,7 +7,7 @@ import { Card, CardHeader, EmptyState, Select, Skeleton } from "@/components/ui"
 import { STAGE_META } from "@/components/domain/status-badge";
 import type { DashboardPeriod, FunnelStep, Kpi, VacancySummary } from "@/types";
 import { cn } from "@/lib/utils";
-import { PREVIOUS_LABEL } from "@/mocks/dashboard";
+import { PREVIOUS_LABEL } from "@/lib/dashboard";
 
 const nf = new Intl.NumberFormat("en-GB");
 

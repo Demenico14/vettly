@@ -5,9 +5,9 @@ import type { AssessmentProvenance } from "@/types";
 
 const PROVENANCE: Record<AssessmentProvenance, { label: string; short: string; hint: string; cls: string; Icon: typeof Sparkles }> = {
   ai_illustrative: {
-    label: "AI suggestion · illustrative",
-    short: "AI · illustrative",
-    hint: "Generated from mock data. Not reviewed by a person and not a hiring decision.",
+    label: "Suggested by Vettly · not reviewed",
+    short: "Not reviewed",
+    hint: "Worked out by fixed matching rules from the candidate's CV. Not reviewed by a person and not a hiring decision.",
     cls: "border-dashed border-accent-500/60 bg-accent-50 text-accent-700",
     Icon: Sparkles,
   },
@@ -21,7 +21,7 @@ const PROVENANCE: Record<AssessmentProvenance, { label: string; short: string; h
   hr_overridden: {
     label: "Adjusted by HR",
     short: "HR adjusted",
-    hint: "A member of the HR team changed the AI suggestion. The original is kept in the audit log.",
+    hint: "A member of the HR team changed the suggestion. The original is kept in the audit log.",
     cls: "border-secondary-500/40 bg-secondary-50 text-secondary-700",
     Icon: PenLine,
   },
@@ -106,8 +106,8 @@ export function MatchScore({
   );
 }
 
-/** Page or panel-level notice that the figures shown are illustrative mock data. */
-export function IllustrativeNotice({ className, children }: { className?: string; children?: React.ReactNode }) {
+/** Page or panel-level notice about how far the figures shown can be relied on. */
+export function IllustrativeNotice({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <p
       className={cn(
@@ -116,7 +116,7 @@ export function IllustrativeNotice({ className, children }: { className?: string
       )}
     >
       <span className="size-1.5 rounded-full bg-warning-500" aria-hidden />
-      {children ?? "Illustrative data · not real recruitment activity"}
+      {children}
     </p>
   );
 }

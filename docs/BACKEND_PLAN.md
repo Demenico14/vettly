@@ -1,8 +1,41 @@
 # Vettly backend plan
 
-**Status:** draft for approval, 20 Nov 2026. Decided so far: run everything in Docker for now (below). Other decisions are open (section 9).
+**Status, 20 Nov 2026:** the first version of the backend is built on branch `backend-docker`. All sample data is gone. Section 0 records what was built and the decisions taken; sections 1–9 are the original plan, kept for reference.
 
-**Scope:** the roadmap's backend integration gate. The 15 approved frontend modules call 19 mock services (`src/services/*`, about 170 operations). The backend replaces those mocks one service at a time, behind the same interfaces, so screens don't change.
+## 0. What was built
+
+**Decisions taken** (you asked me to choose; each can be revisited):
+
+| Question | Decision | Why |
+|---|---|---|
+| Auth | Built in: scrypt password hashes, database sessions in an http-only cookie, 6-digit email codes, reset links, team invitations, lockout after 5 failed sign-ins | No third party holds identities; data stays in our database. Auth.js added little for email-and-password. |
+| SSO | Not offered yet; the buttons are removed | Needs Microsoft and Google app registrations. |
+| Two-step verification | Not built; the warnings about it are removed | Next security item after the pilot. |
+| AI | No AI model. CV extraction and matching use fixed rules (`src/server/engine`) and every screen says so | Your rule: AI work goes on its own branch. That branch replaces the engine behind the same services. |
+| Text recognition | None. PDF (unpdf) and Word (mammoth) text only; scanned PDFs and images are marked unreadable | Needs a provider; comes with the AI branch. |
+| SMS | Not connected; invitations go by email and the SMS channel is recorded as not sent | Provider still to choose (section 9). |
+| Psychometric tests | The sample catalogue, items and norms stay as reference content. Results are labelled "not validated for hiring decisions" | No validated instruments or partner yet. |
+| Job boards and careers page | Not connected. Vacancies open for applications in Vettly; the editor tells HR to post the advert themselves | Each board needs its own integration. |
+| Hosting | Docker Compose (app, PostgreSQL 16, SeaweedFS, Mailpit) | Decided 20 Nov. |
+
+**How it works**
+
+- **One API endpoint.** Screens call `POST /api/rpc/<service>/<method>` with `{ "args": [...] }`. The registry (`src/server/registry.ts`) says who may call each service (public, candidate link, signed-in session, organisation member, platform staff) and which role permission each action needs. Only a service's own methods can be called.
+- **Permissions are enforced on the server.** Roles and permissions set in Settings → Roles apply immediately to every action (for example, a recruiter can't approve offers unless an admin allows it).
+- **Storage.** Identity and tenancy are relational tables (`organisations`, `users`, `memberships`, `sessions`, `tokens`, `files`). Recruitment records (vacancies, candidates, invitations, interviews, offers, settings and so on) are JSONB rows in `records`, keyed by organisation, kind and id. Each request loads its organisation's records, runs the service, and writes the changed rows back in one transaction. Requests for the same organisation run one at a time. This assumes **a single app instance**; running several replicas needs a shared lock or a move to per-table storage.
+- **Files.** Uploads go to S3-compatible storage (or `.data/files` locally) with a 15 MB limit and a type allowlist. Downloads check the organisation. CVs, candidate documents and previews use the real file.
+- **Email.** Sent through SMTP after the change is saved: verification codes, reset links, team invitations, test invitations and reminders, candidate test codes, interview invitations, offer letters and closing messages.
+- **Candidate tests.** The emailed link carries a random token. The candidate confirms with a code sent to their email, then gets a cookie for that invitation only. Answer keys, explanations and scoring direction never leave the server.
+
+**Verified end to end** against real PostgreSQL, SeaweedFS and Mailpit: register, verify, create an organisation, set up, invite and accept a team member, create a vacancy, upload a Word CV, review and confirm it, match, shortlist with tests sent automatically, candidate takes and submits the tests, scores feed the match, schedule an interview, scorecard, decision, offer, approval, send, acceptance, pre-hire checks, hire (vacancy marked filled), dashboard, analytics, talent pool, notifications, search, platform admin, and access control (no session, candidate cookie only, wrong role, inherited method names).
+
+**Known gaps**
+
+- No automated test suite yet (section 8 still applies).
+- No row-level security in Postgres; isolation is in the application (every record query is scoped to the organisation).
+- Single instance only (see storage above).
+- Background work (CV extraction, emails) runs in the web process, not a queue.
+- The sidebar no longer shows counts; they need a lightweight counts endpoint.
 
 ---
 

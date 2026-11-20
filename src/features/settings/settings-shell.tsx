@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/components/layout/session-provider";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +19,7 @@ export function SettingsShell({ section, children }: { section: SectionId; child
   const router = useRouter();
   const groups = [...new Set(SECTIONS.map((s) => s.group))];
   return (
-    <PageContainer header={<PageHeader title="Settings" description="How Msasa Financial uses Vettly: your organisation, people, hiring rules, privacy and plan." />}>
+    <PageContainer header={<PageHeader title="Settings" description={`How ${useSession().organisation?.name ?? "your organisation"} uses Vettly: your organisation, people, hiring rules, privacy and plan.`} />}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
         <div className="lg:hidden">
           <Select value={section} onValueChange={(v) => router.push(`/settings/${v}`)} options={SECTIONS.map((s) => ({ value: s.id, label: s.label, description: s.group }))} />

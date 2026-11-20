@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { CircleAlert, CircleCheck, Clock, DeviceMobile, Lock, Timer } from "@/components/icons";
 import { Alert, Button, CheckboxField, Skeleton, toast } from "@/components/ui";
 import { OtpInput, isCompleteCode } from "@/components/ui/otp-input";
@@ -23,7 +22,7 @@ const dateTime = (iso: string) =>
 
 /**
  * Candidate-facing entry to psychometric tests: invitation → identity check → consent → ready.
- * The tests themselves are built in Module 9. Mobile-first: most candidates open the link on a phone.
+  * Mobile-first: most candidates open the link on a phone.
  */
 export function CandidateAccess({ token }: { token: string }) {
   const [load, setLoad] = React.useState<Load>({ kind: "loading" });
@@ -133,12 +132,11 @@ export function CandidateAccess({ token }: { token: string }) {
                 tone="success"
                 icon={<CircleCheck />}
                 title="All done. Thank you"
-                body={`Your answers have been sent to ${access.organisationName}. The recruitment team will be in touch about ${access.vacancyTitle}. You'll receive a short feedback report by email within a day. You can close this page.`}
+                body={`Your answers have been sent to ${access.organisationName}. The recruitment team will be in touch about ${access.vacancyTitle}. You can close this page.`}
               />
             )}
           </>
         )}
-        <PrototypeLinks />
       </main>
       <footer className="border-t border-line bg-surface">
         <div className="mx-auto flex max-w-2xl flex-wrap justify-between gap-2 px-5 py-4 text-xs text-fg-subtle">
@@ -461,24 +459,3 @@ function LoadingCard() {
   );
 }
 
-function PrototypeLinks() {
-  return (
-    <details className="mt-8 rounded-md border border-dashed border-line-strong bg-surface-muted text-xs text-fg-muted">
-      <summary className="cursor-pointer px-3 py-2 font-semibold text-fg-subtle select-none">Prototype: other links and the code</summary>
-      <div className="flex flex-col gap-1 border-t border-dashed border-line-strong px-3 py-2.5">
-        <p>
-          Verification code: <code className="font-mono text-fg">246810</code>
-        </p>
-        <p>
-          <Link className="underline" href="/t/simba-fin">simba-fin</Link> (new) ·{" "}
-          <Link className="underline" href="/t/ruvimbo-data">ruvimbo-data</Link> (extra time) ·{" "}
-          <Link className="underline" href="/t/nyasha-data">nyasha-data</Link> (part-way) ·{" "}
-          <Link className="underline" href="/t/farai-done">farai-done</Link> (completed) ·{" "}
-          <Link className="underline" href="/t/lindiwe-expired">lindiwe-expired</Link> (expired) ·{" "}
-          <Link className="underline" href="/t/thandiwe-cancelled">thandiwe-cancelled</Link> (withdrawn) ·{" "}
-          <Link className="underline" href="/t/unknown">unknown</Link> (invalid)
-        </p>
-      </div>
-    </details>
-  );
-}

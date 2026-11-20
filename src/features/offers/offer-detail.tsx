@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/components/layout/session-provider";
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, CalendarPlus, Check, Eye, Pencil, RefreshCw, Send, UserRound, X } from "@/components/icons";
@@ -15,11 +16,11 @@ import { LetterView } from "./letter-view";
 
 type Data = { view: OfferView; letter: { heading: string | null; body: string }[]; vacancy: Vacancy };
 type Dialog = "approve" | "send_back" | "send" | "respond" | "withdraw" | "extend" | null;
-const ME = "Tendai Moyo";
 const NOW = new Date(MOCK_NOW).getTime();
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 export function OfferDetail({ id }: { id: string }) {
+  const ME = useSession().user?.name;
   const [data, setData] = React.useState<Data | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [reload, setReload] = React.useState(0);
@@ -319,7 +320,7 @@ function StatusMessage({ offer: o, view: v, onSimulateOpen }: { offer: Offer; vi
     const p = o.approvals.find((a) => a.status === "pending");
     return (
       <Alert tone="warning" title={v.myApprovalStep ? "Waiting for your approval" : `Waiting for ${p?.approverName}`}>
-        {p?.reason}. Prototype: you can record other approvers&apos; decisions to move the offer on.
+        {p?.reason}. You can record another approver&apos;s decision on their behalf; it&apos;s logged under your name.
       </Alert>
     );
   }
@@ -415,6 +416,7 @@ function Checklist({ offer: o, onChange }: { offer: Offer; onChange: () => void 
 }
 
 function Dialogs({ dialog, offer: o, vacancy, onClose, onDone }: { dialog: Dialog; offer: Offer; vacancy: Vacancy; onClose: () => void; onDone: () => void }) {
+  const ME = useSession().user?.name;
   const [note, setNote] = React.useState("");
   const [days, setDays] = React.useState("5");
   const [outcome, setOutcome] = React.useState<CandidateResponse["outcome"]>("accepted");
@@ -603,6 +605,7 @@ function Dialogs({ dialog, offer: o, vacancy, onClose, onDone }: { dialog: Dialo
 }
 
 function HiredDialog({ result, offer: o, onClose }: { result: { others: { candidateId: string; name: string; stage: ApplicationStage }[]; filled: boolean } | null; offer: Offer; onClose: () => void }) {
+  const orgName = useSession().organisation?.name ?? "our organisation";
   const [picked, setPicked] = React.useState<string[]>([]);
   const [message, setMessage] = React.useState("");
   const [busy, setBusy] = React.useState(false);
@@ -610,8 +613,8 @@ function HiredDialog({ result, offer: o, onClose }: { result: { others: { candid
     if (!result) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- prefill when the hire completes
     setPicked(result.filled ? result.others.map((x) => x.candidateId) : []);
-    setMessage(`Thank you for your interest in the ${o.vacancyTitle} role at Msasa Financial Group, and for the time you gave to our process. We have now filled the position, so we won't be taking your application further. We'd like to keep your details for future roles; reply to this message if you'd prefer we didn't.`);
-  }, [result, o.vacancyTitle]);
+    setMessage(`Thank you for your interest in the ${o.vacancyTitle} role at ${orgName}, and for the time you gave to our process. We have now filled the position, so we won't be taking your application further. We'd like to keep your details for future roles; reply to this message if you'd prefer we didn't.`);
+  }, [result, o.vacancyTitle, orgName]);
   if (!result) return null;
   return (
     <Modal open onOpenChange={(x) => !x && onClose()}>

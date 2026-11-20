@@ -1,17 +1,29 @@
 import * as React from "react";
 import { FileX, Lock } from "@/components/icons";
 import type { CvExtraction, CvFile } from "@/types";
-import { FAILURE_COPY } from "@/mocks/cv";
+import { FAILURE_COPY } from "@/lib/cv";
 import { cn } from "@/lib/utils";
+import { DownloadLink, FileView, viewableAs } from "@/components/domain/file-view";
 
 const month = (ym: string) =>
   ym ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" }).format(new Date(`${ym}-01T00:00:00`)) : "";
 
 /**
- * Illustrative rendering of the uploaded file, built from what Vettly read originally (not HR's edits),
- * so the reviewer compares the form against the source. Real files are shown here after backend integration.
+ * The uploaded CV, so the reviewer can check the form against the source. PDFs and images show the file
+ * itself; Word files can't be shown in a browser, so they show the text Vettly read (before HR's edits).
  */
 export function CvPreview({ file, original }: { file: CvFile; original?: CvExtraction }) {
+  if (file.fileId && viewableAs(file.name))
+    return (
+      <div className="flex flex-col gap-2">
+        <FileView fileId={file.fileId} name={file.name} />
+        <p className="flex items-center justify-center gap-3 text-2xs text-fg-subtle">
+          {file.name}
+          {original ? ` · ${original.pages} ${original.pages === 1 ? "page" : "pages"}` : ""}
+          <DownloadLink fileId={file.fileId} name={file.name} />
+        </p>
+      </div>
+    );
   if (!original) {
     const Icon = file.failure === "password_protected" ? Lock : FileX;
     return (
@@ -66,8 +78,13 @@ export function CvPreview({ file, original }: { file: CvFile; original?: CvExtra
       </div>
       <p className="mt-3 text-center text-2xs text-fg-subtle">
         {file.name} · {x.pages} {x.pages === 1 ? "page" : "pages"}
-        {x.ocr ? " · scanned, read with OCR" : ""} · illustrative preview
+        {x.ocr ? " · scanned, read with OCR" : ""} · the text Vettly read from it
       </p>
+      {file.fileId && (
+        <p className="mt-2 text-center">
+          <DownloadLink fileId={file.fileId} name={file.name} />
+        </p>
+      )}
     </div>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
+import { useSession } from "@/components/layout/session-provider";
 import * as React from "react";
 import { Check, Upload, X } from "@/components/icons";
 import { Badge, Button, Checkbox, Input, Select, Skeleton, SwitchField, Table, TBody, TD, TH, THead, TR, Textarea, toast } from "@/components/ui";
 import { services } from "@/services";
-import { BRAND_COLOURS, TIMEZONES } from "@/mocks/auth";
+import { BRAND_COLOURS, TIMEZONES } from "@/lib/onboarding";
 import type { DataRequest, NotificationEvent } from "@/types/settings";
 import { cn } from "@/lib/utils";
 import { Group, Row, SaveBar, SectionSkeleton, useSection } from "./settings-shell";
@@ -166,13 +167,15 @@ export function BrandingSection() {
 }
 
 function Preview({ colour, headline, intro, logo }: { colour: string; headline: string; intro: string; logo: boolean }) {
+  const name = useSession().organisation?.name ?? "";
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-semibold text-fg-muted">Careers page preview</p>
       <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-platter" aria-label="Preview of the careers page">
         <div className="flex items-center gap-2 px-4 py-3 text-white" style={{ background: colour }}>
-          {logo && <span className="grid size-6 place-items-center rounded-sm bg-white/20 text-2xs font-bold">MF</span>}
-          <span className="text-sm font-semibold">Msasa Financial</span>
+          {logo && <span className="grid size-6 place-items-center rounded-sm bg-white/20 text-2xs font-bold">{initials}</span>}
+          <span className="text-sm font-semibold">{name}</span>
           <span className="ml-auto text-xs opacity-80">Careers</span>
         </div>
         <div className="px-4 py-4">
@@ -204,13 +207,14 @@ const EVENTS: { id: NotificationEvent; label: string; hint: string }[] = [
 ];
 
 export function NotificationsSection() {
+  const { user } = useSession();
   const s = useSection("notifications");
   const n = s.draft;
   if (!n) return <SectionSkeleton />;
   const toggle = (id: NotificationEvent, ch: "app" | "email", v: boolean) => s.set("personal", { ...n.personal, [id]: { ...n.personal[id], [ch]: v } });
   return (
     <div className="flex flex-col gap-5">
-      <Group title="What you're told about" description="These are your own preferences, Tendai. Each person sets theirs.">
+      <Group title="What you're told about" description={`These are your own preferences${user ? `, ${user.name.split(" ")[0]}` : ""}. Each person sets theirs.`}>
         <div className="-mx-5 overflow-x-auto">
           <Table>
             <THead>

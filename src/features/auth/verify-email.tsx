@@ -8,7 +8,7 @@ import { Button, toast } from "@/components/ui";
 import { OtpInput, isCompleteCode } from "@/components/ui/otp-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
-import { AuthHeading, PrototypeHint } from "./auth-layout";
+import { AuthHeading } from "./auth-layout";
 import { readFlow } from "./session-store";
 
 const RESEND_SECONDS = 45;
@@ -119,11 +119,6 @@ export function VerifyEmail() {
           </Link>
         </p>
       </div>
-      <PrototypeHint>
-        <p>
-          The correct code is <code>246810</code>. Any other code shows the error state.
-        </p>
-      </PrototypeHint>
     </>
   );
 }

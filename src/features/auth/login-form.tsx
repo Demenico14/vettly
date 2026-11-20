@@ -11,8 +11,7 @@ import { Alert, Button, CheckboxField, Field, Input, toast } from "@/components/
 import { PasswordInput } from "@/components/ui/password-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
-import { AuthHeading, Divider, PrototypeHint } from "./auth-layout";
-import { SsoButtons } from "./sso-buttons";
+import { AuthHeading } from "./auth-layout";
 import { routeAfterSignIn, writeFlow } from "./session-store";
 
 const schema = z.object({
@@ -51,9 +50,7 @@ export function LoginForm() {
 
   return (
     <>
-      <AuthHeading title="Sign in to Vettly" description="Use your work email, or your organisation's single sign-on." />
-      <SsoButtons disabled={isSubmitting} />
-      <Divider label="or with email" />
+      <AuthHeading title="Sign in to Vettly" description="Use your work email and password." />
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {error && (
           <Alert tone="danger" title={error.code === "account_locked" ? "Account locked" : "Sign-in failed"}>
@@ -101,18 +98,6 @@ export function LoginForm() {
           Create an account
         </Link>
       </p>
-      <PrototypeHint>
-        <p>Any email and a password of 8+ characters signs in.</p>
-        <p>
-          Include <code>wrong</code> in the password to see a failed sign-in.
-        </p>
-        <p>
-          Use <code>locked@msasafinancial.example</code> to see a locked account.
-        </p>
-        <p>
-          <code>tendai.moyo@msasafinancial.example</code> goes to the app; any other email starts organisation setup.
-        </p>
-      </PrototypeHint>
     </>
   );
 }

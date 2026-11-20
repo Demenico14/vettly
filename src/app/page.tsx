@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import { readSession } from "@/server/session";
 
-// Phase 1 has no real session, so the root opens sign-in. Module 3 adds the dashboard behind it.
-export default function Home() {
-  redirect("/login");
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const s = await readSession();
+  if (!s) redirect("/login");
+  if (s.user.isSuperAdmin && !s.organisationId) redirect("/admin");
+  redirect(s.organisationId ? "/dashboard" : "/onboarding/organisation");
 }

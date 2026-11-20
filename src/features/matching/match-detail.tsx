@@ -239,7 +239,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
           </Card>
         </div>
 
-        <IllustrativeNotice className="self-start">Illustrative assessment · evidence comes from mock CV data</IllustrativeNotice>
+        <IllustrativeNotice className="self-start">Matched by fixed rules from the CV · check the evidence before you rely on it</IllustrativeNotice>
 
         {groups.map(
           (g) =>

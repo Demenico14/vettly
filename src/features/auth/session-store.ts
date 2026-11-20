@@ -2,7 +2,7 @@ import type { Session } from "@/types";
 
 /**
  * Carries small bits of state between auth screens (e.g. the email awaiting verification).
- * Phase 1 uses sessionStorage; Phase 2 replaces this with the real session/cookie.
+ * Kept in sessionStorage for this tab only; the real session is the server's cookie.
  */
 const KEY = "vettly:auth-flow";
 

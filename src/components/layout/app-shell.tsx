@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, FileUp, Menu as MenuIcon, Plus, Search, UserPlus, ClipboardList } from "@/components/icons";
+import { Briefcase, FileUp, Menu as MenuIcon, Plus, Search, ClipboardList } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/feedback";
 import { Drawer, Modal, ModalContent } from "@/components/ui/modal";
@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
   TooltipProvider,
 } from "@/components/ui/menu";
-import { toast } from "@/components/ui/toast";
 import { findNavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { CommandPalette } from "./command-palette";
@@ -95,7 +94,7 @@ function Header({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
-            <DropdownMenuItem onSelect={() => toast.info("Create vacancy", "The vacancy editor is built in Module 4.")}>
+            <DropdownMenuItem onSelect={() => router.push("/vacancies/new")}>
               <Briefcase />
               New vacancy
             </DropdownMenuItem>
@@ -106,10 +105,6 @@ function Header({
             <DropdownMenuItem onSelect={() => router.push("/assessments")}>
               <ClipboardList />
               Send psychometric test
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.info("Add candidate", "Manual candidate entry is built in Module 5.")}>
-              <UserPlus />
-              Add candidate
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

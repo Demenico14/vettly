@@ -64,7 +64,7 @@ export function MatchingOverview() {
         <PageHeader
           title="Matching"
           description="Vettly checks every CV against the vacancy's requirements and shows the evidence it found. Scores are suggestions until someone in HR confirms them."
-          meta={<IllustrativeNotice>Illustrative assessments · no AI model is connected yet</IllustrativeNotice>}
+          meta={<IllustrativeNotice>Scores come from fixed matching rules · no AI model is used</IllustrativeNotice>}
         />
       }
     >

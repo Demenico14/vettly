@@ -1,174 +1,178 @@
 /**
- * Frontend service layer. UI talks to these interfaces only.
- * Phase 1 binds them to in-memory mock implementations; Phase 2 swaps in API clients
- * with the same signatures, so components do not change.
+ * The service layer the screens use. Every call goes to the backend through POST /api/rpc/<service>/<method>;
+ * the contracts in ./contracts describe what each service does. A few things run in the browser: the
+ * vacancy writing helper (fixed rewriting rules, no AI) and polling for CV processing progress.
  */
-import type { AppNotification, CandidateSummary, Organisation, User } from "@/types";
-import * as mock from "@/mocks/data";
-import { mockAuth, mockCandidateAccess } from "./auth";
-import { mockDashboard } from "./dashboard";
-import { mockVacancies } from "./vacancies";
-import { mockCandidateProfiles } from "./candidates";
-import { mockCvProcessing } from "./cv";
-import { mockMatching } from "./matching";
-import { mockPipeline } from "./pipeline";
-import { mockAssessments } from "./assessments";
-import { mockInterviews } from "./interviews";
-import { mockOffers } from "./offers";
-import { mockTalent } from "./talent";
-import { mockAnalytics } from "./analytics";
-import { mockSettings } from "./settings";
-import { mockPlatform } from "./platform";
+import { AuthError, type AuthErrorCode, type CvBatch } from "@/types";
+import type {
+  AnalyticsService,
+  AssessmentsService,
+  AuthService,
+  CandidateAccessService,
+  CandidateProfileService,
+  CandidateService,
+  CvProcessingService,
+  DashboardService,
+  InterviewsService,
+  MatchingService,
+  NotificationService,
+  OffersService,
+  PipelineService,
+  PlatformService,
+  SearchService,
+  SessionService,
+  SettingsService,
+  TalentService,
+  VacancyService,
+} from "./contracts";
 
-export type { CandidateProfileService, CvCandidateInput } from "./candidates";
-export type { CvProcessingService, UploadInput } from "./cv";
-export type { MatchingService, VacancyMatchSummary } from "./matching";
-export type { PipelineService, PipelineCard, MoveTarget, MoveResult } from "./pipeline";
-export { PIPELINE_STAGES, CLOSED_STAGES } from "./pipeline";
-export type { AssessmentsService, InvitationView, ScoredResult, SendInput, SendResult, BatteryDraft, Undo } from "./assessments";
-export { deadlineIn } from "./assessments";
-export type { InterviewsService, InterviewListItem, CandidateContext, Conflict, ScheduleInput } from "./interviews";
-export { ME as MY_INTERVIEWER_ID, harare, partsOf } from "./interviews";
-export type { OffersService, OfferView, Band } from "./offers";
-export type { TalentService, TalentSearchResult } from "./talent";
-export { EMPTY_FILTERS, consentValid, talentSkillVocabulary } from "./talent";
-export type { AnalyticsService } from "./analytics";
-export { IMPACT_THRESHOLD, MIN_GROUP } from "./analytics";
-export type { SettingsService } from "./settings";
-export type { PlatformService } from "./platform";
-export { PLAN_LIMITS } from "./platform";
+export * from "./contracts";
+export { PIPELINE_STAGES, CLOSED_STAGES, STATUS_MOVES, emptyDraft, toDraft, harare, partsOf, deadlineIn, IMPACT_THRESHOLD, MIN_GROUP } from "@/lib/workflow";
+export { EMPTY_FILTERS, consentValid } from "@/lib/talent";
+export { PLAN_LIMITS } from "@/lib/plans";
 
-export type { VacancyService, AssistAction } from "./vacancies";
-export { STATUS_MOVES, emptyDraft, toDraft } from "./vacancies";
+/** The current time when the page loaded. Screens use it for relative dates ("3 days ago"). */
+export const MOCK_NOW = new Date().toISOString();
 
-export type { DashboardService, DashboardScenario } from "./dashboard";
-
-export type { AuthService, CandidateAccessService } from "./auth";
-
-export interface SessionService {
-  getCurrentUser(): Promise<User>;
-  getOrganisations(): Promise<Organisation[]>;
-  getActiveOrganisation(): Promise<Organisation>;
-  switchOrganisation(id: string): Promise<Organisation>;
-  signOut(): Promise<void>;
+export class ServiceError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string,
+  ) {
+    super(message);
+    this.name = "ServiceError";
+  }
 }
 
-export interface NotificationService {
-  list(): Promise<AppNotification[]>;
-  markRead(id: string): Promise<void>;
-  markAllRead(): Promise<void>;
+async function call<T>(service: string, method: string, args: unknown[]): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/rpc/${service}/${method}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ args: args.map((a) => (a === undefined ? null : a)) }),
+      credentials: "same-origin",
+    });
+  } catch {
+    throw new AuthError("network", "Can't reach Vettly. Check your connection and try again.");
+  }
+  const body = (await res.json().catch(() => null)) as { ok: boolean; data?: T; error?: string; code?: string } | null;
+  if (!body) throw new ServiceError("Vettly sent an unexpected response. Try again.", res.status);
+  if (body.ok) return body.data as T;
+  if (res.status === 401 && typeof window !== "undefined" && !location.pathname.startsWith("/login") && service !== "auth") {
+    location.href = `/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+  }
+  if (body.code && (service === "auth" || service === "candidateAccess")) throw new AuthError(body.code as AuthErrorCode, body.error ?? "Something went wrong.");
+  throw new ServiceError(body.error ?? "Something went wrong.", res.status, body.code);
 }
 
-export interface SearchResult {
-  id: string;
-  type: "candidate" | "vacancy";
-  title: string;
-  subtitle: string;
-  href: string;
+/** A client for one service: every method becomes a call to the backend. */
+function remote<T extends object>(service: string, local: Partial<T> = {}): T {
+  return new Proxy(local as T, {
+    get(target, method) {
+      if (typeof method !== "string" || method === "then") return undefined;
+      if (method in target) return (target as Record<string, unknown>)[method];
+      return (...args: unknown[]) => call(service, method, args);
+    },
+  });
 }
 
-export interface SearchService {
-  search(query: string): Promise<SearchResult[]>;
+/* ---------- Browser-side helpers ---------- */
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function* streamWords(text: string) {
+  for (const w of text.split(/(\s+)/)) {
+    await wait(w.trim() ? 18 : 0);
+    yield w;
+  }
 }
 
-export interface CandidateService {
-  listSummaries(): Promise<CandidateSummary[]>;
+/** Writing help in the vacancy editor. Fixed rewriting rules and a plain template; no AI model is involved. */
+async function* assist(action: Parameters<VacancyService["assist"]>[0], input: Parameters<VacancyService["assist"]>[1]) {
+  await wait(300);
+  if (action === "draft") {
+    const role = input.title || "this role";
+    yield* streamWords(
+      JSON.stringify({
+        summary: `As our ${role}, you will join the ${input.department || "wider"} team. You will own clear outcomes, work closely with colleagues in other teams, and have room to grow.`,
+        responsibilities: [
+          `Deliver the day-to-day work of the ${role} role to agreed quality and deadlines`,
+          "Work with colleagues across teams to solve problems early",
+          "Keep accurate records and report progress clearly to your manager",
+          "Identify ways to improve how we work, and help put them in place",
+        ],
+      }),
+    );
+    return;
+  }
+  const summary = input.summary.trim();
+  let out = summary;
+  if (action === "concise") out = summary.split(/(?<=\.)\s+/).slice(0, 2).join(" ").replace(/\b(very|really|highly|extremely)\s+/gi, "");
+  else if (action === "inclusive")
+    out = summary
+      .replace(/\b(rockstar|ninja|guru)\b/gi, "specialist")
+      .replace(/\b(he|she)\b/gi, "they")
+      .replace(/\bmanpower\b/gi, "staffing")
+      .replace(/\byoung and dynamic\b/gi, "motivated")
+      .concat(`${summary.endsWith(".") ? "" : "."} We welcome applications from people of all backgrounds, including people with disabilities.`);
+  else if (action === "formal") out = summary.replace(/\byou'll\b/gi, "you will").replace(/\bwe're\b/gi, "we are").replace(/\bdon't\b/gi, "do not").replace(/!/g, ".");
+  yield* streamWords(JSON.stringify({ summary: out }));
 }
 
-/* ---------- Mock implementations ---------- */
+/** Polls CV batches while any file is still being processed. */
+function subscribeToCv(listener: (batches: CvBatch[]) => void) {
+  let stopped = false;
+  const tick = async () => {
+    if (stopped) return;
+    let delay = 6000;
+    try {
+      const batches = await call<CvBatch[]>("cv", "listBatches", []);
+      if (stopped) return;
+      listener(batches);
+      if (batches.some((b) => b.files.some((f) => ["queued", "uploading", "extracting"].includes(f.status)))) delay = 1200;
+    } catch {
+      /* try again later */
+    }
+    setTimeout(tick, delay);
+  };
+  setTimeout(tick, 1200);
+  return () => {
+    stopped = true;
+  };
+}
 
-const latency = (ms = 250) => new Promise((r) => setTimeout(r, ms));
+/** Uploads one file and returns its id, for CV batches and candidate documents. */
+export async function uploadFile(file: File): Promise<{ fileId: string; name: string; sizeKb: number }> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/files", { method: "POST", body: form, credentials: "same-origin" });
+  const body = (await res.json().catch(() => null)) as { ok: boolean; data?: { fileId: string; name: string; sizeKb: number }; error?: string } | null;
+  if (!body?.ok || !body.data) throw new ServiceError(body?.error ?? `${file.name} didn't upload. Try again.`, res.status);
+  return body.data;
+}
 
-let activeOrgId = mock.organisations[0]!.id;
-const notificationState = mock.notifications.map((n) => ({ ...n }));
-
-const mockSession: SessionService = {
-  async getCurrentUser() {
-    await latency(120);
-    return mock.users[0]!;
-  },
-  async getOrganisations() {
-    await latency(120);
-    return mock.organisations;
-  },
-  async getActiveOrganisation() {
-    await latency(80);
-    return mock.organisations.find((o) => o.id === activeOrgId)!;
-  },
-  async switchOrganisation(id) {
-    await latency(400);
-    const org = mock.organisations.find((o) => o.id === id);
-    if (!org) throw new Error("Organisation not found");
-    activeOrgId = id;
-    return org;
-  },
-  async signOut() {
-    await latency(500);
-  },
-};
-
-const mockNotifications: NotificationService = {
-  async list() {
-    await latency(300);
-    return notificationState.map((n) => ({ ...n }));
-  },
-  async markRead(id) {
-    const n = notificationState.find((x) => x.id === id);
-    if (n) n.read = true;
-  },
-  async markAllRead() {
-    notificationState.forEach((n) => (n.read = true));
-  },
-};
-
-const mockSearch: SearchService = {
-  async search(query) {
-    await latency(150);
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    const cands: SearchResult[] = mock.candidates
-      .filter((c) => `${c.name} ${c.headline} ${c.topSkills.join(" ")}`.toLowerCase().includes(q))
-      .map((c) => ({
-        id: c.id,
-        type: "candidate",
-        title: c.name,
-        subtitle: `${c.headline} · ${c.location}`,
-        href: `/candidates/${c.id}`,
-      }));
-    const vacs: SearchResult[] = mock.vacancies
-      .filter((v) => v.title.toLowerCase().includes(q))
-      .map((v) => ({ id: v.id, type: "vacancy", title: v.title, subtitle: v.location, href: `/vacancies/${v.id}` }));
-    return [...vacs, ...cands].slice(0, 8);
-  },
-};
-
-const mockCandidates: CandidateService = {
-  async listSummaries() {
-    await latency(700);
-    return mock.candidates.map((c) => ({ ...c }));
-  },
-};
+export const fileUrl = (fileId: string, download = false) => `/api/files/${fileId}${download ? "?download=1" : ""}`;
 
 export const services = {
-  auth: mockAuth,
-  dashboard: mockDashboard,
-  vacancies: mockVacancies,
-  profiles: mockCandidateProfiles,
-  cv: mockCvProcessing,
-  matching: mockMatching,
-  pipeline: mockPipeline,
-  assessments: mockAssessments,
-  interviews: mockInterviews,
-  offers: mockOffers,
-  talent: mockTalent,
-  analytics: mockAnalytics,
-  settings: mockSettings,
-  platform: mockPlatform,
-  candidateAccess: mockCandidateAccess,
-  session: mockSession,
-  notifications: mockNotifications,
-  search: mockSearch,
-  candidates: mockCandidates,
+  auth: remote<AuthService>("auth"),
+  dashboard: remote<DashboardService>("dashboard"),
+  vacancies: remote<VacancyService>("vacancies", { assist }),
+  profiles: remote<CandidateProfileService>("profiles"),
+  cv: remote<CvProcessingService>("cv", { subscribe: subscribeToCv }),
+  matching: remote<MatchingService>("matching"),
+  pipeline: remote<PipelineService>("pipeline"),
+  assessments: remote<AssessmentsService>("assessments"),
+  interviews: remote<InterviewsService>("interviews"),
+  offers: remote<OffersService>("offers"),
+  talent: remote<TalentService>("talent"),
+  analytics: remote<AnalyticsService>("analytics"),
+  settings: remote<SettingsService>("settings"),
+  platform: remote<PlatformService>("platform"),
+  candidateAccess: remote<CandidateAccessService>("candidateAccess"),
+  session: remote<SessionService>("session"),
+  notifications: remote<NotificationService>("notifications"),
+  search: remote<SearchService>("search"),
+  candidates: remote<CandidateService>("candidates"),
 };
-
-export { MOCK_NOW } from "@/mocks/data";

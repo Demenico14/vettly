@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Lock, MoreHorizontal, Plus, Search, ShieldCheck, Trash2, UserPlus } from "@/components/icons";
 import {
-  Alert,
   Avatar,
   Badge,
   Button,
@@ -35,10 +34,10 @@ import {
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { services } from "@/services";
-import { PERMISSIONS, ROLE_DESCRIPTION, ROLE_LABEL } from "@/mocks/settings";
+import { PERMISSIONS, ROLE_DESCRIPTION, ROLE_LABEL } from "@/lib/settings-defaults";
 import type { Member, OrgRole, RolePermissions } from "@/types/settings";
 import { timeAgo } from "@/lib/utils";
-import { MOCK_NOW } from "@/mocks/data";
+import { MOCK_NOW } from "@/services";
 
 const MOCK_DATE = new Date(MOCK_NOW);
 import { Group, SectionSkeleton } from "./settings-shell";
@@ -66,7 +65,6 @@ export function UsersSection() {
   const pager = usePagination(shown, { resetKey: JSON.stringify([query, roleFilter]) });
   if (!data) return <SectionSkeleton />;
   const free = data.seatsTotal - data.seatsUsed;
-  const no2fa = data.members.filter((m) => m.status === "active" && !m.twoFactor);
 
   async function act(fn: () => Promise<unknown>, ok: string) {
     try {
@@ -93,12 +91,6 @@ export function UsersSection() {
           Invite people
         </Button>
       </Card>
-
-      {no2fa.length > 0 && (
-        <Alert tone="warning" title={`${no2fa.length} active ${no2fa.length === 1 ? "person hasn't" : "people haven't"} turned on two-step verification`}>
-          {no2fa.map((m) => m.name).join(", ")}. They can see candidate data. Ask them to turn it on from their profile.
-        </Alert>
-      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="w-full sm:max-w-xs">
