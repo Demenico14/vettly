@@ -1,0 +1,74 @@
+# Vettly local stack.
+#   Everything:                     docker compose up -d --build
+#   Only backing services (pnpm dev): docker compose up -d db storage storage-init mail
+name: vettly
+
+services:
+  web:
+    build: .
+    image: vettly-web:dev
+    env_file: .env
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      storage-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vettly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vettly-dev-password}
+      POSTGRES_DB: ${POSTGRES_DB:-vettly}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # S3-compatible storage for CVs, offer letters and reports.
+  storage:
+    image: chrislusf/seaweedfs:4.54
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -volume.max=0
+    ports:
+      - "${S3_PORT:-8333}:8333"
+    volumes:
+      - storage-data:/data
+      - ./docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9333/cluster/status >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # Creates the documents bucket once storage is up, then exits.
+  storage-init:
+    image: chrislusf/seaweedfs:4.54
+    depends_on:
+      storage:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "echo 's3.bucket.create -name ${S3_BUCKET:-vettly-documents}' | weed shell -master=storage:9333 && echo bucket ready"
+    restart: "no"
+
+  # Catches all outgoing email. Inbox: http://localhost:8025
+  mail:
+    image: axllent/mailpit:v1.34
+    ports:
+      - "${MAIL_UI_PORT:-8025}:8025"
+      - "${SMTP_HOST_PORT:-1025}:1025"
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  storage-data:

@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "vettly-dev",
+      "credentials": [{ "accessKey": "vettly", "secretKey": "vettly-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Vettly backend plan
 
-**Status:** draft for approval, 20 Nov 2026. Nothing here is built yet.
+**Status:** draft for approval, 20 Nov 2026. Decided so far: run everything in Docker for now (below). Other decisions are open (section 9).
 
 **Scope:** the roadmap's backend integration gate. The 15 approved frontend modules call 19 mock services (`src/services/*`, about 170 operations). The backend replaces those mocks one service at a time, behind the same interfaces, so screens don't change.
 
@@ -29,13 +29,13 @@ Recommendations, with the main alternative for each. The ones marked **Decide** 
 | ORM and migrations | Drizzle | Prisma | Close to SQL, works with row-level security session variables, light on serverless. |
 | Auth | Auth.js (email and password, Microsoft and Google SSO, two-step codes) | Clerk or Auth0 (**Decide**) | Keeps identities in our database and region. A hosted service is faster to set up but stores data outside the region. |
 | Candidate test access | Signed, expiring invitation tokens plus a one-time email code (the existing Module 2 flow) | — | Candidates never get accounts. |
-| File storage | S3-compatible bucket in the AWS Cape Town region (af-south-1) | Cloudflare R2 | CVs and letters are personal data; residency matters. Files are private and served by short-lived signed URLs. |
+| File storage | S3 API. Locally SeaweedFS in Docker; in production an S3-compatible bucket in a Southern African region | Cloudflare R2 | CVs and letters are personal data; residency matters. Files are private and served by short-lived signed URLs. |
 | Background jobs | Queue with retries, for example pg-boss (runs on Postgres) | Inngest, BullMQ with Redis | CV extraction, matching, reminders and emails must not run inside a web request. pg-boss adds no new infrastructure. |
 | AI provider | Anthropic Claude, the models already shown in Platform admin: Haiku 5.5 for CV extraction, Sonnet 5.5 for matching (**Decide**) | Another provider | Structured output with cited evidence suits the matching model. Zero data retention and redaction stay in the policy. |
 | Text recognition for scanned CVs | Cloud text recognition before the AI step | Send page images to the model | Cheaper and more predictable for large batches. |
 | Email | Transactional provider with EU or African delivery (for example Postmark or Amazon SES) | — | Invitations, reminders, offers. Delivery and bounce webhooks feed the "delivery issues" already shown in the tracker. |
 | SMS | Regional aggregator with Zimbabwe and South Africa routes (**Decide**, coverage to confirm) | — | Test invitations and reminders. A fallback route, as in the admin health mock. |
-| Hosting | Vercel for the app; database and storage on AWS af-south-1 (**Decide**) | Everything on AWS (ECS) | Vercel keeps today's workflow. Data residency is satisfied by where the data lives. |
+| Hosting | **Decided: Docker, for now.** `docker-compose.yml` runs the app (standalone Next.js image), PostgreSQL 16, SeaweedFS (S3-compatible storage) and Mailpit (email catcher). The same images can later run on any container host in the region. | Vercel plus AWS af-south-1 | One reproducible stack for development and early pilots. Production hosting and region are decided later. |
 | Observability | Error tracking plus structured logs, with a service-health table feeding Platform admin | — | Platform admin's System health screen needs real numbers. |
 
 ---
@@ -149,7 +149,7 @@ Each phase ends with the module flags switched to real for a pilot organisation,
 
 1. **Auth:** self-hosted Auth.js, with data in our database and region (recommended), or a hosted service such as Clerk or Auth0?
 2. **AI provider:** Anthropic Claude as shown in Platform admin (recommended), or another provider?
-3. **Hosting and region:** Vercel for the app plus AWS Cape Town for the database and files (recommended), or everything on AWS?
+3. ~~**Hosting:**~~ **Decided 20 Nov:** Docker for now. Production host and region are still to choose.
 4. **SMS provider:** which aggregator? I'll compare Zimbabwe and South Africa coverage and pricing before choosing.
 5. **Psychometric providers:** in-house only for launch (recommended), or name a partner to integrate?
 6. **Pilot organisation:** a real organisation to pilot phase 1, or keep using the Msasa demo data until phase 4?

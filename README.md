@@ -11,7 +11,31 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000 (redirects to the design system while Module 1 is in review).
+Open http://localhost:3000.
+
+## Run with Docker
+
+The Docker stack is the backend's home while it's built (see `docs/BACKEND_PLAN.md`). It runs the app plus the services the backend will use:
+
+| Service | What | Local address |
+|---|---|---|
+| `web` | The app, as a production build | http://localhost:3000 |
+| `db` | PostgreSQL 16 | localhost:5432 |
+| `storage` | SeaweedFS, S3-compatible storage for CVs and letters | http://localhost:8333 |
+| `mail` | Mailpit, catches every outgoing email | http://localhost:8025 |
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+To run only the backing services while developing with `pnpm dev`:
+
+```bash
+docker compose up -d db storage storage-init mail
+```
+
+Health check: `GET /api/health`. Stop with `docker compose down`; add `-v` to also delete the database and stored files. The values in `.env.example` are for local development only.
 
 ## Structure
 

@@ -44,3 +44,7 @@ next-env.d.ts
 .impeccable/review/
 .impeccable/questions/
 .impeccable/mocks/
+
+# local environment
+.env
+.env*.local

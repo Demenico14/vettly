@@ -1,0 +1,14 @@
+.git
+.next
+node_modules
+coverage
+docs
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+.impeccable
+tsconfig.tsbuildinfo
+Dockerfile
+docker-compose*.yml
