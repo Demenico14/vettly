@@ -124,7 +124,7 @@ function SavedSearches({ rows, onRun, onChanged }: { rows: (SavedSearch & { matc
             <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-[0.9375rem] font-semibold text-fg">{s.name}</h2>
+                  <h2 className="text-md font-semibold text-fg">{s.name}</h2>
                   {s.newSinceLastRun > 0 && (
                     <Badge tone="accent" size="sm" dot>
                       {s.newSinceLastRun} new
@@ -220,7 +220,7 @@ function Collections({ rows, onChanged }: { rows: Collection[] | null; onChanged
           {rows.map((c) => (
             <li key={c.id}>
               <Link href={`/talent/collections/${c.id}`} className="pressable block h-full rounded-lg bg-surface p-5 shadow-platter transition-shadow hover:shadow-md">
-                <span className="flex items-center gap-2 text-[0.9375rem] font-semibold text-fg">
+                <span className="flex items-center gap-2 text-md font-semibold text-fg">
                   <Folder className="size-4 text-secondary-600" />
                   {c.name}
                 </span>

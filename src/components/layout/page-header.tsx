@@ -43,11 +43,16 @@ export function PageHeader({
     <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0">
         {breadcrumb && <div className="mb-1.5 text-xs text-fg-subtle">{breadcrumb}</div>}
-        <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{title}</h1>
-        {description && <p className="mt-1.5 max-w-2xl text-[0.9375rem] text-fg-muted">{description}</p>}
+        <PageTitle>{title}</PageTitle>
+        {description && <p className="mt-1.5 max-w-2xl text-md text-fg-muted">{description}</p>}
         {meta && <div className="mt-4 flex flex-wrap items-center gap-2">{meta}</div>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
+}
+
+/** The page's one h1, at the large-title size. Use it on screens with a custom header layout. */
+export function PageTitle({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <h1 className={cn("text-title-sm font-bold text-fg sm:text-title", className)}>{children}</h1>;
 }

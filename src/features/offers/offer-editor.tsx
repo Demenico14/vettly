@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Send, X } from "@/components/icons";
 import { Alert, Button, Card, CardHeader, Checkbox, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, type Band } from "@/services";
 import type { Vacancy } from "@/types";
 import type { Approval, ContractType, Offer, OfferTerms } from "@/types/offers";
@@ -104,10 +104,10 @@ export function OfferEditor(props: Source) {
             <ArrowLeft className="size-4" />
             {props.mode === "edit" ? "Offer" : "Offers"}
           </Link>
-          <h1 className="mt-4 text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">
+          <PageTitle className="mt-4">
             {countered ? `Revise the offer for ${name}` : props.mode === "edit" ? `Edit offer for ${name}` : `New offer for ${name}`}
-          </h1>
-          <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+          </PageTitle>
+          <p className="mt-1.5 text-md text-fg-muted">
             {vacancy.title} · {vacancy.department} · {vacancy.location}
             {expected && ` · expects ${expected}`}
           </p>

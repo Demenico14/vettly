@@ -10,8 +10,14 @@ export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTab
   return <table className={cn("w-full border-collapse text-sm tabular", className)} {...props} />;
 }
 
-export function THead({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("bg-surface-muted", className)} {...props} />;
+/** Pass `sticky` inside a TableScroll so column names stay visible on long pages. */
+export function THead({ className, sticky, ...props }: React.HTMLAttributes<HTMLTableSectionElement> & { sticky?: boolean }) {
+  return <thead className={cn("bg-surface-muted", sticky && "sticky top-0 z-10 shadow-[0_1px_0_var(--color-line)]", className)} {...props} />;
+}
+
+/** Scroll area for a long table: scrolls both ways inside the viewport, so a sticky header can stay in view. */
+export function TableScroll({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("max-h-[calc(100dvh-9rem)] overflow-auto overscroll-contain", className)} {...props} />;
 }
 
 export function TBody(props: React.HTMLAttributes<HTMLTableSectionElement>) {

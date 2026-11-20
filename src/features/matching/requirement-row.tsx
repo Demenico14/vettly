@@ -44,7 +44,7 @@ export function RequirementRow({
             {r.requirement.years ? ` · ${r.requirement.years}+ yrs` : ""}
           </span>
         </div>
-        <h3 className="mt-2 text-[0.9375rem] font-semibold text-pretty text-fg">{r.requirement.text}</h3>
+        <h3 className="mt-2 text-md font-semibold text-pretty text-fg">{r.requirement.text}</h3>
         <p className="mt-1 text-sm text-fg-muted">
           {changed ? (
             <>

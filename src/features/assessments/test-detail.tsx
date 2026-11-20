@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Eye, ShieldCheck } from "@/components/icons";
 import { Alert, Button, Card, CardHeader, Skeleton, Table, TBody, TD, TH, THead, TR } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { IllustrativeNotice } from "@/components/domain/assessment";
 import { services } from "@/services";
 import type { Battery, NormGroup, SampleItem, Test } from "@/types/psychometrics";
@@ -86,8 +86,8 @@ export function TestDetail({ id }: { id: string }) {
             <p className="text-sm font-medium text-fg-subtle">
               {FAMILY_SHORT[t.family]} · version {t.version}
             </p>
-            <h1 className="mt-1 text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{t.name}</h1>
-            <p className="mt-2 max-w-3xl text-[0.9375rem] text-fg-muted">{t.summary}</p>
+            <PageTitle className="mt-1">{t.name}</PageTitle>
+            <p className="mt-2 max-w-3xl text-md text-fg-muted">{t.summary}</p>
             <div className="mt-3">
               <IllustrativeNotice>Fictional test and evidence · Phase 1 prototype</IllustrativeNotice>
             </div>

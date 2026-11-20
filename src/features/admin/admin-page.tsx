@@ -21,7 +21,7 @@ import {
   Progress,
   Select,
   Skeleton,
-  Table,
+  Table, TableScroll,
   TBody,
   TD,
   TH,
@@ -179,7 +179,7 @@ function Overview({ s, go }: { s: PlatformSnapshot; go: (t: Tab) => void }) {
       </div>
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Card className="p-5">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">Needs attention</h2>
+          <h2 className="text-md font-semibold text-fg">Needs attention</h2>
           {attention.length === 0 ? (
             <p className="mt-3 text-sm text-fg-subtle">Nothing right now.</p>
           ) : (
@@ -197,9 +197,9 @@ function Overview({ s, go }: { s: PlatformSnapshot; go: (t: Tab) => void }) {
           )}
         </Card>
         <Card className="p-5">
-          <h2 className="mb-4 text-[0.9375rem] font-semibold text-fg">Organisations by plan</h2>
+          <h2 className="mb-4 text-md font-semibold text-fg">Organisations by plan</h2>
           <BarList rows={plans} />
-          <h2 className="mt-6 mb-4 text-[0.9375rem] font-semibold text-fg">Busiest, applications in 30 days</h2>
+          <h2 className="mt-6 mb-4 text-md font-semibold text-fg">Busiest, applications in 30 days</h2>
           <BarList rows={busiest.map((t) => ({ key: t.id, label: t.name, value: t.applications30d }))} />
         </Card>
       </div>
@@ -225,9 +225,9 @@ function Organisations({ s, onChanged }: { s: PlatformSnapshot; onChanged: () =>
         <FilterSelect label="Plan" value={plan} onChange={setPlan} options={(["starter", "growth", "enterprise"] as PlanId[]).map((p) => ({ value: p, label: PLAN_LABEL[p], count: s.tenants.filter((t) => t.plan === p).length }))} />
       </div>
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <TableScroll>
           <Table>
-            <THead>
+            <THead sticky>
               <TR>
                 <TH>Organisation</TH>
                 <TH>Plan</TH>
@@ -279,7 +279,7 @@ function Organisations({ s, onChanged }: { s: PlatformSnapshot; onChanged: () =>
               })}
             </TBody>
           </Table>
-        </div>
+        </TableScroll>
         <div className="border-t border-line px-4 py-2.5">
           <Pagination p={pager} noun={["organisation", "organisations"]} />
         </div>
@@ -444,9 +444,9 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
         <FilterSelect label="Type" value={kind} onChange={setKind} options={[{ value: "staff", label: "Vettly staff" }, { value: "tenant_admin", label: "Organisation admins" }]} />
       </div>
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <TableScroll>
           <Table>
-            <THead>
+            <THead sticky>
               <TR>
                 <TH>Person</TH>
                 <TH>Role</TH>
@@ -508,7 +508,7 @@ function Users({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => void })
               ))}
             </TBody>
           </Table>
-        </div>
+        </TableScroll>
         <div className="border-t border-line px-4 py-2.5">
           <Pagination p={pager} noun={["account", "accounts"]} />
         </div>

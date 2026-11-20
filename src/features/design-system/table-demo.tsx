@@ -27,6 +27,8 @@ import {
   TR,
   toast,
   type SortDirection,
+  BulkAction,
+  BulkBar,
 } from "@/components/ui";
 import { StageBadge, STAGE_META } from "@/components/domain/status-badge";
 import { MatchScore, IllustrativeNotice } from "@/components/domain/assessment";
@@ -192,25 +194,20 @@ export function TableSection() {
         </div>
 
         {selected.size > 0 && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-900 px-3 py-2 text-sm text-white animate-pop-in" role="region" aria-label="Bulk actions">
-            <span className="font-semibold tabular">{selected.size} selected</span>
-            <span className="mx-1 h-4 w-px bg-ink-700" aria-hidden />
-            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("shortlisted")}>
+          <BulkBar label={<>{selected.size} selected</>} onClear={() => setSelected(new Set())}>
+            <BulkAction onClick={() => moveSelected("shortlisted")}>
               Shortlist
-            </Button>
-            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("assessment")}>
+            </BulkAction>
+            <BulkAction onClick={() => moveSelected("assessment")}>
               Send psychometric test
-            </Button>
-            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("interview")}>
+            </BulkAction>
+            <BulkAction onClick={() => moveSelected("interview")}>
               Move to interview
-            </Button>
-            <Button size="sm" variant="ghost" className="text-danger-100 hover:bg-ink-800 hover:text-white" onClick={() => moveSelected("rejected")}>
+            </BulkAction>
+            <BulkAction danger onClick={() => moveSelected("rejected")}>
               Reject
-            </Button>
-            <Button size="sm" variant="ghost" className="ml-auto text-ink-300 hover:bg-ink-800 hover:text-white" onClick={() => setSelected(new Set())}>
-              Clear
-            </Button>
-          </div>
+            </BulkAction>
+          </BulkBar>
         )}
 
         {state === "error" ? (

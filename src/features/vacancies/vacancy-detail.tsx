@@ -38,7 +38,7 @@ import {
 } from "@/components/ui";
 import { StageBadge, VacancyStatusBadge, VACANCY_META } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, STATUS_MOVES, MOCK_NOW } from "@/services";
 import { CHANNELS } from "@/mocks/vacancies";
 import { TEST_BATTERIES } from "@/mocks/auth";
@@ -135,10 +135,10 @@ export function VacancyDetail({ id }: { id: string }) {
           <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{v.title}</h1>
+                <PageTitle>{v.title}</PageTitle>
                 <VacancyStatusBadge status={v.status} />
               </div>
-              <p className="mt-2 text-[0.9375rem] text-fg-muted">
+              <p className="mt-2 text-md text-fg-muted">
                 {[v.reference, v.department, v.location, v.workMode].filter(Boolean).join(" · ")}
               </p>
             </div>
@@ -239,14 +239,14 @@ export function VacancyDetail({ id }: { id: string }) {
                 <article className="max-w-[68ch]">
                   <h2 className="text-lg font-semibold text-fg">About the role</h2>
                   {v.summary ? (
-                    <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{v.summary}</p>
+                    <p className="mt-2 text-md leading-relaxed text-fg-muted">{v.summary}</p>
                   ) : (
                     <p className="mt-2 text-sm text-fg-subtle italic">No summary yet.</p>
                   )}
 
                   <h2 className="mt-8 text-lg font-semibold text-fg">What you&apos;ll do</h2>
                   {v.responsibilities.length ? (
-                    <ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-[0.9375rem] leading-relaxed text-fg-muted marker:text-ink-400">
+                    <ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-md leading-relaxed text-fg-muted marker:text-ink-400">
                       {v.responsibilities.map((r) => (
                         <li key={r}>{r}</li>
                       ))}
@@ -263,7 +263,7 @@ export function VacancyDetail({ id }: { id: string }) {
                   {v.benefits.length > 0 && (
                     <>
                       <h2 className="mt-8 text-lg font-semibold text-fg">What we offer</h2>
-                      <ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-[0.9375rem] leading-relaxed text-fg-muted marker:text-ink-400">
+                      <ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-md leading-relaxed text-fg-muted marker:text-ink-400">
                         {v.benefits.map((b) => (
                           <li key={b}>{b}</li>
                         ))}

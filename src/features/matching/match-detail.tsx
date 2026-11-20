@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, ChevronLeft, ChevronRight, RefreshCw, Sparkles, UserRound } from "@/components/icons";
 import { Alert, Avatar, Button, Card, CardHeader, Skeleton, Tag, toast, Tooltip } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { IllustrativeNotice, ProvenanceTag } from "@/components/domain/assessment";
 import { StageBadge } from "@/components/domain/status-badge";
 import { services, MOCK_NOW } from "@/services";
@@ -118,8 +118,8 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
             <div className="flex min-w-0 items-start gap-4">
               <Avatar name={a.candidateName} size="lg" />
               <div className="min-w-0">
-                <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{a.candidateName}</h1>
-                <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+                <PageTitle>{a.candidateName}</PageTitle>
+                <p className="mt-1.5 text-md text-fg-muted">
                   {a.headline} · {a.location}
                 </p>
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -204,7 +204,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
                 <Sparkles className="size-4 text-accent-600" aria-hidden />
                 Why this score
               </h2>
-              <p className="mt-2 text-[0.9375rem] leading-relaxed text-pretty text-fg-muted">{a.explanation}</p>
+              <p className="mt-2 text-md leading-relaxed text-pretty text-fg-muted">{a.explanation}</p>
               <p className="mt-3 text-2xs font-semibold text-accent-700">AI explanation · illustrative · check it against the evidence below</p>
             </section>
             <section aria-labelledby="breakdown-h">

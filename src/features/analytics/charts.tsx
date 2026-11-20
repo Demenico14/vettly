@@ -59,7 +59,7 @@ export function ChartCard({
     <Card className={cn("flex flex-col", className)}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
         <div className="min-w-0">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">{title}</h2>
+          <h2 className="text-md font-semibold text-fg">{title}</h2>
           {description && <p className="mt-0.5 text-xs text-fg-subtle">{description}</p>}
         </div>
         <div className="flex items-center gap-1.5">

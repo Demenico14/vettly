@@ -25,7 +25,7 @@ import {
   ModalContent,
   Progress,
   Select,
-  Table,
+  Table, TableScroll,
   TBody,
   TD,
   TH,
@@ -108,9 +108,9 @@ export function UsersSection() {
       </div>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <TableScroll>
           <Table>
-            <THead>
+            <THead sticky>
               <TR>
                 <TH>Person</TH>
                 <TH>Role</TH>
@@ -205,7 +205,7 @@ export function UsersSection() {
               })}
             </TBody>
           </Table>
-        </div>
+        </TableScroll>
         <div className="border-t border-line px-4 py-2.5">
           <Pagination p={pager} noun={["person", "people"]} />
         </div>

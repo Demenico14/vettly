@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock, FileSignature, Plus, Search } from "@/components/icons";
-import { Alert, LoadError, Avatar, Button, Card, EmptyState, Input, Modal, ModalClose, ModalContent, Field, Skeleton, Table, TBody, TD, TH, THead, TR, Pagination, usePagination, Combobox } from "@/components/ui";
+import { Alert, LoadError, Avatar, Button, Card, EmptyState, Input, Modal, ModalClose, ModalContent, Field, Skeleton, Table, TableScroll, TBody, TD, TH, THead, TR, Pagination, usePagination, Combobox } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW, type OfferView } from "@/services";
@@ -133,9 +133,9 @@ export function OffersList() {
                     </li>
                   ))}
                 </ul>
-                <div className="hidden overflow-x-auto md:block">
+                <TableScroll className="hidden md:block">
                   <Table>
-                    <THead>
+                    <THead sticky>
                       <TR>
                         <TH>Candidate</TH>
                         <TH>Status</TH>
@@ -181,7 +181,7 @@ export function OffersList() {
                       ))}
                     </TBody>
                   </Table>
-                </div>
+                </TableScroll>
                 <div className="border-t border-line px-4 py-2.5">
                   <Pagination p={pager} noun={["offer", "offers"]} anchor={top} />
                 </div>

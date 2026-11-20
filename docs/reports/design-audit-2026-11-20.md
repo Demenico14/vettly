@@ -41,11 +41,22 @@ Two passes: the impeccable technical audit (rendered detector on 19 routes, desk
 - **P2** Touch targets: segmented controls and filter chips are 40px on touch screens; tag remove is 24px and uses the library icon.
 - **P3** All-caps headings are now sentence case, and running text avoids single-word last lines.
 
+## Follow-up fixes (same day)
+
+- **Type tokens.**
+  - `title-sm` / `title` (28 / 34px, line-height 1.1, −0.02em) and `md` (15px) added to `globals.css`.
+  - A shared `PageTitle` now renders the h1 for `PageHeader` and for the 13 detail screens that had their own header.
+  - No hard-coded title or 15px sizes remain.
+- **One bulk-action bar.**
+  - A shared `BulkBar` / `BulkAction` replaces the six separate bars (candidates, test invitations, matching compare, pipeline, talent, design system).
+  - It is dark and floats at the bottom of the screen while anything is selected.
+- **Sticky table headers.**
+  - `THead sticky` inside a `TableScroll` area keeps column names visible.
+  - Used on candidates, vacancies, offers, test invitations, the matching ranking, settings users, and admin organisations and accounts.
+- **Clearer Publish.** The vacancy editor's button now reads "Publish to N channels".
+
 ## Remaining
 
-- **P2** Page titles hard-code sizes in about 15 files; add title and lead type tokens (`/impeccable typeset`).
-- **P3** Bulk-action bars differ between screens; tables could offer sticky headers (`/impeccable polish`).
-- **P3** "Publish" could name the channels it posts to (`/impeccable clarify`).
 - **Accepted detector findings:**
   - the hatched copper bars are the intentional "unreviewed AI" signature
   - the hairline-bordered lists inside panels are flagged as nested cards, but they aren't stacked shadowed cards

@@ -35,7 +35,7 @@ import {
   ModalClose,
   ModalContent,
   Skeleton,
-  Table,
+  Table, TableScroll,
   TBody,
   TD,
   TH,
@@ -46,6 +46,8 @@ import {
   Tooltip,
   Pagination,
   usePagination,
+  BulkAction,
+  BulkBar,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer } from "@/components/layout/page-header";
@@ -247,27 +249,6 @@ export function InvitationTracker() {
             </div>
           </div>
 
-          {picked.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-900 px-3 py-2 text-sm text-white animate-pop-in" role="region" aria-label="Bulk actions">
-              <span className="font-semibold tabular">{picked.length} selected</span>
-              <span className="mx-1 h-4 w-px bg-ink-700" aria-hidden />
-              <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => remind(picked.map((r) => r.record.id))}>
-                <Bell />
-                Remind
-              </Button>
-              <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => setDialog({ kind: "extend", ids: picked.map((r) => r.record.id) })}>
-                <CalendarPlus />
-                Extend deadline
-              </Button>
-              <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => setDialog({ kind: "cancel", ids: picked.map((r) => r.record.id) })}>
-                <X />
-                Cancel
-              </Button>
-              <Button size="sm" variant="ghost" className="ml-auto text-ink-300 hover:bg-ink-800 hover:text-white" onClick={() => setSelected(new Set())}>
-                Clear
-              </Button>
-            </div>
-          )}
 
           <Card className="overflow-hidden scroll-mt-16" ref={top}>
             {shown.length === 0 ? (
@@ -297,9 +278,9 @@ export function InvitationTracker() {
                     </li>
                   ))}
                 </ul>
-                <div className="hidden overflow-x-auto md:block">
+                <TableScroll className="hidden md:block">
                   <Table>
-                    <THead>
+                    <THead sticky>
                       <TR>
                         <TH className="w-10 pr-0">
                           <Checkbox
@@ -382,7 +363,7 @@ export function InvitationTracker() {
                       ))}
                     </TBody>
                   </Table>
-                </div>
+                </TableScroll>
                 <div className="border-t border-line px-4 py-2.5">
                   <Pagination p={pager} noun={["invitation", "invitations"]} anchor={top} />
                 </div>
@@ -391,7 +372,22 @@ export function InvitationTracker() {
           </Card>
         </div>
       )}
-
+      {picked.length > 0 && (
+        <BulkBar label={<>{picked.length} selected</>} onClear={() => setSelected(new Set())}>
+          <BulkAction onClick={() => remind(picked.map((r) => r.record.id))}>
+            <Bell />
+            Remind
+          </BulkAction>
+          <BulkAction onClick={() => setDialog({ kind: "extend", ids: picked.map((r) => r.record.id) })}>
+            <CalendarPlus />
+            Extend deadline
+          </BulkAction>
+          <BulkAction onClick={() => setDialog({ kind: "cancel", ids: picked.map((r) => r.record.id) })}>
+            <X />
+            Cancel tests
+          </BulkAction>
+        </BulkBar>
+      )}
       <SendTestsDialog open={sending} onOpenChange={setSending} onSent={refresh} />
       <ActionDialog
         dialog={dialog}

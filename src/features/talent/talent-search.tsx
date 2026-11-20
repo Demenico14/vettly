@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Bookmark, Filter, Folder, MapPin, Plus, Search, SearchX, Sparkles, X } from "@/components/icons";
+import { Bell, Bookmark, Filter, Folder, MapPin, Plus, Search, SearchX, Sparkles } from "@/components/icons";
 import {
   Alert,
   Avatar,
   Badge,
+  BulkAction,
+  BulkBar,
   Button,
   Card,
   Checkbox,
@@ -182,19 +184,6 @@ export function TalentSearch({ initial, vacancyId, onSaved }: { initial: TalentF
             </p>
           )}
 
-          {selected.size > 0 && (
-            <div className="material-bar sticky top-2 z-10 flex items-center gap-3 rounded-lg px-4 py-2.5 shadow-md">
-              <span className="text-sm font-semibold text-fg tabular">{selected.size} selected</span>
-              <Button size="sm" onClick={() => setCollecting([...selected.values()])}>
-                <Folder />
-                Add to collection
-              </Button>
-              <Button size="sm" variant="ghost" className="ml-auto" onClick={() => setSelected(new Map())}>
-                <X />
-                Clear
-              </Button>
-            </div>
-          )}
 
           {error ? (
             <Alert tone="danger" title="Search didn't run">
@@ -227,6 +216,14 @@ export function TalentSearch({ initial, vacancyId, onSaved }: { initial: TalentF
               ))}
             </ul>
             <Pagination p={pager} noun={["person", "people"]} sizes={[10, 25, 50]} anchor={top} className="px-1" />
+            {selected.size > 0 && (
+              <BulkBar label={`${selected.size} selected`} onClear={() => setSelected(new Map())}>
+                <BulkAction primary onClick={() => setCollecting([...selected.values()])}>
+                  <Folder />
+                  Add to collection
+                </BulkAction>
+              </BulkBar>
+            )}
             </>
           )}
         </div>
@@ -264,7 +261,7 @@ function ResultCard({ h, f, selected, onSelect, onOpen, onCollect }: { h: Talent
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
-              <button type="button" onClick={onOpen} className="text-left text-[0.9375rem] font-semibold text-fg after:absolute after:inset-0 after:content-[''] hover:underline">
+              <button type="button" onClick={onOpen} className="text-left text-md font-semibold text-fg after:absolute after:inset-0 after:content-[''] hover:underline">
                 {h.name}
               </button>
               <p className="truncate text-sm text-fg-muted">{h.headline}</p>

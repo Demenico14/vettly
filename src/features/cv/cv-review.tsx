@@ -18,7 +18,7 @@ import {
   Textarea,
   toast,
 } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CvBatch, CvExtraction, CvFile } from "@/types";
 import { FAILURE_COPY, nameFromFile } from "@/mocks/cv";
@@ -196,10 +196,10 @@ export function CvReview({ id }: { id: string }) {
           <BackLink />
           <div className="mt-4 flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{title}</h1>
+              <PageTitle>{title}</PageTitle>
               <CvStatusBadge status={file.status} size="md" />
             </div>
-            <p className="text-[0.9375rem] text-fg-muted">
+            <p className="text-md text-fg-muted">
               Applying for{" "}
               <Link href={`/vacancies/${batch.vacancyId}`} className="font-medium text-fg hover:underline">
                 {batch.vacancyTitle}

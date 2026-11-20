@@ -35,7 +35,7 @@ import {
 } from "@/components/ui";
 import { StageBadge } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CandidateProfile } from "@/types";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
@@ -136,7 +136,7 @@ export function CandidateProfileView({ id }: { id: string }) {
               <Avatar name={c.name} size="lg" />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{c.name}</h1>
+                  <PageTitle>{c.name}</PageTitle>
                   {c.inTalentPool && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700">
                       <Bookmark className="size-3" weight="fill" />
@@ -144,7 +144,7 @@ export function CandidateProfileView({ id }: { id: string }) {
                     </span>
                   )}
                 </div>
-                <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+                <p className="mt-1.5 text-md text-fg-muted">
                   {c.headline}
                   {c.currentEmployer ? ` at ${c.currentEmployer}` : ""}
                 </p>
@@ -209,7 +209,7 @@ export function CandidateProfileView({ id }: { id: string }) {
               <Card className="flex flex-col gap-8 px-6 py-6 sm:px-8">
                 <section>
                   <h2 className="mb-2 text-base font-semibold text-fg">Summary</h2>
-                  <p className="max-w-[68ch] text-[0.9375rem] leading-relaxed text-fg-muted">{c.summary}</p>
+                  <p className="max-w-[68ch] text-md leading-relaxed text-fg-muted">{c.summary}</p>
                 </section>
                 <ExperienceSection c={c} />
                 <EducationSection c={c} />

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { PageTitle } from "@/components/layout/page-header";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge, type BadgeProps } from "@/components/ui";
@@ -140,8 +141,8 @@ export function AssessmentsHeader({ actions }: { actions?: React.ReactNode }) {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">Assessments</h1>
-          <p className="mt-1.5 max-w-2xl text-[0.9375rem] text-fg-muted">
+          <PageTitle>Assessments</PageTitle>
+          <p className="mt-1.5 max-w-2xl text-md text-fg-muted">
             Psychometric tests sent to candidates, and their results. Results help you decide; they never reject anyone on their own.
           </p>
         </div>

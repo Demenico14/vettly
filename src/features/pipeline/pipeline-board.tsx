@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarPlus, ClipboardList, DotsSixVertical, FileSignature, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
+import { CalendarPlus, ClipboardList, DotsSixVertical, FileSignature, MoreHorizontal, Search, Trash2, UserRound, Sparkles, ArrowRight } from "@/components/icons";
 import {
   Button,
   Card,
@@ -23,6 +23,8 @@ import {
   Switch,
   toast,
   LoadError,
+  BulkAction,
+  BulkBar,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
@@ -365,26 +367,22 @@ export function PipelineBoard() {
       )}
 
       {picked.length > 0 && board && (
-        <div className="material-bar sticky bottom-4 z-20 mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-line px-3 py-2 shadow-lg sm:rounded-full sm:pl-4">
-          <span className="text-sm font-medium text-fg tabular">{picked.length} selected</span>
-          <Button size="sm" variant="ghost" aria-label="Clear selection" onClick={() => setSelected(new Set())}>
-            <X />
-          </Button>
-          <Button size="sm" onClick={() => setMove({ cards: picked })}>
+        <BulkBar label={`${picked.length} selected`} onClear={() => setSelected(new Set())}>
+          <BulkAction primary onClick={() => setMove({ cards: picked })}>
             <ArrowRight />
             Move
-          </Button>
+          </BulkAction>
           {batteryLabel && (
-            <Button size="sm" variant="secondary" onClick={() => sendTests(picked)}>
+            <BulkAction onClick={() => sendTests(picked)}>
               <ClipboardList />
               Send tests
-            </Button>
+            </BulkAction>
           )}
-          <Button size="sm" variant="secondary" className="text-danger-700" onClick={() => setMove({ cards: picked, stage: "rejected" })}>
+          <BulkAction danger onClick={() => setMove({ cards: picked, stage: "rejected" })}>
             <Trash2 />
             Reject
-          </Button>
-        </div>
+          </BulkAction>
+        </BulkBar>
       )}
 
       {board && (

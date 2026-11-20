@@ -150,11 +150,11 @@ function MemberRow({ m, collectionId, onOpen, onRemove }: { m: Member; collectio
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
               {m.kind === "candidate" ? (
-                <Link href={`/candidates/${m.id}`} className="text-[0.9375rem] font-semibold text-fg hover:underline">
+                <Link href={`/candidates/${m.id}`} className="text-md font-semibold text-fg hover:underline">
                   {m.name}
                 </Link>
               ) : (
-                <button type="button" onClick={onOpen} className="text-left text-[0.9375rem] font-semibold text-fg hover:underline">
+                <button type="button" onClick={onOpen} className="text-left text-md font-semibold text-fg hover:underline">
                   {m.name}
                 </button>
               )}

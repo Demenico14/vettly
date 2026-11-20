@@ -26,7 +26,7 @@ export function AiTab({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => 
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <Card className="p-5">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">Data handling</h2>
+          <h2 className="text-md font-semibold text-fg">Data handling</h2>
           <p className="mt-0.5 text-sm text-fg-muted">Provider: {p.provider}. These apply to every organisation.</p>
           <ul className="mt-4 flex flex-col divide-y divide-line">
             {POLICY.map((x) => (
@@ -41,7 +41,7 @@ export function AiTab({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => 
           </ul>
         </Card>
         <Card className="p-5">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">Spend this month</h2>
+          <h2 className="text-md font-semibold text-fg">Spend this month</h2>
           <p className="mt-2 text-2xl font-bold text-fg tabular">
             {usd(p.spentThisMonthUsd)} <span className="text-sm font-medium text-fg-muted">of {usd(p.monthlyBudgetUsd)}</span>
           </p>
@@ -54,7 +54,7 @@ export function AiTab({ s, onChanged }: { s: PlatformSnapshot; onChanged: () => 
       </div>
       <Card className="overflow-hidden">
         <div className="border-b border-line px-5 py-4">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">Models by task</h2>
+          <h2 className="text-md font-semibold text-fg">Models by task</h2>
           <p className="mt-0.5 text-sm text-fg-muted">The fallback takes over if the main model times out or is unavailable. Agreement is the share of outputs HR accepted unchanged.</p>
         </div>
         <div className="overflow-x-auto">
@@ -154,7 +154,7 @@ export function AssessmentsTab({ s, onChanged }: { s: PlatformSnapshot; onChange
   return (
     <div className="flex flex-col gap-5">
       <section>
-        <h2 className="mb-3 text-[0.9375rem] font-semibold text-fg">Providers</h2>
+        <h2 className="mb-3 text-md font-semibold text-fg">Providers</h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {s.providers.map((p) => (
             <Card key={p.id} className="flex flex-col p-5">
@@ -191,7 +191,7 @@ export function AssessmentsTab({ s, onChanged }: { s: PlatformSnapshot; onChange
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-5 py-4">
           <div>
-            <h2 className="text-[0.9375rem] font-semibold text-fg">In-house test catalogue</h2>
+            <h2 className="text-md font-semibold text-fg">In-house test catalogue</h2>
             <p className="mt-0.5 text-sm text-fg-muted">Switching a test off hides it from every organisation. Invitations already sent still work.</p>
           </div>
           <div className="w-full sm:w-64">
@@ -234,7 +234,7 @@ export function AssessmentsTab({ s, onChanged }: { s: PlatformSnapshot; onChange
 
       <Card className="overflow-hidden">
         <div className="border-b border-line px-5 py-4">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">Norm groups</h2>
+          <h2 className="text-md font-semibold text-fg">Norm groups</h2>
           <p className="mt-0.5 text-sm text-fg-muted">The comparison groups scores are reported against. Each is reviewed by a psychometrician at least every three years.</p>
         </div>
         <div className="overflow-x-auto">
@@ -286,7 +286,7 @@ export function AssessmentsTab({ s, onChanged }: { s: PlatformSnapshot; onChange
       </Card>
 
       <Card className="p-5">
-        <h2 className="text-[0.9375rem] font-semibold text-fg">Test credits by organisation</h2>
+        <h2 className="text-md font-semibold text-fg">Test credits by organisation</h2>
         <p className="mt-0.5 mb-4 text-sm text-fg-muted">This plan year. One credit per candidate per test.</p>
         <ul className="flex flex-col gap-3">
           {live.map((t) => {
@@ -381,7 +381,7 @@ export function HealthTab({ s }: { s: PlatformSnapshot }) {
         </ul>
       </Card>
       <Card className="p-5">
-        <h2 className="text-[0.9375rem] font-semibold text-fg">Incident history</h2>
+        <h2 className="text-md font-semibold text-fg">Incident history</h2>
         <ul className="mt-3 flex flex-col divide-y divide-line">
           {s.incidents.map((i) => (
             <li key={i.id} className="py-3 first:pt-0 last:pb-0">

@@ -26,6 +26,16 @@
   --text-2xl--line-height: 2rem;
   --text-3xl: 2.25rem;
   --text-3xl--line-height: 2.75rem;
+  /* Large titles (Apple large-title scale): 28px on phones, 34px from sm. */
+  --text-title-sm: 1.75rem;
+  --text-title-sm--line-height: 1.1;
+  --text-title-sm--letter-spacing: -0.02em;
+  --text-title: 2.125rem;
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.02em;
+  /* Panel titles and lead copy: 15px. */
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.5;
 
   /* Brand palette: Granite & Msasa. Copper is reserved for unreviewed AI and attention. */
   --color-brand-green: #16624f;

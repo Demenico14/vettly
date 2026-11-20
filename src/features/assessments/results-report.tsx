@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRightLeft, BadgeCheck, Bell, ChatText, Flag, RefreshCw, Sparkles, TriangleAlert, UserRound } from "@/components/icons";
 import { Alert, Button, Card, CardHeader, Input, Segmented, Skeleton, Switch, Textarea, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { IllustrativeNotice } from "@/components/domain/assessment";
 import { services, MOCK_NOW, type InvitationView, type ScoredResult } from "@/services";
 import type { NormGroup, Test } from "@/types/psychometrics";
@@ -86,10 +86,10 @@ export function ResultsReport({ id }: { id: string }) {
           <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{r.candidateName}</h1>
+                <PageTitle>{r.candidateName}</PageTitle>
                 <InvitationBadge status={r.status} size="md" />
               </div>
-              <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+              <p className="mt-1.5 text-md text-fg-muted">
                 {r.vacancyTitle} · {v.batteryLabel} · sent {day(r.sentAt)} by {r.sentBy}
               </p>
             </div>
@@ -140,7 +140,7 @@ export function ResultsReport({ id }: { id: string }) {
                       <Sparkles className="size-4 text-accent-600" aria-hidden />
                       Summary
                     </h2>
-                    <p className="mt-2 max-w-[70ch] text-[0.9375rem] leading-relaxed text-fg-muted">{narrative(r.candidateName, results, testOf, normOf)}</p>
+                    <p className="mt-2 max-w-[70ch] text-md leading-relaxed text-fg-muted">{narrative(r.candidateName, results, testOf, normOf)}</p>
                     <p className="mt-3 text-2xs font-semibold text-accent-700">Generated summary · check it against the scores below</p>
                   </Card>
                   {results.map((res) => (

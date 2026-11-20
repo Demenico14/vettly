@@ -90,7 +90,7 @@ export function TestLibrary() {
                         <li key={t.id}>
                           <Link href={`/assessments/library/${t.id}`} className="pressable flex h-full flex-col rounded-lg bg-surface p-5 shadow-platter transition-shadow hover:shadow-md">
                             <div className="flex items-start justify-between gap-3">
-                              <h3 className="text-[0.9375rem] font-semibold text-fg">{t.name}</h3>
+                              <h3 className="text-md font-semibold text-fg">{t.name}</h3>
                               <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 text-2xs font-semibold text-ink-700">{LEVEL[t.level]}</span>
                             </div>
                             <p className="mt-1.5 line-clamp-3 text-sm text-fg-muted">{t.summary}</p>

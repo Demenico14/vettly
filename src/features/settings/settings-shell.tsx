@@ -121,7 +121,7 @@ export function Group({ title, description, children, actions }: { title: string
     <Card className="overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
         <div className="min-w-0">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">{title}</h2>
+          <h2 className="text-md font-semibold text-fg">{title}</h2>
           {description && <p className="mt-0.5 max-w-2xl text-sm text-fg-muted">{description}</p>}
         </div>
         {actions}

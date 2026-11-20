@@ -15,7 +15,7 @@ import {
   Select,
   Skeleton,
   SortableTH,
-  Table,
+  Table, TableScroll,
   TBody,
   TD,
   TH,
@@ -231,9 +231,9 @@ export function VacancyList() {
                     </li>
                   ))}
                 </ul>
-                <div className="hidden overflow-x-auto md:block">
+                <TableScroll className="hidden md:block">
                   <Table className="min-w-[56rem]">
-                    <THead>
+                    <THead sticky>
                       <TR>
                         <SortableTH label="Vacancy" active={sort.key === "title"} direction={sort.dir} onSort={() => toggleSort("title")} />
                         <TH>Status</TH>
@@ -299,7 +299,7 @@ export function VacancyList() {
                       })}
                     </TBody>
                   </Table>
-                </div>
+                </TableScroll>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line px-4 py-2.5">
                   <Pagination p={pager} noun={["vacancy", "vacancies"]} anchor={top} className="flex-1" />
                   {filtersOn && (

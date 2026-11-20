@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRightLeft, PenLine, Sparkles, UsersRound, X } from "@/components/icons";
-import { LoadError, Avatar, Button, Card, Checkbox, EmptyState, Pagination, Skeleton, Switch, Table, TBody, TD, TH, THead, TR, Tooltip, usePagination } from "@/components/ui";
+import { ArrowRightLeft, PenLine, Sparkles, UsersRound } from "@/components/icons";
+import { BulkAction, BulkBar, LoadError, Avatar, Button, Card, Checkbox, EmptyState, Pagination, Skeleton, Switch, Table, TableScroll, TBody, TD, TH, THead, TR, Tooltip, usePagination } from "@/components/ui";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { IllustrativeNotice, MatchScore, ProvenanceTag } from "@/components/domain/assessment";
 import { StageBadge } from "@/components/domain/status-badge";
@@ -127,14 +127,8 @@ export function MatchingOverview() {
       )}
 
       {data && picked.length > 0 && (
-        <div className="material-bar sticky bottom-4 z-10 mx-auto mt-6 flex w-fit max-w-full items-center gap-3 rounded-full border border-line py-2 pr-2 pl-4 shadow-lg">
-          <span className="text-sm font-medium text-fg">
-            {picked.length} of {MAX_COMPARE} picked
-          </span>
-          <Button size="sm" variant="ghost" onClick={() => setPicked([])} aria-label="Clear picked candidates">
-            <X />
-          </Button>
-          <Button size="sm" disabled={picked.length < 2} asChild={picked.length >= 2}>
+        <BulkBar label={`${picked.length} of ${MAX_COMPARE} picked`} onClear={() => setPicked([])} clearLabel="Clear picked candidates">
+          <BulkAction primary disabled={picked.length < 2} asChild={picked.length >= 2}>
             {picked.length >= 2 ? (
               <Link href={`/matching/${data.vacancy.id}/compare?c=${picked.join(",")}`}>
                 <ArrowRightLeft />
@@ -146,8 +140,8 @@ export function MatchingOverview() {
                 Pick one more
               </span>
             )}
-          </Button>
-        </div>
+          </BulkAction>
+        </BulkBar>
       )}
     </PageContainer>
   );
@@ -249,9 +243,9 @@ function RankingList({
         })}
       </ol>
 
-      <div className="hidden md:block">
+      <TableScroll className="hidden md:block">
         <Table>
-          <THead>
+          <THead sticky>
             <TR>
               <TH className="w-10 pr-0">
                 <span className="sr-only">Pick to compare</span>
@@ -349,7 +343,7 @@ function RankingList({
             })}
           </TBody>
         </Table>
-      </div>
+      </TableScroll>
       <div className="border-t border-line px-4 py-2.5">
         <Pagination p={pager} noun={["candidate", "candidates"]} anchor={top} />
       </div>

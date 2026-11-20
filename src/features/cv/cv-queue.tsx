@@ -252,7 +252,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
             <CloudArrowUp className="size-6" aria-hidden />
           </span>
           <div>
-            <p className="text-[0.9375rem] font-semibold text-fg">{drag ? "Drop to upload" : "Drop CVs here"}</p>
+            <p className="text-md font-semibold text-fg">{drag ? "Drop to upload" : "Drop CVs here"}</p>
             <p className="mt-0.5 text-sm text-fg-muted">Drag a whole folder&apos;s worth at once, or choose files from your computer.</p>
           </div>
           <Button variant="secondary" size="sm" loading={busy} onClick={() => fileRef.current?.click()}>
@@ -308,7 +308,7 @@ function BatchCard({ batch, full }: { batch: CvBatch; full: CvBatch }) {
     <Card className="overflow-hidden scroll-mt-16" ref={top}>
       <div className="flex flex-col gap-3 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-[0.9375rem] font-semibold text-fg">
+          <h2 className="text-md font-semibold text-fg">
             <Link href={`/vacancies/${full.vacancyId}`} className="hover:underline">
               {full.vacancyTitle}
             </Link>

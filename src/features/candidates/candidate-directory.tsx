@@ -18,7 +18,7 @@ import {
   Select,
   Skeleton,
   SortableTH,
-  Table,
+  Table, TableScroll,
   TBody,
   TD,
   TH,
@@ -27,6 +27,8 @@ import {
   Tag,
   toast,
   type SortDirection,
+  BulkAction,
+  BulkBar,
 } from "@/components/ui";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { StageBadge, STAGE_META } from "@/components/domain/status-badge";
@@ -230,43 +232,6 @@ export function CandidateDirectory() {
           </div>
         </div>
 
-        {selected.size > 0 && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-900 px-3 py-2 text-sm text-white animate-pop-in" role="region" aria-label="Bulk actions">
-            <span className="font-semibold tabular">{selected.size} selected</span>
-            <span className="mx-1 h-4 w-px bg-ink-700" aria-hidden />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-ink-800 hover:text-white"
-              onClick={async () => {
-                const ids = [...selected];
-                await Promise.all(ids.map((id) => services.profiles.setTalentPool(id, true)));
-                setRows((r) => r?.map((c) => (selected.has(c.id) ? { ...c, inTalentPool: true } : c)) ?? null);
-                setSelected(new Set());
-                toast.success(`${ids.length} added to the talent pool`);
-              }}
-            >
-              <Bookmark />
-              Add to talent pool
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-ink-800 hover:text-white"
-              onClick={() => toast.success("Export ready (simulated)", `candidates-${selected.size}.csv`)}
-            >
-              <Download />
-              Export CSV
-            </Button>
-            <Button size="sm" variant="ghost" className="text-white hover:bg-ink-800 hover:text-white" onClick={() => setSendingTests(true)}>
-              <ClipboardList />
-              Send tests
-            </Button>
-            <Button size="sm" variant="ghost" className="ml-auto text-ink-300 hover:bg-ink-800 hover:text-white" onClick={() => setSelected(new Set())}>
-              Clear
-            </Button>
-          </div>
-        )}
 
         {error ? (
           <Alert
@@ -334,9 +299,9 @@ export function CandidateDirectory() {
                     </li>
                   ))}
                 </ul>
-                <div className="hidden overflow-x-auto md:block">
+                <TableScroll className="hidden md:block">
                   <Table className="min-w-[60rem]">
-                    <THead>
+                    <THead sticky>
                       <TR>
                         <TH className="w-10 pr-0">
                           <Checkbox
@@ -422,7 +387,7 @@ export function CandidateDirectory() {
                       })}
                     </TBody>
                   </Table>
-                </div>
+                </TableScroll>
                 <div className="border-t border-line px-4 py-2.5">
                   <Pagination p={pager} noun={["candidate", "candidates"]} anchor={listTop} />
                   {(filtered.length < rows.length || f.skills.length > 1) && (
@@ -437,6 +402,32 @@ export function CandidateDirectory() {
           </Card>
         )}
       </div>
+      {selected.size > 0 && (
+        <BulkBar label={<>{selected.size} selected</>} onClear={() => setSelected(new Set())}>
+          <BulkAction
+            onClick={async () => {
+              const ids = [...selected];
+              await Promise.all(ids.map((id) => services.profiles.setTalentPool(id, true)));
+              setRows((r) => r?.map((c) => (selected.has(c.id) ? { ...c, inTalentPool: true } : c)) ?? null);
+              setSelected(new Set());
+              toast.success(`${ids.length} added to the talent pool`);
+            }}
+          >
+            <Bookmark />
+            Add to talent pool
+          </BulkAction>
+          <BulkAction
+            onClick={() => toast.success("Export ready (simulated)", `candidates-${selected.size}.csv`)}
+          >
+            <Download />
+            Export CSV
+          </BulkAction>
+          <BulkAction onClick={() => setSendingTests(true)}>
+            <ClipboardList />
+            Send tests
+          </BulkAction>
+        </BulkBar>
+      )}
       <SendTestsDialog
         open={sendingTests}
         onOpenChange={setSendingTests}

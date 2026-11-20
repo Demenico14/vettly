@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, CalendarPlus, ChatText, Check, ClipboardList, EyeOff, Phone, Plus, RefreshCw, Sparkles, Trash2, UsersRound, Video, X } from "@/components/icons";
 import { Alert, Avatar, Button, Card, CardHeader, Checkbox, Field, Input, Modal, ModalClose, ModalContent, Skeleton, Textarea, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { MatchScore } from "@/components/domain/assessment";
 import { STAGE_META, StageBadge } from "@/components/domain/status-badge";
 import { services, MOCK_NOW, MY_INTERVIEWER_ID, harare, partsOf, type CandidateContext, type Conflict, type InterviewListItem } from "@/services";
@@ -73,10 +73,10 @@ export function InterviewDetail({ id }: { id: string }) {
               <Avatar name={iv.candidateName} size="lg" />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{iv.candidateName}</h1>
+                  <PageTitle>{iv.candidateName}</PageTitle>
                   <StatusBadge status={iv.status} size="md" />
                 </div>
-                <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+                <p className="mt-1.5 text-md text-fg-muted">
                   {iv.round} · {iv.vacancyTitle}
                 </p>
                 <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg">

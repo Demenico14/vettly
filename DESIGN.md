@@ -9,7 +9,7 @@ Direction: **Granite & Msasa** (v2.0, chosen 18 Nov 2026; replaces the v1 indigo
 ## Tokens (src/app/globals.css)
 
 - **Colour:** `primary-*` bush green (600 `#16624F`), `accent-*` msasa copper (500 `#C2602F`, AI and attention only), `success-*` leaf green (500 `#3E8A47`), `secondary-*` slate blue (500 `#2F5D8A`), `warning-*` ochre (500 `#C98A12`), `danger-*` red (600 `#B42318`), `ink-*` granite neutrals (900 `#1B2420` … 50 `#F7F7F4`). Semantic: `canvas` `#F3F3F1` (grouped background), `surface` (white platters), `surface-muted` `#F8F8F6`, `line` `#E8E8E5`, `line-strong` `#D6D6D2`, `fg`, `fg-muted`, `fg-subtle`, `shell` `#ECECEA` / `shell-raised` `#E0E0DD` (sidebar material). Utilities: `material-bar`, `material-sidebar`, `pressable`, `shadow-platter`. Brand: `brand-bush`, `brand-green`, `brand-copper`.
-- **Type:** Public Sans 400–700. Scale `2xs` 11 · `xs` 12 · `sm` 14 (body) · `base`/`lg` 16 · `xl` 18 · `2xl` 24 · `3xl` 36. Titles and wordmark Bold, panel headings SemiBold; tabular figures in data.
+- **Type:** Public Sans 400–700. Scale `2xs` 11 (keyboard hints and fine print only) · `xs` 12 · `sm` 14 (body) · `md` 15 (panel titles, lead copy) · `base`/`lg` 16 · `xl` 18 · `2xl` 24 · `3xl` 36 · `title-sm` 28 / `title` 34 (page titles via `PageTitle`, line-height 1.1, −0.02em). Titles and wordmark Bold, panel headings SemiBold; tabular figures in data.
 - **Icons:** Phosphor via `src/components/icons.ts`; regular weight, fill for the active nav item, bold for checkbox ticks.
 - **Radius:** xs 3 · sm 4 · md 6 · lg 12 (platters) · xl 16 (modals) · full (avatars, status pills).
 - **Shadow:** `shadow-platter` on panels and tiles, xs on controls, md on tile hover, lg on floating layers.

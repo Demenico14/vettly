@@ -132,7 +132,7 @@ export function PhotoPanel({ photo }: { photo: AuthPhoto }) {
       />
       <div className="absolute inset-0 flex flex-col justify-end gap-8 p-12 xl:p-14">
         <div className="max-w-md motion-safe:animate-[rise_900ms_var(--ease-out-expo)_200ms_both]">
-          <p className="text-[1.75rem] leading-tight font-bold tracking-[-0.02em] text-balance text-white">{p.headline}</p>
+          <p className="text-title-sm leading-tight font-bold text-balance text-white">{p.headline}</p>
           <p className="mt-3 text-sm leading-relaxed text-shell-fg">{p.body}</p>
           <ReviewStrip />
         </div>

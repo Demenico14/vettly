@@ -15,3 +15,4 @@ export * from "./feedback";
 export { toast } from "./toast";
 export * from "./pagination";
 export * from "./combobox";
+export * from "./bulk-bar";

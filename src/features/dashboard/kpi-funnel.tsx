@@ -107,7 +107,7 @@ export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: Dash
                   <span className={cn("min-w-0 text-[0.8125rem] leading-tight font-semibold", st.label)}>{k.label}</span>
                 </span>
                 <span>
-                  <span className="block text-[1.75rem] leading-none font-bold tracking-[-0.02em] text-fg tabular">
+                  <span className="block text-title-sm leading-none font-bold text-fg tabular">
                     {nf.format(k.value)}
                     {k.unit && <span className="ml-1 text-sm font-semibold tracking-normal text-fg-subtle">{k.unit}</span>}
                   </span>

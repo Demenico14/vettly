@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@/components/icons";
 import { Alert, Button, Card, ConfirmModal, Field, Skeleton, Textarea, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, MY_INTERVIEWER_ID, type CandidateContext, type InterviewListItem } from "@/services";
 import type { Interviewer, QuestionSet, Rating, Recommendation } from "@/types/interviews";
 import { RATING_ANCHORS } from "@/mocks/interviews";
@@ -89,8 +89,8 @@ export function ScorecardForm({ id }: { id: string }) {
       header={
         <div>
           {back}
-          <h1 className="mt-4 text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">Your scorecard: {iv.candidateName}</h1>
-          <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+          <PageTitle className="mt-4">Your scorecard: {iv.candidateName}</PageTitle>
+          <p className="mt-1.5 text-md text-fg-muted">
             {iv.round} · {iv.vacancyTitle} · {dayLong(iv.startsAt)}, {time(iv.startsAt)}
           </p>
           <p className="mt-2 max-w-2xl text-sm text-fg-muted">Rate what the candidate showed in the interview, with the evidence. Score each competency on its own before deciding your overall view. Other panellists can&apos;t see your scores until they submit theirs.</p>

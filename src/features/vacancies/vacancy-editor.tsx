@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, CircleAlert, RefreshCw } from "@/components/icons";
 import { Alert, Button, Skeleton, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { useSession } from "@/components/layout/session-provider";
 import { emptyDraft, services, toDraft, MOCK_NOW } from "@/services";
 import type { Vacancy, VacancyDraft } from "@/types";
@@ -191,10 +191,10 @@ export function VacancyEditor({ id }: { id?: string }) {
             <ArrowLeft className="size-4" />
             {source ? source.title : "Vacancies"}
           </Link>
-          <h1 className="mt-3 text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">
+          <PageTitle className="mt-3">
             {source ? `Edit ${source.title}` : "New vacancy"}
-          </h1>
-          <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+          </PageTitle>
+          <p className="mt-1.5 text-md text-fg-muted">
             {source ? `${source.reference} · changes apply to the live advert when you save.` : "Save a draft at any point. Publishing checks that everything candidates and the matcher need is in place."}
           </p>
         </div>
@@ -265,7 +265,7 @@ export function VacancyEditor({ id }: { id?: string }) {
                   Save draft
                 </Button>
                 <Button loading={saving === "publish"} disabled={!!saving} onClick={() => save("publish")}>
-                  Publish
+                  {draft.channels.length ? `Publish to ${draft.channels.length} ${draft.channels.length === 1 ? "channel" : "channels"}` : "Publish"}
                 </Button>
               </>
             ) : (

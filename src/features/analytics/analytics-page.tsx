@@ -441,7 +441,7 @@ function Assessments({ r }: { r: AnalyticsReport }) {
       <section>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-[0.9375rem] font-semibold text-fg">Score distributions</h2>
+            <h2 className="text-md font-semibold text-fg">Score distributions</h2>
             <p className="text-xs text-fg-subtle">Stens of completed tests. Candidates who reach testing are already screened, so scores sitting above the norm is expected.</p>
           </div>
           <HistogramLegend />

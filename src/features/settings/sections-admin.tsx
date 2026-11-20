@@ -58,7 +58,7 @@ export function BillingSection() {
           return (
             <Card key={p.id} className={cn("flex flex-col p-5", current && "ring-2 ring-primary-500")}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[0.9375rem] font-semibold text-fg">{p.name}</span>
+                <span className="text-md font-semibold text-fg">{p.name}</span>
                 {current && <Badge tone="primary" size="sm">Your plan</Badge>}
               </div>
               <span className="mt-1 text-sm text-fg-muted">{p.price}</span>

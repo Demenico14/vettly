@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, CalendarPlus, Check, Eye, Pencil, RefreshCw, Send, UserRound, X } from "@/components/icons";
 import { Alert, Avatar, Button, Card, CardHeader, Checkbox, Field, Input, Modal, ModalClose, ModalContent, Select, Skeleton, Textarea, toast } from "@/components/ui";
-import { PageContainer } from "@/components/layout/page-header";
+import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { StageBadge } from "@/components/domain/status-badge";
 import { services, MOCK_NOW, type OfferView } from "@/services";
 import type { ApplicationStage, Vacancy } from "@/types";
@@ -85,10 +85,10 @@ export function OfferDetail({ id }: { id: string }) {
               <Avatar name={o.candidateName} size="lg" />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[2.125rem]">{o.candidateName}</h1>
+                  <PageTitle>{o.candidateName}</PageTitle>
                   <OfferBadge offer={o} size="md" />
                 </div>
-                <p className="mt-1.5 text-[0.9375rem] text-fg-muted">
+                <p className="mt-1.5 text-md text-fg-muted">
                   {t.jobTitle} · {money(t.currency, t.baseSalary)} per {t.payPeriod} · starts {shortDate(t.startDate)}
                   {o.version > 1 && ` · version ${o.version}`}
                 </p>
