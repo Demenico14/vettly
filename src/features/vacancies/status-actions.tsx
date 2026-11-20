@@ -142,7 +142,7 @@ export function StatusDialog({
                 autoFocus
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder={to === "filled" ? "e.g. Chipo Makoni accepted the offer" : "e.g. Budget review until December"}
+                placeholder={to === "filled" ? "e.g. Our preferred candidate accepted the offer" : "e.g. Budget review until December"}
               />
             </Field>
           )}

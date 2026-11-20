@@ -302,7 +302,7 @@ function Branding({
             </div>
             <div className="p-3">
               <div className="rounded-sm border border-line bg-surface p-3">
-                <p className="text-xs font-semibold">Hello Chipo,</p>
+                <p className="text-xs font-semibold">Hello [first name],</p>
                 <p className="mt-1 text-[0.625rem] leading-snug text-fg-muted">
                   {orgName} has invited you to complete 2 short assessments.
                 </p>

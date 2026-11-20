@@ -35,7 +35,7 @@ export const DEFAULT_ROLE_PERMISSIONS: RolePermissions = {
   hiring_manager: ["view_candidates", "interview", "approve_offers", "view_test_reports"],
 };
 
-/** Reference prefix from the organisation name: "Msasa Financial Group" → "MFG". */
+/** Reference prefix from the organisation name: "Acme Freight Services" → "AFS". */
 export function prefixFor(name: string) {
   const words = name.replace(/\(.*?\)/g, "").split(/\s+/).filter((w) => /^[A-Za-z]/.test(w) && !/^(and|of|the|&)$/i.test(w));
   const p = words.map((w) => w[0]!.toUpperCase()).join("").slice(0, 4);

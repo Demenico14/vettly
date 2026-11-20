@@ -75,7 +75,7 @@ export function RegisterForm() {
           </Alert>
         )}
         <Field label="Full name" required error={errors.name?.message}>
-          <Input autoComplete="name" placeholder="e.g. Chipo Makoni" {...register("name")} />
+          <Input autoComplete="name" {...register("name")} />
         </Field>
         <Field
           label="Work email"

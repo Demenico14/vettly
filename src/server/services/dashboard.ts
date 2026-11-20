@@ -138,7 +138,7 @@ function activity(): ActivityEvent[] {
   }
   for (const o of offerStore)
     for (const h of o.history) {
-      // Steps Vettly takes itself read as "Chipo Makoni's offer: fully approved"; people's steps as "Tendai Moyo approved (Chipo Makoni)".
+      // Steps Vettly takes itself read as "<candidate>'s offer: fully approved"; people's steps as "<person> approved (<candidate>)".
       const system = h.by === "Vettly";
       const text = `${h.text.charAt(0).toLowerCase()}${h.text.slice(1)}`.replace(/\.\s*Ready to send\.$/, ", ready to send").replace(/\.$/, "");
       events.push({ id: `act_off_${o.id}_${h.at}`, kind: "offer", actor: system ? `${o.candidateName}'s offer:` : h.by, text: system ? text : `${text} (${o.candidateName})`, context: o.vacancyTitle, at: h.at });

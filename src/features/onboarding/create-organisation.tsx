@@ -108,7 +108,7 @@ export function CreateOrganisation() {
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {error && <Alert tone="danger" title="Organisation not created">{error}</Alert>}
         <Field label="Organisation name" required error={errors.name?.message}>
-          <Input autoComplete="organization" autoFocus placeholder="e.g. Msasa Financial Group" {...register("name")} />
+          <Input autoComplete="organization" autoFocus {...register("name")} />
         </Field>
         <Field
           label="Workspace address"

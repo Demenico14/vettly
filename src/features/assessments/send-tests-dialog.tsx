@@ -7,6 +7,7 @@ import { services, MOCK_NOW, deadlineIn, type SendResult } from "@/services";
 import type { CandidateProfile } from "@/types";
 import type { Battery, Channel, LanguageCode, Test } from "@/types/psychometrics";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/components/layout/session-provider";
 import { FAMILY_SHORT, day } from "./meta";
 
 export interface SendTarget {
@@ -41,6 +42,7 @@ export function SendTestsDialog({
   targets?: SendTarget[];
   onSent?: (r: SendResult) => void;
 }) {
+  const orgName = useSession().organisation?.name ?? "";
   const [step, setStep] = React.useState<Step>("tests");
   const [people, setPeople] = React.useState<CandidateProfile[] | null>(null);
   const [batteries, setBatteries] = React.useState<Battery[]>([]);
@@ -303,7 +305,7 @@ export function SendTestsDialog({
                     {targets.length > 1 && ` and ${targets.length - 1} more`}
                   </p>
                   <div className="px-4 py-4 text-sm leading-relaxed text-fg">
-                    <p className="font-semibold">Your assessments for {first.vacancyTitle} at Msasa Financial Group</p>
+                    <p className="font-semibold">Your assessments for {first.vacancyTitle} at {orgName}</p>
                     <p className="mt-3">Dear {first.name.split(" ")[0]},</p>
                     <p className="mt-2 text-fg-muted">
                       As the next step in your application, please complete {chosenTests.length === 1 ? "a short online test" : `${chosenTests.length} short online tests`} by{" "}
@@ -334,7 +336,7 @@ export function SendTestsDialog({
                       {channels.includes("sms") ? "SMS" : "WhatsApp"} · {146 + first.name.split(" ")[0]!.length} characters
                     </p>
                     <p className="px-4 py-3 text-sm text-fg-muted">
-                      Msasa Financial: Hi {first.name.split(" ")[0]}, please complete your {first.vacancyTitle} assessments (~{minutes} min) by {day(`${deadline}T17:00:00+02:00`)} 17:00: vettly.app/t/•••••
+                      {orgName}: Hi {first.name.split(" ")[0]}, please complete your {first.vacancyTitle} assessments (~{minutes} min) by {day(`${deadline}T17:00:00+02:00`)} 17:00: vettly.app/t/•••••
                     </p>
                   </section>
                 )}

@@ -4,6 +4,7 @@
  * platform records. Every change needs a reason. Staff never see an organisation's candidates from here.
  */
 import "server-only";
+import { tests } from "@/mocks/psychometrics";
 import { and, desc, eq, ne, sql as dsql } from "drizzle-orm";
 import type { AiPolicy, AiTask, AiTaskConfig, AssessmentProvider, Incident, PlatformAuditEvent, PlatformSnapshot, PlanId, PlatformUser, ServiceHealth, Tenant } from "@/types/platform";
 import { PLAN_LIMITS } from "@/lib/plans";
@@ -35,7 +36,7 @@ const DEFAULT_TASKS: AiTaskConfig[] = [
 const policy = single<AiPolicy>("ai_policy", () => ({ provider: "Not connected", zeroRetention: true, redactContactDetails: true, humanReviewRequired: true, monthlyBudgetUsd: 0, spentThisMonthUsd: 0 }));
 const tasks = single<AiTaskConfig[]>("ai_tasks", () => clone(DEFAULT_TASKS));
 const providers = single<AssessmentProvider[]>("providers", () => [
-  { id: "prov_vettly", name: "Vettly Assessments", kind: "in_house", status: "active", tests: 29, tenants: 0, resultLatency: "Instant", note: "Vettly's own tests and norms. Every organisation has access." },
+  { id: "prov_vettly", name: "Vettly Assessments", kind: "in_house", status: "active", tests: tests.length, tenants: 0, resultLatency: "Instant", note: "Vettly's own tests and norms. Every organisation has access." },
 ]);
 const disabledTests = single<string[]>("disabled_tests", () => []);
 const notes = collection<{ id: string; notes: string[]; supportAccessUntil: string | null }>("tenant_note");

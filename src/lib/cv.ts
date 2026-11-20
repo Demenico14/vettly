@@ -21,7 +21,7 @@ export const FAILURE_COPY: Record<CvFailure, { title: string; help: string }> = 
   },
 };
 
-/** Name from a file name such as "Farai_Moyo_CV.pdf", or null when there isn't one. */
+/** Name from a file name such as "Jane_Doe_CV.pdf", or null when there isn't one. */
 export function nameFromFile(fileName: string) {
   const stem = fileName.replace(/\.[^.]+$/, "");
   const words = stem

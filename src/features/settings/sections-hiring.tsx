@@ -112,11 +112,11 @@ export function RecruitmentSection() {
 
 const MERGE = ["first_name", "vacancy", "deadline", "minutes", "link", "org", "sign_off"];
 const SAMPLE: Record<string, string> = {
-  first_name: "Chipo",
-  vacancy: "Finance Manager",
-  deadline: "Mon 23 Nov, 17:00",
-  minutes: "65",
-  link: "https://tests.vettly.example/t/8Kq2",
+  first_name: "[first name]",
+  vacancy: "[vacancy]",
+  deadline: "[deadline]",
+  minutes: "[minutes]",
+  link: "[test link]",
 };
 /** Fills a template with a sample candidate and this organisation's name. */
 const fill = (t: string, org: string) => {
@@ -188,7 +188,7 @@ export function AssessmentsSection() {
         {preview ? (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
             <div className="rounded-md border border-line bg-surface-muted p-4">
-              <p className="text-xs text-fg-subtle">To: chipo.makoni@example.com</p>
+              <p className="text-xs text-fg-subtle">To: the candidate&apos;s email</p>
               <p className="mt-1 text-sm font-semibold text-fg">{fill(a.inviteEmailSubject, org)}</p>
               <p className="mt-3 text-sm whitespace-pre-line text-fg">{fill(a.inviteEmailBody, org)}</p>
             </div>

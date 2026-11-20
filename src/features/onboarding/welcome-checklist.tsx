@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Briefcase, Check, ClipboardList, FileUp, Paintbrush, Sparkles, UserPlus, X } from "@/components/icons";
 import { Button, Card, Progress, Tooltip } from "@/components/ui";
@@ -261,9 +260,7 @@ export function WelcomeChecklist() {
             ))}
           </ol>
           <div className="border-t border-line px-5 py-3">
-            <Link href="/design-system#badges" className="text-xs font-semibold text-primary-700 hover:underline">
-              What copper and green mean
-            </Link>
+            <p className="text-xs text-fg-subtle">Copper marks a suggestion from Vettly that nobody has reviewed yet. Green marks something someone in HR has confirmed.</p>
           </div>
         </Card>
       </div>
