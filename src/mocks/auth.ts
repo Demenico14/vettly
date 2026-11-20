@@ -10,6 +10,7 @@
  * - Team invitations: see `invitations` below.
  * - Candidate test links: see `candidateTestLinks` below.
  */
+import { batteryOptions } from "./psychometrics";
 import type { CandidateTestAccess, TeamInvitation } from "@/types";
 
 export const MOCK_OTP = "246810";
@@ -126,10 +127,7 @@ export const TIMEZONES = [
 
 export const DEFAULT_STAGES = ["Applied", "Screening", "Shortlisted", "Assessment", "Interview", "Offer", "Hired"];
 
-export const TEST_BATTERIES = [
-  { value: "graduate", label: "Graduate battery", description: "Numerical + verbal + work styles · 60 min" },
-  { value: "professional", label: "Professional battery", description: "Numerical + situational judgement · 45 min" },
-  { value: "leadership", label: "Leadership battery", description: "Verbal + work styles + situational judgement · 55 min" },
-];
+/** Battery picker options, from the psychometric database. */
+export const TEST_BATTERIES = batteryOptions;
 
 export const BRAND_COLOURS = ["#16624F", "#1F3F5E", "#7A2E1F", "#3B4A1E", "#1B2420"];

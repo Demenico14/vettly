@@ -6,7 +6,7 @@
  */
 import type { ApplicationEvent, ApplicationSource, ApplicationStage, AssessmentProvenance, TestInvitationSummary, Vacancy } from "@/types";
 import { testInvitations } from "@/mocks/dashboard";
-import { TEST_BATTERIES } from "@/mocks/auth";
+import { batterySummary, getBattery, testsForInvitation } from "@/mocks/psychometrics";
 import { MOCK_NOW, users } from "@/mocks/data";
 import { profileSnapshot } from "./candidates";
 import { vacancySnapshot } from "./vacancies";
@@ -60,9 +60,9 @@ export const invitationStore: TestInvitationSummary[] = structuredClone(testInvi
 let seq = 0;
 
 export function battery(vacancy: Vacancy) {
-  const b = TEST_BATTERIES.find((x) => x.value === vacancy.assessment.battery);
+  const b = getBattery(vacancy.assessment.battery);
   if (!b) return null;
-  return { label: b.label, tests: b.description.split(" · ")[0]!.split(" + ").length, description: b.description };
+  return { label: b.label, tests: testsForInvitation({ batteryId: b.id, extraTests: [] }).length, description: batterySummary(b) };
 }
 
 function testsFor(name: string, vacancyTitle: string) {

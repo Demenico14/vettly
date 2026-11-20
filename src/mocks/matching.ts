@@ -14,23 +14,11 @@ import type {
   ScoreCategory,
   Vacancy,
 } from "@/types";
+import { resultsByCandidate } from "./psychometrics";
 
 /** Psychometric results by candidate (percentiles). Shared with the candidate profile's tests tab. */
-export const TEST_RESULTS: Record<string, { test: string; percentile: number; band: string }[]> = {
-  "Tafadzwa Ncube": [
-    { test: "Numerical reasoning", percentile: 78, band: "Above average" },
-    { test: "Situational judgement", percentile: 64, band: "Average" },
-    { test: "Work styles questionnaire", percentile: 0, band: "Profile report" },
-  ],
-  "Tinashe Mhlanga": [
-    { test: "Numerical reasoning", percentile: 69, band: "Above average" },
-    { test: "Situational judgement", percentile: 74, band: "Above average" },
-  ],
-  "Chipo Makoni": [
-    { test: "Numerical reasoning", percentile: 71, band: "Above average" },
-    { test: "Situational judgement", percentile: 82, band: "Well above average" },
-  ],
-};
+/** Psychometric results by candidate (percentiles), derived from stored raw scores and norm groups. */
+export const TEST_RESULTS: Record<string, { test: string; percentile: number; band: string }[]> = resultsByCandidate();
 
 export function testScoreFor(name: string) {
   const scored = (TEST_RESULTS[name] ?? []).filter((t) => t.percentile > 0);

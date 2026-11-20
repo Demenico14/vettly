@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "brand": "node scripts/generate-brand.mjs"
+    "brand": "node scripts/generate-brand.mjs",
+    "check:psychometrics": "node scripts/check-psychometrics.mjs"
   },
   "dependencies": {
     "@fontsource/public-sans": "5.1.1",
