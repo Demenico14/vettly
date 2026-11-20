@@ -24,7 +24,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | 7 | AI recruitment intelligence | Approved |
 | 8 | Recruitment pipeline | Approved |
 | **9** | **Psychometric assessments** (new) | Approved |
-| 10 | Interview management | Not started |
+| 10 | Interview management | In review |
 | 11 | Offers & hiring | Not started |
 | 12 | Talent intelligence | Not started |
 | 13 | Analytics & reporting | Not started |

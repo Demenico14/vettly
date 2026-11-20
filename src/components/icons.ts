@@ -13,6 +13,7 @@ export {
   FilePdf,
   FileImage,
   FileX,
+  VideoCamera as Video,
   Flag,
   FileDoc,
   CloudArrowUp,

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ClipboardList, DotsSixVertical, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
+import { CalendarPlus, ClipboardList, DotsSixVertical, MoreHorizontal, Search, Trash2, UserRound, Sparkles, X, ArrowRight } from "@/components/icons";
 import {
   Alert,
   Button,
@@ -33,6 +33,7 @@ import type { ApplicationStage, Vacancy } from "@/types";
 import { TEST_BATTERIES } from "@/mocks/auth";
 import { cn } from "@/lib/utils";
 import { MoveDialog, type MoveRequest } from "./move-dialog";
+import { ScheduleDialog, type SchedulePreset } from "@/features/interviews/schedule-dialog";
 import { CardDrawer } from "./card-drawer";
 import { TestLine } from "./test-line";
 
@@ -62,6 +63,7 @@ export function PipelineBoard() {
   const [open, setOpen] = React.useState<string | null>(null);
   const [dragging, setDragging] = React.useState<string[] | null>(null);
   const [over, setOver] = React.useState<ApplicationStage | null>(null);
+  const [scheduleFor, setScheduleFor] = React.useState<SchedulePreset | null>(null);
 
   const vacancyId = params.get("vacancy") ?? vacancies?.[0]?.vacancy.id ?? null;
 
@@ -317,6 +319,7 @@ export function PipelineBoard() {
                             onOpen={() => setOpen(key(c))}
                             onMoveTo={(s) => setMove({ cards: [c], stage: s })}
                             onSendTests={() => sendTests([c])}
+                            onSchedule={() => setScheduleFor({ candidateId: c.candidateId, vacancyId: board.vacancy.id })}
                             onDragStart={() => setDragging(selected.has(key(c)) ? [...selected] : [key(c)])}
                             onDragEnd={() => {
                               setDragging(null);
@@ -370,6 +373,7 @@ export function PipelineBoard() {
 
       {board && (
         <>
+          <ScheduleDialog open={!!scheduleFor} onOpenChange={(o) => !o && setScheduleFor(null)} preset={scheduleFor ?? undefined} onScheduled={refresh} />
           <MoveDialog request={move} vacancy={board.vacancy} batteryLabel={batteryLabel} onClose={() => setMove(null)} onMoved={refresh} />
           <CardDrawer
             card={openCard}
@@ -396,6 +400,7 @@ function BoardCard({
   onOpen,
   onMoveTo,
   onSendTests,
+  onSchedule,
   onDragStart,
   onDragEnd,
 }: {
@@ -409,6 +414,7 @@ function BoardCard({
   onOpen: () => void;
   onMoveTo: (s: ApplicationStage) => void;
   onSendTests: () => void;
+  onSchedule: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }) {
@@ -468,6 +474,12 @@ function BoardCard({
               <DropdownMenuItem onSelect={onSendTests}>
                 <ClipboardList />
                 Send tests
+              </DropdownMenuItem>
+            )}
+            {!closed && c.stage !== "rejected" && (
+              <DropdownMenuItem onSelect={onSchedule}>
+                <CalendarPlus />
+                Schedule interview
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />

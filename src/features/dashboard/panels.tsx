@@ -296,7 +296,9 @@ export function InterviewsPanel({ interviews, loading }: { interviews?: Intervie
                         <p className="text-2xs text-fg-subtle tabular">{iv.durationMin} min</p>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-fg">{iv.candidateName}</p>
+                        <Link href={`/interviews/${iv.id}`} className="block truncate text-sm font-semibold text-fg hover:underline">
+                          {iv.candidateName}
+                        </Link>
                         <p className="truncate text-xs text-fg-muted">
                           {iv.round} · {iv.vacancyTitle}
                         </p>

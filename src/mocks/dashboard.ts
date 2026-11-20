@@ -4,6 +4,7 @@
  * candidate shows the same details everywhere.
  */
 import { invitationRecords, toSummary } from "./psychometrics";
+import { interviewRecords, interviewers as interviewerDirectory } from "./interviews";
 import type {
   ActivityEvent,
   AttentionItem,
@@ -113,56 +114,22 @@ const attention: AttentionItem[] = [
   { id: "att_offer", kind: "offer_pending", title: "Offer awaiting candidate response", detail: "Tinashe Mhlanga, Software Developer · sent 4 days ago", count: 1, href: "/offers" },
 ];
 
-const interviews: InterviewSlot[] = [
-  {
-    id: "int_chipo",
-    candidateName: "Chipo Makoni",
-    candidateHeadline: "Group accountant · 7 yrs",
-    vacancyTitle: "Finance Manager",
-    startsAt: "2026-11-18T14:00:00+02:00",
-    durationMin: 60,
-    format: "Video",
-    location: "Microsoft Teams",
-    panel: ["Tendai Moyo", "Sipho Ndlovu", "Grace Nyathi"],
-    round: "Panel interview",
-  },
-  {
-    id: "int_rutendo",
-    candidateName: "Rutendo Chikwanha",
-    candidateHeadline: "Full-stack developer · 6 yrs",
-    vacancyTitle: "Software Developer",
-    startsAt: "2026-11-20T10:00:00+02:00",
-    durationMin: 90,
-    format: "In person",
-    location: "Msasa House, 4th floor boardroom, Harare",
-    panel: ["Tatenda Mutasa", "Kudzai Chirwa"],
-    round: "Technical panel",
-  },
-  {
-    id: "int_ruvimbo",
-    candidateName: "Ruvimbo Gumbo",
-    candidateHeadline: "Data engineer · 3 yrs",
-    vacancyTitle: "Data Analyst",
-    startsAt: "2026-11-21T09:00:00+02:00",
-    durationMin: 30,
-    format: "Phone",
-    location: "+263 77 ••• 4120",
-    panel: ["Kudzai Chirwa"],
-    round: "Screening call",
-  },
-  {
-    id: "int_nyasha",
-    candidateName: "Nyasha Dube",
-    candidateHeadline: "Data analyst · 4 yrs",
-    vacancyTitle: "Data Analyst",
-    startsAt: "2026-11-24T11:00:00+02:00",
-    durationMin: 60,
-    format: "Video",
-    location: "Google Meet",
-    panel: ["Tatenda Mutasa", "Tendai Moyo"],
-    round: "Case study review",
-  },
-];
+/** Next 7 days of scheduled interviews, from the interview store seed (Module 10). */
+const interviews: InterviewSlot[] = interviewRecords
+  .filter((iv) => iv.status === "scheduled" && iv.startsAt >= "2026-11-18" && iv.startsAt < "2026-11-26")
+  .sort((x, y) => x.startsAt.localeCompare(y.startsAt))
+  .map((iv) => ({
+    id: iv.id,
+    candidateName: iv.candidateName,
+    candidateHeadline: candidates.find((c) => c.id === iv.candidateId)?.headline ?? "",
+    vacancyTitle: iv.vacancyTitle,
+    startsAt: iv.startsAt,
+    durationMin: iv.durationMin,
+    format: iv.format,
+    location: iv.location,
+    panel: iv.panel.map((p) => interviewerDirectory.find((i) => i.id === p.interviewerId)?.name ?? p.interviewerId),
+    round: iv.round,
+  }));
 
 /** Derived from the psychometric database, so the dashboard, pipeline and profiles agree. */
 export const testInvitations: TestInvitationSummary[] = invitationRecords.map(toSummary);

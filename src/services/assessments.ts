@@ -109,6 +109,9 @@ function view(r: InvitationRecord): InvitationView {
 
 export type ScoredResult = TestResult & { scored: ReturnType<typeof scoreResult> };
 
+/** Standard scores for one result (used by interviews to summarise tests for the panel). */
+export const scoreOf = (r: TestResult) => scoreResult(r);
+
 /* ---------- Inputs ---------- */
 
 export interface SendTarget {

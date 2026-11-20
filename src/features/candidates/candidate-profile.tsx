@@ -39,6 +39,7 @@ import { services } from "@/services";
 import type { CandidateProfile } from "@/types";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
 import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
+import { ScheduleDialog } from "@/features/interviews/schedule-dialog";
 import { ApplicationsTab, AssessmentsTab, DocumentsTab, MoveStageDialog, NotesTab } from "./profile-tabs";
 
 export function CandidateProfileView({ id }: { id: string }) {
@@ -49,6 +50,7 @@ export function CandidateProfileView({ id }: { id: string }) {
   const [tagDraft, setTagDraft] = React.useState("");
   const [addingTag, setAddingTag] = React.useState(false);
   const [sendingTests, setSendingTests] = React.useState(false);
+  const [scheduling, setScheduling] = React.useState(false);
 
   React.useEffect(() => {
     let alive = true;
@@ -164,7 +166,7 @@ export function CandidateProfileView({ id }: { id: string }) {
                 <Bookmark weight={c.inTalentPool ? "fill" : "regular"} />
                 {c.inTalentPool ? "In talent pool" : "Save to pool"}
               </Button>
-              <Button variant="secondary" onClick={() => toast.info("Schedule interview", "Scheduling arrives in Module 10.")}>
+              <Button variant="secondary" onClick={() => setScheduling(true)}>
                 <CalendarPlus />
                 Interview
               </Button>
@@ -322,6 +324,7 @@ export function CandidateProfileView({ id }: { id: string }) {
           </Button>
         </aside>
       </div>
+      <ScheduleDialog open={scheduling} onOpenChange={setScheduling} preset={{ candidateId: c.id, vacancyId: app.vacancyId }} onScheduled={() => setReload((r) => r + 1)} />
       <SendTestsDialog
         open={sendingTests}
         onOpenChange={setSendingTests}
