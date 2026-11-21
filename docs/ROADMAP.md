@@ -31,6 +31,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | 14 | Organisation settings | Approved |
 | 15 | Platform administration | Approved |
 | — | Backend (first version) | Approved |
+| — | Tests and security hardening | Approved |
 
 ---
 
