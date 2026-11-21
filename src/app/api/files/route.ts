@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { readSession } from "@/server/session";
 import { storeUpload } from "@/server/files";
+import { fromOwnSite } from "@/server/http";
 
 /** Upload one file (multipart field "file"). Returns its id for use with the CV and document services. */
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  if (!fromOwnSite(req)) return NextResponse.json({ ok: false, error: "This request came from another site and was refused." }, { status: 403 });
   const s = await readSession();
   if (!s?.organisationId || !s.membership) return NextResponse.json({ ok: false, error: "Your session has ended. Sign in again." }, { status: 401 });
   const form = await req.formData().catch(() => null);

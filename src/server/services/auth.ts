@@ -1,4 +1,5 @@
 import "server-only";
+import { passwordProblem } from "@/lib/passwords";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
 import { and, desc, eq, isNull, lt } from "drizzle-orm";
 import type { AuthService } from "@/services/contracts";
@@ -61,12 +62,20 @@ export const authService: AuthService = {
   async signIn(email, password, remember) {
     await ready();
     const [u] = await db.select().from(schema.users).where(eq(schema.users.email, norm(email)));
-    if (u?.locked) throw new AuthError("account_locked", "This account is locked after 5 failed attempts. Reset your password to unlock it.");
+    // A lock set by Vettly staff; only they can lift it.
+    if (u?.locked) throw new AuthError("account_locked", "This account is locked. Contact Vettly support.");
+    // Throttling, not a hard lock, so nobody can lock someone else out by guessing wrong on purpose.
+    if (u?.signInPausedUntil && u.signInPausedUntil > new Date()) {
+      const minutes = Math.ceil((u.signInPausedUntil.getTime() - Date.now()) / 60_000);
+      throw new AuthError("account_locked", `Too many failed attempts. Try again in ${minutes} ${minutes === 1 ? "minute" : "minutes"}, or reset your password.`);
+    }
     if (!u || !(await verifyPassword(password, u.passwordHash))) {
       if (u) {
         const failed = u.failedSignIns + 1;
-        await db.update(schema.users).set({ failedSignIns: failed, locked: failed >= 5 }).where(eq(schema.users.id, u.id));
-        if (failed >= 5) throw new AuthError("account_locked", "This account is now locked after 5 failed attempts. Reset your password to unlock it.");
+        // From the 5th failure: 15 minutes, doubling each time, at most a day.
+        const pause = failed >= 5 ? new Date(Date.now() + Math.min(24 * 60, 15 * 2 ** (failed - 5)) * MINUTE) : null;
+        await db.update(schema.users).set({ failedSignIns: failed, signInPausedUntil: pause }).where(eq(schema.users.id, u.id));
+        console.warn(JSON.stringify({ event: "sign_in_failed", at: new Date().toISOString(), user: u.id, failed, paused: !!pause }));
       }
       throw new AuthError("invalid_credentials", "That email and password don't match.");
     }
@@ -76,7 +85,7 @@ export const authService: AuthService = {
     }
     // The environment list is the source of truth: removing someone from it removes their access at next sign-in.
     const superAdmin = superAdmins().includes(u.email);
-    await db.update(schema.users).set({ failedSignIns: 0, lastSignInAt: new Date(), isSuperAdmin: superAdmin }).where(eq(schema.users.id, u.id));
+    await db.update(schema.users).set({ failedSignIns: 0, signInPausedUntil: null, lastSignInAt: new Date(), isSuperAdmin: superAdmin }).where(eq(schema.users.id, u.id));
     const session = await sessionPayload({ ...u, isSuperAdmin: superAdmin });
     await createSession(u.id, session.organisationId, remember);
     return session;
@@ -89,7 +98,8 @@ export const authService: AuthService = {
   async register({ name, email, password }) {
     await ready();
     const e = norm(email);
-    if (password.length < 10) throw new AuthError("invalid_credentials", "Use at least 10 characters for your password.");
+    const weak = passwordProblem(password, [e, name]);
+    if (weak) throw new AuthError("invalid_credentials", weak);
     const [existing] = await db.select().from(schema.users).where(eq(schema.users.email, e));
     if (existing?.emailVerifiedAt) throw new AuthError("email_taken", "An account with this email already exists. Sign in instead.");
     const passwordHash = await hashPassword(password);
@@ -135,8 +145,12 @@ export const authService: AuthService = {
 
   async resetPassword(token, password) {
     const { email } = await authService.checkResetToken(token);
-    if (password.length < 10) throw new AuthError("invalid_credentials", "Use at least 10 characters for your password.");
-    await db.update(schema.users).set({ passwordHash: await hashPassword(password), locked: false, failedSignIns: 0, emailVerifiedAt: new Date() }).where(eq(schema.users.email, email));
+    const weak = passwordProblem(password, [email]);
+    if (weak) throw new AuthError("invalid_credentials", weak);
+    // Clears the failed-attempt pause, but never a lock set by Vettly staff.
+    await db.update(schema.users).set({ passwordHash: await hashPassword(password), failedSignIns: 0, signInPausedUntil: null, emailVerifiedAt: new Date() }).where(eq(schema.users.email, email));
+    // Every other reset link for this account stops working too.
+    await db.update(schema.tokens).set({ usedAt: new Date() }).where(and(eq(schema.tokens.email, email), eq(schema.tokens.purpose, "reset"), isNull(schema.tokens.usedAt)));
     await db.update(schema.tokens).set({ usedAt: new Date() }).where(eq(schema.tokens.id, sha256(token)));
     const [u] = await db.select().from(schema.users).where(eq(schema.users.email, email));
     if (u) await db.delete(schema.sessions).where(eq(schema.sessions.userId, u.id));
@@ -163,7 +177,8 @@ export const authService: AuthService = {
   async acceptInvitation(token, { name, password }) {
     const inv = await authService.getInvitation(token);
     if (inv.status !== "pending") throw new AuthError("token_expired", "This invitation can no longer be used. Ask for a new one.");
-    if (password.length < 10) throw new AuthError("invalid_credentials", "Use at least 10 characters for your password.");
+    const weak = passwordProblem(password, [inv.email, name]);
+    if (weak) throw new AuthError("invalid_credentials", weak);
     const t = await findInvite(token);
     const passwordHash = await hashPassword(password);
     const [existing] = await db.select().from(schema.users).where(eq(schema.users.email, inv.email));

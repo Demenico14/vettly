@@ -1,6 +1,5 @@
 import "server-only";
-import { and, eq, inArray } from "drizzle-orm";
-import { db, ready, schema, sql } from "./db";
+import { asOrg, ownerSql, ready } from "./db";
 import { context, runInContext, type Actor } from "./context";
 
 /**
@@ -31,8 +30,7 @@ const SINGLE = "_";
 const key = (kind: string, id: string) => `${kind}\u0000${id}`;
 
 async function load(orgId: string): Promise<OrgState> {
-  await ready();
-  const rows = await db.select().from(schema.records).where(eq(schema.records.organisationId, orgId));
+  const rows = await asOrg(orgId, (tx) => tx<{ kind: string; id: string; data: unknown }[]>`select kind, id, data from records where organisation_id = ${orgId}`);
   const state: OrgState = { orgId, cols: new Map(), singles: new Map(), saved: new Map() };
   for (const r of rows) {
     if (r.id === SINGLE) state.singles.set(r.kind, r.data);
@@ -70,7 +68,7 @@ async function persist(state: OrgState) {
   const removed = [...state.saved.keys()].filter((k) => !seen.has(k)).map((k) => k.split("\u0000") as [string, string]);
   if (!upserts.length && !removed.length) return;
 
-  await sql.begin(async (tx) => {
+  await asOrg(state.orgId, async (tx) => {
     for (const u of upserts) {
       await tx`insert into records (organisation_id, kind, id, data, updated_at)
                values (${u.organisationId}, ${u.kind}, ${u.id}, ${JSON.stringify(u.data)}::jsonb, now())
@@ -115,15 +113,14 @@ export function forget(orgId: string) {
   cache.delete(orgId);
 }
 
-/** Reads records of one kind across every organisation (platform administration only). */
+/** Reads records of one kind across every organisation. Platform administration only: it bypasses row-level security. */
 export async function recordsAcrossOrgs<T>(kind: string): Promise<{ organisationId: string; data: T }[]> {
   await ready();
-  const rows = await db.select({ organisationId: schema.records.organisationId, data: schema.records.data }).from(schema.records).where(eq(schema.records.kind, kind));
-  return rows as { organisationId: string; data: T }[];
+  return ownerSql<{ organisationId: string; data: T }[]>`select organisation_id as "organisationId", data from records where kind = ${kind}`;
 }
 
 export async function deleteOrgRecords(orgId: string, kinds: string[]) {
-  await db.delete(schema.records).where(and(eq(schema.records.organisationId, orgId), inArray(schema.records.kind, kinds)));
+  await asOrg(orgId, (tx) => tx`delete from records where organisation_id = ${orgId} and kind in ${tx(kinds)}`);
   forget(orgId);
 }
 

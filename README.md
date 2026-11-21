@@ -39,6 +39,10 @@ pnpm dev
 
 To use Platform admin, add your email to `VETTLY_SUPER_ADMINS` and sign in again.
 
+**Database users.** Set two connection strings. `MIGRATION_DATABASE_URL` is the owner: it runs migrations and platform administration. `DATABASE_URL` is the app's own user, which Vettly creates at start-up with data access only, so PostgreSQL row-level security keeps each organisation's records and files apart. If you set only `DATABASE_URL`, the app runs but logs a warning that row-level security isn't enforced.
+
+**Behind a reverse proxy,** set `TRUST_PROXY=1` so rate limits use the client address the proxy adds. Set `APP_URL` to the public `https://` address to turn on Secure cookies and HSTS.
+
 After changing `src/server/db/schema.ts`, generate a migration:
 
 ```bash

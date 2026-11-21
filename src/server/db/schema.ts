@@ -42,6 +42,8 @@ export const users = pgTable(
     isSuperAdmin: boolean("is_super_admin").notNull().default(false),
     locked: boolean("locked").notNull().default(false),
     failedSignIns: integer("failed_sign_ins").notNull().default(0),
+    /** After repeated failed sign-ins, sign-in is paused until this time (throttling, not a hard lock). */
+    signInPausedUntil: timestamp("sign_in_paused_until", { withTimezone: true }),
     lastSignInAt: timestamp("last_sign_in_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -73,6 +75,10 @@ export const sessions = pgTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   organisationId: text("organisation_id"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  /** "Remember me": a longer absolute and idle limit. */
+  remember: boolean("remember").notNull().default(false),
+  /** Last request on this session, for the idle timeout. */
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

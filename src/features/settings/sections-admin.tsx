@@ -121,11 +121,16 @@ export function AuditSection() {
   const [query, setQuery] = React.useState("");
   const [cats, setCats] = React.useState<string[]>([]);
   const [actors, setActors] = React.useState<string[]>([]);
+  const [denied, setDenied] = React.useState<string | null>(null);
   React.useEffect(() => {
-    services.settings.audit().then(setRows);
+    services.settings
+      .audit()
+      .then(setRows)
+      .catch((e: unknown) => setDenied(e instanceof Error ? e.message : "The audit log couldn't be loaded."));
   }, []);
   const shown = (rows ?? []).filter((r) => (!cats.length || cats.includes(r.category)) && (!actors.length || actors.includes(r.actor)) && (!query || `${r.action} ${r.detail} ${r.actor}`.toLowerCase().includes(query.toLowerCase())));
   const pager = usePagination(shown, { resetKey: JSON.stringify([query, cats, actors]) });
+  if (denied) return <p className="text-sm text-fg-muted">{denied}</p>;
   if (!rows) return <Skeleton className="h-96 rounded-lg" />;
   const people = [...new Set(rows.map((r) => r.actor))].sort();
   return (

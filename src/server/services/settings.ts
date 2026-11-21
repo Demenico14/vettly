@@ -6,7 +6,7 @@ import "server-only";
 import { and, eq, ne } from "drizzle-orm";
 import type { AuditEvent, DataRequest, Member, OrgRole, OrgSettings, Permission, RolePermissions, Subscription } from "@/types/settings";
 import type { OrganisationSetup } from "@/types";
-import { DEFAULT_ROLE_PERMISSIONS, ROLE_LABEL, defaultSettings } from "@/lib/settings-defaults";
+import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS, ROLE_LABEL, defaultSettings } from "@/lib/settings-defaults";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { db, schema } from "../db";
 import { randomToken, sha256 } from "../crypto";
@@ -43,7 +43,23 @@ export function can(permission: Permission) {
 }
 
 export function requirePermission(permission: Permission, what: string) {
-  if (!can(permission)) throw new Error(`Your role can't ${what}. Ask an organisation admin.`);
+  if (!can(permission)) {
+    const a = actor();
+    console.warn(JSON.stringify({ event: "authz_denied", at: now(), organisation: orgId(), user: a?.userId ?? null, role: a?.role ?? null, permission }));
+    throw new Error(`Your role can't ${what}. Ask an organisation admin.`);
+  }
+}
+
+/**
+ * Privilege-escalation guard: you may only give, change or take away a role whose permissions you hold
+ * yourself. So an HR manager can manage recruiters and hiring managers, but not organisation admins.
+ */
+function requireCanManageRole(role: OrgRole, what: string) {
+  const a = actor();
+  if (!a) return;
+  const mine = new Set(roles.get()[a.role as OrgRole] ?? []);
+  const theirs = role === "org_admin" ? PERMISSIONS.map((p) => p.id) : roles.get()[role];
+  if (a.role !== "org_admin" && !theirs.every((p) => mine.has(p))) throw new Error(`Only an organisation admin can ${what} a ${ROLE_LABEL[role].toLowerCase()}.`);
 }
 
 /** Fills in a new organisation's settings from its details. */
@@ -233,6 +249,7 @@ export const settingsService: SettingsService = {
     const used = await seatsUsed();
     if (used + input.length > o.seatsTotal) throw new Error(`That needs ${used + input.length - o.seatsTotal} more seat(s) than your plan has. Deactivate someone or ask an organisation admin to add seats.`);
     const out: Member[] = [];
+    for (const i of input) requireCanManageRole(i.role, "invite");
     for (const i of input) out.push(await inviteMember(i));
     return out;
   },
@@ -242,6 +259,8 @@ export const settingsService: SettingsService = {
     const people = await memberRows();
     const m = people.find((p) => p.id === id);
     if (!m) throw new Error("That person isn't in this organisation.");
+    requireCanManageRole(m.role, "change the role of");
+    requireCanManageRole(role, "make someone");
     if (m.role === "org_admin" && role !== "org_admin" && people.filter((p) => p.role === "org_admin" && p.status === "active").length <= 1) throw new Error("Keep at least one organisation admin.");
     await setMembership(id, { role });
     logAudit("users", "Changed role", `${m.name}: ${ROLE_LABEL[m.role]} → ${ROLE_LABEL[role]}`);
@@ -268,6 +287,7 @@ export const settingsService: SettingsService = {
     const people = await memberRows();
     const m = people.find((p) => p.id === id);
     if (!m) throw new Error("That person isn't in this organisation.");
+    requireCanManageRole(m.role, "deactivate");
     if (m.role === "org_admin" && people.filter((p) => p.role === "org_admin" && p.status === "active").length <= 1) throw new Error("Keep at least one organisation admin.");
     await setMembership(id, { status: "deactivated" });
     await db.delete(schema.sessions).where(and(eq(schema.sessions.userId, id), eq(schema.sessions.organisationId, orgId())));
@@ -280,6 +300,7 @@ export const settingsService: SettingsService = {
     if ((await seatsUsed()) >= o.seatsTotal) throw new Error("No seats free. Deactivate someone or add seats first.");
     const m = (await memberRows()).find((p) => p.id === id);
     if (!m) throw new Error("That person isn't in this organisation.");
+    requireCanManageRole(m.role, "reactivate");
     await setMembership(id, { status: "active" });
     logAudit("users", "Reactivated user", m.name);
     return { ...m, status: "active" };
@@ -289,6 +310,8 @@ export const settingsService: SettingsService = {
   },
   async setPermission(role, permission, on) {
     requirePermission("manage_users", "change permissions");
+    // Editing what a role can do changes access for everyone in it, so only organisation admins may.
+    if (actor() && actor()!.role !== "org_admin") throw new Error("Only an organisation admin can change what a role can do.");
     if (role === "org_admin") throw new Error("Organisation admins always have every permission.");
     if (permission === "manage_billing") throw new Error("Only organisation admins can manage billing.");
     const r = roles.get();
@@ -300,9 +323,11 @@ export const settingsService: SettingsService = {
     return clone(roles.get());
   },
   async dataRequests() {
+    requirePermission("manage_settings", "see data requests");
     return clone(requests);
   },
   async completeRequest(id) {
+    requirePermission("manage_settings", "complete data requests");
     const r = requests.find((x) => x.id === id);
     if (!r) throw new Error("That request no longer exists.");
     r.status = "completed";
@@ -332,6 +357,7 @@ export const settingsService: SettingsService = {
     };
   },
   async audit() {
+    requirePermission("manage_settings", "see the audit log");
     return clone(audit);
   },
 };

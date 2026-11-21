@@ -20,6 +20,8 @@ export type Reply<T = unknown> = { status: number; ok: boolean; data: T; error?:
 /** One browser: keeps its own cookies. */
 export class Client {
   private jar = new Map<string, string>();
+  /** Each test browser looks like its own client, so repeated runs don't share rate-limit buckets. */
+  constructor(public address = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`) {}
 
   private remember(res: Response) {
     for (const c of res.headers.getSetCookie()) {
@@ -36,7 +38,7 @@ export class Client {
   }
 
   async raw(path: string, init: RequestInit = {}) {
-    const res = await fetch(`${BASE}${path}`, { ...init, redirect: "manual", headers: { ...(init.headers ?? {}), ...(this.jar.size ? { cookie: this.cookie } : {}) } });
+    const res = await fetch(`${BASE}${path}`, { ...init, redirect: "manual", headers: { "x-forwarded-for": this.address, ...(init.headers ?? {}), ...(this.jar.size ? { cookie: this.cookie } : {}) } });
     this.remember(res);
     return res;
   }

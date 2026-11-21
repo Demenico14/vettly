@@ -259,20 +259,30 @@ export function NotificationsSection() {
 export function PrivacySection() {
   const s = useSection("privacy");
   const [requests, setRequests] = React.useState<DataRequest[] | null>(null);
+  const [denied, setDenied] = React.useState<string | null>(null);
+  const [loadedAt, setLoadedAt] = React.useState(0);
   React.useEffect(() => {
-    services.settings.dataRequests().then(setRequests);
+    services.settings
+      .dataRequests()
+      .then((r) => {
+        setRequests(r);
+        setLoadedAt(Date.now());
+      })
+      .catch((e: unknown) => setDenied(e instanceof Error ? e.message : "Data requests couldn't be loaded."));
   }, []);
   const p = s.draft;
   if (!p) return <SectionSkeleton />;
   return (
     <div className="flex flex-col gap-5">
       <Group title="Data requests" description="People can ask to see, correct or delete what you hold about them. Answer within 30 days.">
-        {!requests ? (
+        {denied ? (
+          <p className="text-sm text-fg-muted">{denied}</p>
+        ) : !requests ? (
           <Skeleton className="h-24 rounded-md" />
         ) : (
           <ul className="flex flex-col divide-y divide-line">
             {requests.map((r) => {
-              const overdueSoon = r.status === "open" && new Date(r.dueAt).getTime() - new Date("2026-11-18T09:30:00+02:00").getTime() < 20 * 86400000;
+              const overdueSoon = r.status === "open" && new Date(r.dueAt).getTime() - loadedAt < 20 * 86400000;
               return (
                 <li key={r.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
                   <div className="min-w-0 flex-1">

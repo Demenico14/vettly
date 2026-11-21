@@ -1,5 +1,6 @@
 "use client";
 
+import { passwordProblem } from "@/lib/passwords";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, CircleAlert, Clock } from "@/components/icons";
 import { Alert, Avatar, Button, Field, Input, Skeleton, toast } from "@/components/ui";
-import { PasswordInput, PasswordStrength, isStrongPassword } from "@/components/ui/password-input";
+import { PasswordInput, PasswordStrength } from "@/components/ui/password-input";
 import { ROLE_LABEL } from "@/components/layout/session-provider";
 import { services } from "@/services";
 import { AuthError, type TeamInvitation } from "@/types";
@@ -26,7 +27,7 @@ const ROLE_SUMMARY: Record<TeamInvitation["role"], string> = {
 const schema = z
   .object({
     name: z.string().trim().min(2, "Enter your full name."),
-    password: z.string().refine(isStrongPassword, "Choose a password that meets all four rules below."),
+    password: z.string().superRefine((p, ctx) => { const why = passwordProblem(p); if (why) ctx.addIssue({ code: "custom", message: why }); }),
     confirm: z.string().min(1, "Re-enter your password."),
   })
   .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "The passwords don't match." });

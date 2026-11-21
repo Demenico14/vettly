@@ -5,8 +5,20 @@ import { db, ready, schema } from "./db";
 import { randomToken, sha256 } from "./crypto";
 import type { Actor } from "./context";
 
-export const SESSION_COOKIE = "vettly_session";
 const DAY = 86_400_000;
+const HOUR = 3_600_000;
+
+/** Cookies are Secure (and so can use the __Host- prefix: this host only, path /) whenever the app is served over HTTPS. */
+const secure = () => process.env.NODE_ENV === "production" && (process.env.APP_URL ?? "").startsWith("https:");
+/** The session cookie. Over HTTPS it carries the __Host- prefix, which browsers only accept from this exact host. */
+export const sessionCookieName = () => (secure() ? "__Host-vettly_session" : "vettly_session");
+
+/**
+ * Session lifetimes, enforced on the server (the cookie's own expiry is only a hint to the browser).
+ * Without "remember me": 12 hours at most, ending after 2 hours idle. With it: 30 days, ending after 7 days idle.
+ */
+const ABSOLUTE = { normal: DAY / 2, remembered: 30 * DAY };
+const IDLE = { normal: 2 * HOUR, remembered: 7 * DAY };
 
 export interface ResolvedSession {
   sessionId: string;
@@ -18,14 +30,17 @@ export interface ResolvedSession {
 /** Starts a session and sets the cookie. "Remember me" keeps it for 30 days; otherwise until the browser closes (and 12 hours at most). */
 export async function createSession(userId: string, organisationId: string | null, remember: boolean) {
   await ready();
-  const token = randomToken();
-  const expiresAt = new Date(Date.now() + (remember ? 30 * DAY : DAY / 2));
-  await db.insert(schema.sessions).values({ id: sha256(token), userId, organisationId, expiresAt });
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, token, {
+  // A new token at every sign-in, and the previous session on this browser ends (no session fixation).
+  const previous = jar.get(sessionCookieName())?.value;
+  if (previous) await db.delete(schema.sessions).where(eq(schema.sessions.id, sha256(previous)));
+  const token = randomToken();
+  const expiresAt = new Date(Date.now() + (remember ? ABSOLUTE.remembered : ABSOLUTE.normal));
+  await db.insert(schema.sessions).values({ id: sha256(token), userId, organisationId, expiresAt, remember });
+  jar.set(sessionCookieName(), token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production" && (process.env.APP_URL ?? "").startsWith("https:"),
+    secure: secure(),
     path: "/",
     ...(remember ? { expires: expiresAt } : {}),
   });
@@ -33,7 +48,7 @@ export async function createSession(userId: string, organisationId: string | nul
 
 export async function readSession(): Promise<ResolvedSession | null> {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(sessionCookieName())?.value;
   if (!token) return null;
   await ready();
   const id = sha256(token);
@@ -43,6 +58,14 @@ export async function readSession(): Promise<ResolvedSession | null> {
     .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
     .where(and(eq(schema.sessions.id, id), gt(schema.sessions.expiresAt, new Date())));
   if (!row || row.user.locked) return null;
+  const idleLimit = row.session.remember ? IDLE.remembered : IDLE.normal;
+  const idle = Date.now() - row.session.lastSeenAt.getTime();
+  if (idle > idleLimit) {
+    await db.delete(schema.sessions).where(eq(schema.sessions.id, id));
+    return null;
+  }
+  // Record activity at most once a minute, to keep the idle clock without a write on every request.
+  if (idle > 60_000) await db.update(schema.sessions).set({ lastSeenAt: new Date() }).where(eq(schema.sessions.id, id));
   let membership: typeof schema.memberships.$inferSelect | null = null;
   if (row.session.organisationId) {
     [membership = null] = await db
@@ -59,9 +82,9 @@ export async function setSessionOrganisation(sessionId: string, organisationId: 
 
 export async function destroySession() {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(sessionCookieName())?.value;
   if (token) await db.delete(schema.sessions).where(eq(schema.sessions.id, sha256(token)));
-  jar.delete(SESSION_COOKIE);
+  jar.delete(sessionCookieName());
 }
 
 export function actorFrom(s: ResolvedSession): Actor {

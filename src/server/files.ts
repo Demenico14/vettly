@@ -1,6 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
-import { db, ready, schema } from "./db";
+import { asOrg, ready, schema } from "./db";
 import { newId } from "./context";
 import { sha256 } from "./crypto";
 import { getObject, putObject } from "./storage";
@@ -17,6 +16,19 @@ const ALLOWED: Record<string, string> = {
 
 export type StoredFile = typeof schema.files.$inferSelect;
 
+/** The files columns under the names StoredFile uses. */
+const COLUMNS = `id, organisation_id as "organisationId", name, mime, size_bytes as "sizeBytes", sha256, storage_key as "storageKey", pages, text, created_at as "createdAt"`;
+
+/** The first bytes each allowed type must start with, so a renamed file can't pass as another type. */
+const MAGIC: Record<string, number[][]> = {
+  pdf: [[0x25, 0x50, 0x44, 0x46]],
+  docx: [[0x50, 0x4b, 0x03, 0x04]],
+  doc: [[0xd0, 0xcf, 0x11, 0xe0]],
+  png: [[0x89, 0x50, 0x4e, 0x47]],
+  jpg: [[0xff, 0xd8, 0xff]],
+  jpeg: [[0xff, 0xd8, 0xff]],
+};
+
 /** Stores an uploaded file for an organisation and returns its record. */
 export async function storeUpload(organisationId: string, file: File): Promise<StoredFile> {
   await ready();
@@ -26,20 +38,22 @@ export async function storeUpload(organisationId: string, file: File): Promise<S
   if (file.size > MAX_UPLOAD_BYTES) throw new Error(`${file.name} is larger than 15 MB.`);
   if (file.size === 0) throw new Error(`${file.name} is empty.`);
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (ext === "pdf" && !(bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)) throw new Error(`${file.name} isn't a valid PDF.`);
+  if (!MAGIC[ext]!.some((sig) => sig.every((b, i) => bytes[i] === b))) throw new Error(`${file.name} doesn't match its file type. Check the file and try again.`);
   const id = newId("file");
   const key = `${organisationId}/${id}`;
   await putObject(key, bytes, mime);
-  const [row] = await db
-    .insert(schema.files)
-    .values({ id, organisationId, name: file.name.slice(0, 200), mime, sizeBytes: file.size, sha256: sha256(Buffer.from(bytes).toString("binary")), storageKey: key })
-    .returning();
+  const name = file.name.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 200);
+  const [row] = await asOrg(
+    organisationId,
+    (tx) => tx<StoredFile[]>`insert into files (id, organisation_id, name, mime, size_bytes, sha256, storage_key)
+      values (${id}, ${organisationId}, ${name}, ${mime}, ${file.size}, ${sha256(Buffer.from(bytes).toString("binary"))}, ${key})
+      returning ${tx.unsafe(COLUMNS)}`,
+  );
   return row!;
 }
 
-export async function fileFor(organisationId: string, id: string) {
-  await ready();
-  const [row] = await db.select().from(schema.files).where(and(eq(schema.files.id, id), eq(schema.files.organisationId, organisationId)));
+export async function fileFor(organisationId: string, id: string): Promise<StoredFile | null> {
+  const [row] = await asOrg(organisationId, (tx) => tx<StoredFile[]>`select ${tx.unsafe(COLUMNS)} from files where id = ${id} and organisation_id = ${organisationId}`);
   return row ?? null;
 }
 
@@ -81,6 +95,6 @@ export async function extractText(row: StoredFile): Promise<TextResult> {
     return { ok: false, failure: /password/i.test(name) || /password/i.test(String(e)) ? "password_protected" : "unreadable" };
   }
   if (text.replace(/\s/g, "").length < 50) return { ok: false, failure: "unreadable" };
-  await db.update(schema.files).set({ text, pages }).where(eq(schema.files.id, row.id));
+  await asOrg(row.organisationId, (tx) => tx`update files set text = ${text}, pages = ${pages} where id = ${row.id}`);
   return { ok: true, text, pages };
 }

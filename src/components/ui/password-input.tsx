@@ -1,5 +1,6 @@
 "use client";
 
+import { MIN_PASSWORD_LENGTH, isGuessable, passwordProblem } from "@/lib/passwords";
 import * as React from "react";
 import { Eye, EyeOff, Check } from "@/components/icons";
 import { cn } from "@/lib/utils";
@@ -31,11 +32,10 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, Omit<InputProps,
 );
 PasswordInput.displayName = "PasswordInput";
 
+/** NIST SP 800-63B-4: length and guessability, not character-class rules (see src/lib/passwords.ts). */
 export const PASSWORD_RULES = [
-  { id: "length", label: "At least 10 characters", test: (p: string) => p.length >= 10 },
-  { id: "case", label: "Upper and lower case letters", test: (p: string) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
-  { id: "number", label: "At least one number", test: (p: string) => /\d/.test(p) },
-  { id: "symbol", label: "At least one symbol", test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+  { id: "length", label: `At least ${MIN_PASSWORD_LENGTH} characters`, test: (p: string) => p.length >= MIN_PASSWORD_LENGTH },
+  { id: "guess", label: "Not a common word or pattern", test: (p: string) => p.length > 0 && !isGuessable(p) },
 ] as const;
 
 export function passwordScore(p: string) {
@@ -43,13 +43,11 @@ export function passwordScore(p: string) {
 }
 
 export function isStrongPassword(p: string) {
-  return passwordScore(p) === PASSWORD_RULES.length;
+  return passwordProblem(p) === null;
 }
 
 const LEVELS = [
   { label: "Too weak", bar: "bg-danger-500", text: "text-danger-700" },
-  { label: "Too weak", bar: "bg-danger-500", text: "text-danger-700" },
-  { label: "Weak", bar: "bg-warning-500", text: "text-warning-700" },
   { label: "Almost there", bar: "bg-warning-500", text: "text-warning-700" },
   { label: "Strong", bar: "bg-success-500", text: "text-success-700" },
 ];

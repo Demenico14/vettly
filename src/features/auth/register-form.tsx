@@ -1,5 +1,6 @@
 "use client";
 
+import { passwordProblem } from "@/lib/passwords";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Mail } from "@/components/icons";
 import { Alert, Button, CheckboxField, Field, Input, toast } from "@/components/ui";
-import { PasswordInput, PasswordStrength, isStrongPassword } from "@/components/ui/password-input";
+import { PasswordInput, PasswordStrength } from "@/components/ui/password-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
 import { AuthHeading } from "./auth-layout";
@@ -24,7 +25,7 @@ const schema = z
       .trim()
       .min(1, "Enter your work email.")
       .email("Enter a valid email, for example name@company.co.zw."),
-    password: z.string().refine(isStrongPassword, "Choose a password that meets all four rules below."),
+    password: z.string().superRefine((p, ctx) => { const why = passwordProblem(p); if (why) ctx.addIssue({ code: "custom", message: why }); }),
     confirm: z.string().min(1, "Re-enter your password."),
     terms: z.boolean().refine((v) => v, "Accept the terms and privacy notice to continue."),
   })

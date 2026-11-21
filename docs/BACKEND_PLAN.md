@@ -32,7 +32,12 @@
 **Known gaps**
 
 - Automated tests (`tests/`): unit tests for the parser, matcher, scoring, fairness and permissions; API tests for organisation isolation, roles and the full hiring flow. Not yet: browser end-to-end tests and continuous integration.
-- No row-level security in Postgres; isolation is in the application (every record query is scoped to the organisation).
+- Security hardening (branch `security-hardening`, from `docs/reports/reports/SaaS RBAC and tenant isolation.md`):
+  - **Database isolation:** the app connects as `vettly_app` (no superuser, no BYPASSRLS); `records` and `files` have row-level security enabled and forced, scoped per transaction with `set_config('app.org', …, true)`. Migrations and platform administration use the owner connection (`MIGRATION_DATABASE_URL`).
+  - **Role escalation:** you can only invite, change, deactivate or reactivate a role whose permissions you hold; only organisation admins edit role permissions; privacy requests and the audit log need the settings permission; refusals are logged.
+  - **Web:** cross-site requests refused (Fetch Metadata, Origin fallback), JSON-only API, `no-store` on API and files, CSP with `frame-ancestors 'none'`, HSTS over HTTPS, no `X-Powered-By`; file type checked by content; downloads need the "see candidates" permission.
+  - **Sign-in:** NIST passwords (15+ characters, no composition rules, guessable passwords refused); throttling instead of hard lockout; per-client rate limits; staff locks survive password resets; `__Host-` cookie over HTTPS; server-enforced idle timeout (2 hours, or 7 days with "remember me").
+- Still open from the report: MFA (TOTP or passkeys) and step-up re-authentication for admin actions; hiring managers limited to their assigned vacancies; audit log shipped to tamper-evident storage; nonce-based script CSP; breach-notification tooling for POTRAZ (24 hours) and POPIA; rate limits shared across instances.
 - Single instance only (see storage above).
 - Background work (CV extraction, emails) runs in the web process, not a queue.
 - The sidebar no longer shows counts; they need a lightweight counts endpoint.

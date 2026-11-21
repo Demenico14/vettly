@@ -30,9 +30,10 @@ const cookieName = (token: string) => `vettly_c_${sha256(token).slice(0, 16)}`;
 async function orgOf(token: string) {
   await ready();
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) throw new AuthError("token_invalid", "This test link is not valid.");
-  const [row] = await sql<{ organisation_id: string }[]>`select organisation_id from records where kind = 'invitation' and data->>'token' = ${token} limit 1`;
-  if (!row) throw new AuthError("token_invalid", "This test link is not valid.");
-  return row.organisation_id;
+  // A narrow database function: the app's own role can't read across organisations.
+  const [row] = await sql<{ org: string | null }[]>`select vettly_invitation_org(${token}) as org`;
+  if (!row?.org) throw new AuthError("token_invalid", "This test link is not valid.");
+  return row.org;
 }
 
 async function verified(token: string) {

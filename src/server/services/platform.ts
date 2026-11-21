@@ -8,7 +8,7 @@ import { tests } from "@/mocks/psychometrics";
 import { and, desc, eq, ne, sql as dsql } from "drizzle-orm";
 import type { AiPolicy, AiTask, AiTaskConfig, AssessmentProvider, Incident, PlatformAuditEvent, PlatformSnapshot, PlanId, PlatformUser, ServiceHealth, Tenant } from "@/types/platform";
 import { PLAN_LIMITS } from "@/lib/plans";
-import { db, sql, schema } from "../db";
+import { db, ownerSql, sql, schema } from "../db";
 import { actor, actorName, newId, now } from "../context";
 import { collection, single, forget } from "../store";
 import { getObject, putObject } from "../storage";
@@ -60,7 +60,8 @@ function staffOnly() {
 export const platformDisabledTests = () => disabledTests.get();
 
 async function usage() {
-  const rows = await sql<{ organisation_id: string; tests: number; apps30: number; cvs30: number }[]>`
+  // Platform administration reads usage across organisations, so it uses the owner connection (bypasses row-level security).
+  const rows = await ownerSql<{ organisation_id: string; tests: number; apps30: number; cvs30: number }[]>`
     select organisation_id,
       coalesce(sum(case when kind = 'invitation' then jsonb_array_length(data->'results') end), 0)::int as tests,
       coalesce(sum(case when kind = 'candidate' then (select count(*) from jsonb_array_elements(data->'applications') a where (a->>'appliedAt')::timestamptz > now() - interval '30 days') end), 0)::int as apps30,
@@ -249,7 +250,7 @@ export const platformService: PlatformService = {
     staffOnly();
     need(reason);
     if (id === actor()?.userId) throw new Error("You can't lock your own account.");
-    const [u] = await db.update(schema.users).set({ locked, failedSignIns: 0 }).where(eq(schema.users.id, id)).returning();
+    const [u] = await db.update(schema.users).set({ locked, failedSignIns: 0, signInPausedUntil: null }).where(eq(schema.users.id, id)).returning();
     if (!u) throw new Error("That account no longer exists.");
     if (locked) await db.delete(schema.sessions).where(eq(schema.sessions.userId, id));
     log(locked ? "Locked account" : "Unlocked account", u.name, reason.trim());
