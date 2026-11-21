@@ -8,7 +8,10 @@ import "server-only";
 import type { ApplicationStage, Vacancy } from "@/types";
 import type { CandidateResponse, Offer, OfferTerms } from "@/types/offers";
 import { approvalChain, checklistFor, offerLetter, type Approvers } from "@/lib/offers";
-import { actor, actorName, afterCommit, newId, now } from "../context";
+import { fillLetter, letterText, mergeValues, unknownFields } from "@/lib/letter";
+import { cleanLetter, wordToLetter } from "../letter-html";
+import { fileFor } from "../files";
+import { actor, actorName, afterCommit, newId, now, orgId } from "../context";
 import { collection } from "../store";
 import { sendMail } from "../mail";
 import { profileSnapshot } from "./candidates";
@@ -39,6 +42,14 @@ function letterFor(o: Pick<Offer, "candidateName" | "vacancyTitle" | "terms" | "
   const p = orgSettings().profile;
   const a = actor();
   return offerLetter(o, p.tradingName || p.legalName, { name: a?.name ?? "", title: a?.title ?? "" });
+}
+
+/** HR's own letter with its merge fields filled in, or null when the offer uses the standard letter. */
+function customLetterFor(o: Pick<Offer, "candidateName" | "terms" | "expiresAt">) {
+  if (!o.terms.letterHtml) return null;
+  const p = orgSettings().profile;
+  const a = actor();
+  return fillLetter(o.terms.letterHtml, mergeValues(o, p.tradingName || p.legalName, { name: a?.name ?? "", title: a?.title ?? "" }));
 }
 
 const OPEN: Offer["status"][] = ["draft", "pending_approval", "approved", "sent", "viewed", "countered"];
@@ -134,10 +145,13 @@ function view(o: Offer): OfferView {
 
 export interface OffersService {
   list(): Promise<OfferView[]>;
-  get(id: string): Promise<{ view: OfferView; letter: ReturnType<typeof offerLetter>; vacancy: Vacancy }>;
+  /** `letterHtml` is HR's own letter, filled in, when the offer uses one; otherwise `letter` is the standard letter. */
+  get(id: string): Promise<{ view: OfferView; letter: ReturnType<typeof offerLetter>; letterHtml: string | null; vacancy: Vacancy }>;
   /** Sensible starting terms for a new offer, with the approval chain they would need. */
   defaults(candidateId: string, vacancyId: string): Promise<{ terms: OfferTerms; vacancy: Vacancy; candidateName: string; expectedSalary: string | null; existing: Offer | null }>;
-  preview(vacancyId: string, candidateName: string, terms: OfferTerms): Promise<{ letter: ReturnType<typeof offerLetter>; approvals: Offer["approvals"]; band: Band }>;
+  preview(vacancyId: string, candidateName: string, terms: OfferTerms): Promise<{ letter: ReturnType<typeof offerLetter>; letterHtml: string | null; approvals: Offer["approvals"]; band: Band }>;
+  /** Turns an uploaded Word document (from POST /api/files) into an editable letter. */
+  importLetter(fileId: string): Promise<{ html: string; name: string }>;
   create(candidateId: string, vacancyId: string, terms: OfferTerms, submit: boolean): Promise<Offer>;
   update(id: string, terms: OfferTerms, submit: boolean): Promise<Offer>;
   approve(id: string, step: number, note: string): Promise<Offer>;
@@ -150,6 +164,16 @@ export interface OffersService {
   setChecklist(id: string, itemId: string, done: boolean): Promise<Offer>;
   hire(id: string): Promise<{ offer: Offer; others: { candidateId: string; name: string; stage: ApplicationStage }[]; filled: boolean }>;
   notifyOthers(vacancyId: string, candidateIds: string[], message: string): Promise<number>;
+}
+
+/** Cleans a custom letter and checks its merge fields. Never trusts HTML from the browser. */
+function prepareLetter(terms: OfferTerms): OfferTerms {
+  if (!terms.letterHtml?.trim()) return { ...terms, letterHtml: null, letterSource: null };
+  const html = cleanLetter(terms.letterHtml);
+  if (!html.replace(/<[^>]+>/g, "").trim()) throw new Error("The letter is empty. Write it, or switch back to the standard letter.");
+  const unknown = unknownFields(html);
+  if (unknown.length) throw new Error(`The letter uses ${unknown.map((k) => `{{${k}}}`).join(", ")}, which Vettly doesn't recognise. Insert fields from the list instead.`);
+  return { ...terms, letterHtml: html, letterSource: terms.letterSource?.slice(0, 200) ?? null };
 }
 
 function validate(terms: OfferTerms) {
@@ -166,7 +190,7 @@ export const offersService: OffersService = {
   },
   async get(id) {
     const o = find(id);
-    return clone({ view: view(o), letter: letterFor(o), vacancy: vacancyOf(o.vacancyId) });
+    return clone({ view: view(o), letter: letterFor(o), letterHtml: customLetterFor(o), vacancy: vacancyOf(o.vacancyId) });
   },
   async defaults(candidateId, vacancyId) {
     const v = vacancyOf(vacancyId);
@@ -205,10 +229,17 @@ export const offersService: OffersService = {
   },
   async preview(vacancyId, candidateName, terms) {
     const v = vacancyOf(vacancyId);
-    return clone({ letter: letterFor({ candidateName, vacancyTitle: v.title, terms, expiresAt: null }), approvals: approvalChain(v, terms, await approvers()), band: bandOf(v, terms) });
+    const draft = { candidateName, vacancyTitle: v.title, terms: { ...terms, letterHtml: terms.letterHtml ? cleanLetter(terms.letterHtml) : null }, expiresAt: null };
+    return clone({ letter: letterFor(draft), letterHtml: customLetterFor(draft), approvals: approvalChain(v, terms, await approvers()), band: bandOf(v, terms) });
   },
-  async create(candidateId, vacancyId, terms, submit) {
-    validate(terms);
+  async importLetter(fileId) {
+    const file = await fileFor(orgId(), fileId);
+    if (!file) throw new Error("That document didn't finish uploading. Try again.");
+    return { html: await wordToLetter(file), name: file.name };
+  },
+  async create(candidateId, vacancyId, input, submit) {
+    validate(input);
+    const terms = prepareLetter(input);
     const v = vacancyOf(vacancyId);
     const c = profileSnapshot().find((p) => p.id === candidateId)!;
     const app = c.applications.find((a) => a.vacancyId === vacancyId);
@@ -242,8 +273,9 @@ export const offersService: OffersService = {
     store.push(o);
     return clone(o);
   },
-  async update(id, terms, submit) {
-    validate(terms);
+  async update(id, input, submit) {
+    validate(input);
+    const terms = prepareLetter(input);
     const o = find(id);
     if (o.status === "countered") {
       o.previous.push({ version: o.version, baseSalary: o.terms.baseSalary, startDate: o.terms.startDate, status: o.status, at: now() });
@@ -293,12 +325,14 @@ export const offersService: OffersService = {
     if (o.status !== "approved") throw new Error("The offer needs every approval before it can be sent.");
     o.status = "sent";
     o.sentAt = now();
+    // The deadline first, so the letter can name the date.
+    o.expiresAt = deadline(o.terms.validDays);
     const cand = profileSnapshot().find((p) => p.id === o.candidateId);
     if (cand?.email) {
-      const text = letterFor(o).map((p) => (p.heading ? `${p.heading}\n${p.body}` : p.body)).join("\n\n");
+      const custom = customLetterFor(o);
+      const text = custom ? letterText(custom) : letterFor(o).map((p) => (p.heading ? `${p.heading}\n${p.body}` : p.body)).join("\n\n");
       afterCommit(() => sendMail(cand.email, `Your offer: ${o.terms.jobTitle}`, text));
     }
-    o.expiresAt = deadline(o.terms.validDays);
     log(o, `Sent to the candidate by email. Respond by ${o.expiresAt.slice(0, 10)}.`);
     const c = profileSnapshot().find((p) => p.id === o.candidateId);
     const app = c?.applications.find((a) => a.id === o.applicationId);

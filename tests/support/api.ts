@@ -4,6 +4,7 @@
  * (DATABASE_URL_TEST, default the local Docker database). Test accounts use the @vettly-test.local domain.
  */
 import postgres from "postgres";
+import { crc32 } from "node:zlib";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export const BASE = process.env.VETTLY_TEST_URL ?? "http://localhost:3000";
@@ -173,4 +174,56 @@ async function removeObjects(keys: string[]) {
     credentials: { accessKeyId: process.env.S3_ACCESS_KEY ?? "vettly", secretAccessKey: process.env.S3_SECRET_KEY ?? "vettly-dev-secret" },
   });
   for (const Key of keys) await s3.send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET ?? "vettly-documents", Key })).catch(() => undefined);
+}
+
+/** A minimal, valid .docx built from paragraphs. Each paragraph is a list of runs; style names a Word paragraph style. */
+export function docx(paragraphs: { style?: string; runs: { text: string; bold?: boolean }[] }[]) {
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const body = paragraphs
+    .map((p) => `<w:p>${p.style ? `<w:pPr><w:pStyle w:val="${p.style}"/></w:pPr>` : ""}${p.runs.map((r) => `<w:r>${r.bold ? "<w:rPr><w:b/></w:rPr>" : ""}<w:t xml:space="preserve">${esc(r.text)}</w:t></w:r>`).join("")}</w:p>`)
+    .join("");
+  const files: [string, string][] = [
+    ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`],
+    ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`],
+    ["word/document.xml", `<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}</w:body></w:document>`],
+  ];
+  return zip(files.map(([name, text]) => [name, Buffer.from(text, "utf8")]));
+}
+
+/** A zip archive with stored (uncompressed) entries. */
+function zip(entries: [string, Buffer][]) {
+  const local: Buffer[] = [];
+  const central: Buffer[] = [];
+  let offset = 0;
+  for (const [name, data] of entries) {
+    const n = Buffer.from(name, "utf8");
+    const crc = crc32(data) >>> 0;
+    const head = Buffer.alloc(30);
+    head.writeUInt32LE(0x04034b50, 0);
+    head.writeUInt16LE(20, 4);
+    head.writeUInt32LE(crc, 14);
+    head.writeUInt32LE(data.length, 18);
+    head.writeUInt32LE(data.length, 22);
+    head.writeUInt16LE(n.length, 26);
+    local.push(head, n, data);
+    const dir = Buffer.alloc(46);
+    dir.writeUInt32LE(0x02014b50, 0);
+    dir.writeUInt16LE(20, 4);
+    dir.writeUInt16LE(20, 6);
+    dir.writeUInt32LE(crc, 16);
+    dir.writeUInt32LE(data.length, 20);
+    dir.writeUInt32LE(data.length, 24);
+    dir.writeUInt16LE(n.length, 28);
+    dir.writeUInt32LE(offset, 42);
+    central.push(dir, n);
+    offset += 30 + n.length + data.length;
+  }
+  const size = central.reduce((s, b) => s + b.length, 0);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(entries.length, 8);
+  end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(size, 12);
+  end.writeUInt32LE(offset, 16);
+  return new Uint8Array(Buffer.concat([...local, ...central, end])) as Uint8Array<ArrayBuffer>;
 }

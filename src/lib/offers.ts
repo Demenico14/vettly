@@ -64,7 +64,8 @@ export function offerLetter(o: Pick<Offer, "candidateName" | "vacancyTitle" | "t
   const start = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${t.startDate}T12:00:00+02:00`));
   const allowances = t.allowances.filter((a) => a.amount > 0);
   const total = t.baseSalary + allowances.reduce((s, a) => s + a.amount, 0);
-  const respond = o.expiresAt ? new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date(o.expiresAt)) : `within ${t.validDays} days of receiving this letter`;
+  // Until the offer is sent, the date it would be if sent today; once sent, the real deadline.
+  const respond = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date(o.expiresAt ?? Date.now() + t.validDays * 86_400_000));
   return [
     { heading: null, body: `Dear ${first},` },
     { heading: null, body: `Following your interviews, we are delighted to offer you the position of ${t.jobTitle} in our ${t.department} team${t.reportsTo.trim() ? `, reporting to the ${t.reportsTo.trim()}` : ""}.` },

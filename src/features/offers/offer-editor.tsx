@@ -3,10 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Send, X } from "@/components/icons";
+import { ArrowLeft, FileDoc, Plus, Send, Upload, X } from "@/components/icons";
 import { Alert, Button, Card, CardHeader, Checkbox, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/ui";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
-import { services, type Band } from "@/services";
+import { services, uploadFile, type Band } from "@/services";
+import { STANDARD_TEMPLATE } from "@/lib/letter";
+import { LetterEditor } from "./letter-editor";
 import type { Vacancy } from "@/types";
 import type { Approval, ContractType, Offer, OfferTerms } from "@/types/offers";
 import { cn } from "@/lib/utils";
@@ -24,7 +26,10 @@ export function OfferEditor(props: Source) {
   const [expected, setExpected] = React.useState<string | null>(null);
   const [existing, setExisting] = React.useState<Offer | null>(null);
   const [offer, setOffer] = React.useState<Offer | null>(null);
-  const [preview, setPreview] = React.useState<{ letter: Letter; approvals: Approval[]; band: Band } | null>(null);
+  const [preview, setPreview] = React.useState<{ letter: Letter; letterHtml: string | null; approvals: Approval[]; band: Band } | null>(null);
+  const [editingLetter, setEditingLetter] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
+  const wordRef = React.useRef<HTMLInputElement>(null);
   const [newBenefit, setNewBenefit] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState<"draft" | "submit" | null>(null);
@@ -80,6 +85,32 @@ export function OfferEditor(props: Source) {
     );
 
   const set = (patch: Partial<OfferTerms>) => setTerms((t) => (t ? { ...t, ...patch } : t));
+
+  /** Uploads a Word document and returns it as letter HTML, or null (with a message) when it can't be used. */
+  const importWord = async (file: File) => {
+    if (!/\.docx$/i.test(file.name)) {
+      toast.error("Use a .docx file", "Save the letter from Word as a .docx document, then upload it.");
+      return null;
+    }
+    try {
+      const stored = await uploadFile(file);
+      return await services.offers.importLetter(stored.fileId);
+    } catch (e) {
+      toast.error("Letter not imported", e instanceof Error ? e.message : undefined);
+      return null;
+    }
+  };
+  const uploadWord = async (file?: File) => {
+    if (!file) return;
+    setImporting(true);
+    const r = await importWord(file);
+    setImporting(false);
+    if (wordRef.current) wordRef.current.value = "";
+    if (r) {
+      set({ letterHtml: r.html, letterSource: r.name });
+      setEditingLetter(true);
+    }
+  };
   const countered = offer?.status === "countered";
   const back = props.mode === "edit" ? `/offers/${props.offerId}` : "/offers";
 
@@ -228,6 +259,59 @@ export function OfferEditor(props: Source) {
             </Field>
           </Card>
 
+          <Card className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-fg">Letter</h2>
+                <p className="mt-1 text-sm text-fg-muted">
+                  {terms.letterHtml
+                    ? `Your own letter${terms.letterSource ? `, from ${terms.letterSource}` : ""}. Merge fields fill in from the terms above.`
+                    : "Vettly's standard letter, written from the terms above. Use your own wording by uploading a Word letter or writing one here."}
+                </p>
+              </div>
+              {terms.letterHtml && (
+                <Button variant="ghost" size="sm" onClick={() => set({ letterHtml: null, letterSource: null })}>
+                  Use standard letter
+                </Button>
+              )}
+            </div>
+            <input ref={wordRef} type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="sr-only" aria-label="Upload a Word letter" onChange={(e) => uploadWord(e.target.files?.[0])} />
+            <div className="mt-4 flex flex-wrap gap-2">
+              {terms.letterHtml ? (
+                <Button variant="secondary" onClick={() => setEditingLetter(true)}>
+                  <FileDoc />
+                  Edit letter
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    set({ letterHtml: STANDARD_TEMPLATE, letterSource: null });
+                    setEditingLetter(true);
+                  }}
+                >
+                  <FileDoc />
+                  Write your own
+                </Button>
+              )}
+              <Button variant="ghost" loading={importing} onClick={() => wordRef.current?.click()}>
+                {!importing && <Upload />}
+                {terms.letterHtml ? "Replace with a Word letter" : "Upload a Word letter"}
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-fg-subtle">Changing the letter restarts approval, so approvers always see the exact words the candidate will get.</p>
+          </Card>
+
+          <LetterEditor
+            open={editingLetter}
+            onOpenChange={setEditingLetter}
+            html={terms.letterHtml ?? ""}
+            source={terms.letterSource ?? null}
+            candidateName={name}
+            onUploadWord={importWord}
+            onSave={(html) => set(html ? { letterHtml: html } : { letterHtml: null, letterSource: null })}
+          />
+
           {error && (
             <Alert tone="danger" title="Not saved">
               {error}
@@ -259,7 +343,7 @@ export function OfferEditor(props: Source) {
               ))}
             </ol>
           </Card>
-          <LetterView letter={preview?.letter ?? null} title={`Letter preview · ${name}`} />
+          <LetterView letter={preview?.letter ?? null} html={preview?.letterHtml} title={`Letter preview · ${name}`} />
         </aside>
       </div>
     </PageContainer>

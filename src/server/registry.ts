@@ -70,7 +70,7 @@ const NEEDS: Record<Permission, string[]> = {
   manage_vacancies: ["vacancies.create", "vacancies.update", "vacancies.setStatus", "vacancies.duplicate", "vacancies.remove", "cv.upload", "cv.retry", "cv.saveDraft", "cv.confirm", "cv.confirmReady", "cv.discard", "cv.remove"],
   move_candidates: ["pipeline.move", "profiles.moveStage", "candidates.moveStage", "talent.addToVacancy"],
   interview: ["interviews.schedule", "interviews.reschedule", "interviews.cancel", "interviews.markNoShow", "interviews.markCompleted", "interviews.addQuestion", "interviews.removeQuestion", "interviews.decide"],
-  make_offers: ["offers.create", "offers.update", "offers.send", "offers.withdraw", "offers.extend", "offers.respond", "offers.setChecklist", "offers.hire", "offers.notifyOthers", "offers.markViewed"],
+  make_offers: ["offers.importLetter", "offers.create", "offers.update", "offers.send", "offers.withdraw", "offers.extend", "offers.respond", "offers.setChecklist", "offers.hire", "offers.notifyOthers", "offers.markViewed"],
   approve_offers: ["offers.approve", "offers.reject"],
   send_tests: ["pipeline.sendTests", "assessments.send", "assessments.remind", "assessments.extend", "assessments.cancel", "assessments.resend", "assessments.restore", "assessments.saveBattery", "assessments.deleteBattery"],
   view_test_reports: ["assessments.invitations", "assessments.invitation", "assessments.setReviewed", "assessments.addNote", "assessments.setConcern", "profiles.tests", "candidates.tests"],

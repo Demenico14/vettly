@@ -104,4 +104,15 @@ export {
   Users,
   UsersThree as UsersRound,
   X,
+  // Letter editor
+  TextB as Bold,
+  TextItalic as Italic,
+  TextUnderline as Underline,
+  TextStrikethrough as Strikethrough,
+  ListBullets,
+  ListNumbers,
+  TextHTwo as Heading,
+  TextHThree as Subheading,
+  TextT as TextIcon,
+  BracketsCurly as MergeField,
 } from "@phosphor-icons/react/dist/ssr";

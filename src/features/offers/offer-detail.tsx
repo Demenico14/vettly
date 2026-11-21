@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { BandBar, OfferBadge, money, shortDate, totalPay } from "./meta";
 import { LetterView } from "./letter-view";
 
-type Data = { view: OfferView; letter: { heading: string | null; body: string }[]; vacancy: Vacancy };
+type Data = { view: OfferView; letter: { heading: string | null; body: string }[]; letterHtml: string | null; vacancy: Vacancy };
 type Dialog = "approve" | "send_back" | "send" | "respond" | "withdraw" | "extend" | null;
 const NOW = new Date(MOCK_NOW).getTime();
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -206,7 +206,7 @@ export function OfferDetail({ id }: { id: string }) {
             )}
           </Card>
 
-          <LetterView letter={data.letter} title={`Offer letter · version ${o.version}`} />
+          <LetterView letter={data.letter} html={data.letterHtml} title={`Offer letter · version ${o.version}`} />
         </div>
 
         <aside className="flex flex-col gap-5">

@@ -28,6 +28,13 @@ export interface OfferTerms {
   /** Days the candidate has to respond. */
   validDays: number;
   personalNote: string;
+  /**
+   * HR's own letter, replacing Vettly's standard one: cleaned HTML with merge fields such as {{first_name}}.
+   * Part of the terms, so approvers approve the exact wording and changing it restarts approval.
+   */
+  letterHtml?: string | null;
+  /** Where the custom letter came from, e.g. the Word file's name. */
+  letterSource?: string | null;
 }
 
 export interface Approval {
