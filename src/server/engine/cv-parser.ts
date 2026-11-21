@@ -89,6 +89,8 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
 
   // Work history: lines with a date range; title and company from that line or the one above.
   const experience: ExtractedExperience[] = [];
+  // Where each role's heading starts and ends, so the lines between roles become its description.
+  const spans: { first: number; last: number }[] = [];
   lines.forEach((l, i) => {
     const m = l.match(RANGE);
     if (!m) return;
@@ -99,6 +101,8 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
     const rest = l.replace(m[0], "").replace(/[|•·,–—-]+\s*$/, "").replace(/^\s*[|•·,–—-]+/, "").trim();
     const context = rest.length > 3 ? rest : (lines[i - 1] ?? "");
     const [title, company] = context.split(/\s+(?:at|@)\s+|\s*[|,–—]\s*|\s+-\s+/).map((x) => x?.trim() ?? "");
+    const companyBelow = !company && rest.length <= 3 && !!lines[i + 1] && !RANGE.test(lines[i + 1]!);
+    spans.push({ first: rest.length > 3 ? i : i - 1, last: companyBelow ? i + 1 : i });
     experience.push({
       id: `x${experience.length + 1}`,
       title: title || "Role",
@@ -108,6 +112,16 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
       end: end === undefined ? null : end,
       ...(!title || !company ? { flag: "Check the job title and employer" } : {}),
     });
+  });
+  experience.forEach((e, k) => {
+    const until = spans[k + 1]?.first ?? lines.length;
+    const bullets: string[] = [];
+    for (const l of lines.slice(spans[k]!.last + 1, until)) {
+      if (SECTION.test(l)) break;
+      const b = l.replace(/^[•·*▪◦-]\s*/, "").trim();
+      if (b.length > 2) bullets.push(b.slice(0, 300));
+    }
+    if (bullets.length) e.bullets = bullets.slice(0, 12);
   });
   experience.sort((a, b) => (b.end ?? "9999").localeCompare(a.end ?? "9999") || b.start.localeCompare(a.start));
 
@@ -149,7 +163,9 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
   }
 
   const current = experience.find((e) => e.end === null);
-  const looksLikeCv = flat.length > 200 && (!!email || !!phone || experience.length > 0 || education.length > 0);
+  // Short CVs count when they have contact details and some history; longer documents need only one sign.
+  const history = experience.length > 0 || education.length > 0;
+  const looksLikeCv = ((!!email || !!phone) && history) || (flat.length > 200 && (!!email || !!phone || history));
   const confident = !!name && (!!email || !!phone) && (experience.length > 0 || skills.length >= 3);
   const missing = "Not found on the CV. Check and fill in.";
 

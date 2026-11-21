@@ -92,7 +92,7 @@ const FIELD_TITLES: Record<string, string[]> = {
   data: ["data", "analyst", "analytics", "scientist", "bi "],
   marketing: ["marketing", "brand", "digital", "communications", "content"],
   sales: ["sales", "business development", "account manager", "relationship"],
-  operations: ["operations", "logistics", "supply", "depot", "plant", "production"],
+  operations: ["operations", "logistics", "supply", "depot", "plant", "production", "fleet", "transport", "warehouse", "distribution"],
   human: ["hr", "human resources", "people", "talent", "recruit"],
   resources: ["hr", "human resources", "people", "talent"],
   management: ["manager", "head", "lead", "director", "supervisor"],
@@ -143,7 +143,8 @@ const strip = (l: Line): Evidence => ({ source: l.source, where: l.where, quote:
 
 function months(start: string, end: string | null) {
   const s = new Date(`${start}-01`);
-  const e = end ? new Date(`${end}-01`) : new Date("2026-11-01");
+  // A current role counts up to today.
+  const e = end ? new Date(`${end}-01`) : new Date();
   return Math.max(0, (e.getFullYear() - s.getFullYear()) * 12 + e.getMonth() - s.getMonth() + 1);
 }
 

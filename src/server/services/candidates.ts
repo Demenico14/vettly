@@ -179,7 +179,7 @@ export const candidateProfileService: CandidateProfileService = {
       currentEmployer: x.currentEmployer.value.trim() || null,
       expectedSalary: null,
       summary: x.summary,
-      experience: x.experience.map((e) => ({ id: e.id, title: e.title, company: e.company, location: e.location, start: e.start, end: e.end, bullets: [] })),
+      experience: x.experience.map((e) => ({ id: e.id, title: e.title, company: e.company, location: e.location, start: e.start, end: e.end, bullets: (e.bullets ?? []).map((b) => b.trim()).filter(Boolean) })),
       education: x.education.map((e) => ({ id: e.id, institution: e.institution, qualification: e.qualification, field: e.field, start: e.end ? e.end - 3 : new Date().getFullYear(), end: e.end })),
       skills: input.skillLevels ?? x.skills.map((name) => ({ name, level: "Intermediate" as const })),
       certifications: [],

@@ -48,6 +48,16 @@ pnpm exec drizzle-kit generate --name <what-changed>
 ## Checks
 
 ```bash
+pnpm test
+```
+
+```bash
+pnpm test:api
+```
+
+The API tests need the app and Docker services running; see `tests/README.md`.
+
+```bash
 pnpm -s tsc --noEmit
 ```
 

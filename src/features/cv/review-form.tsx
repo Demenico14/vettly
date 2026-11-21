@@ -181,6 +181,13 @@ export function ExperienceSection({
                 <Checkbox checked={e.end === null} onCheckedChange={(v) => set(e.id, { end: v === true ? null : "" })} />
                 Current role
               </label>
+              <Field label="What they did" optional hint="One duty or achievement per line. Matching uses these as evidence." className="mt-3">
+                <Textarea
+                  rows={Math.min(6, Math.max(2, e.bullets?.length ?? 0))}
+                  value={(e.bullets ?? []).join("\n")}
+                  onChange={(ev) => set(e.id, { bullets: ev.target.value.split("\n") })}
+                />
+              </Field>
               {e.flag && (
                 <div className="mt-3">
                   <FlagNote flag={e.flag} onConfirm={() => onConfirm(e.id)} />

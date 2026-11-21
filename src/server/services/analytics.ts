@@ -11,7 +11,6 @@ import type {
   AnalyticsTestSession,
   FunnelRow,
   FunnelStage,
-  ImpactGroup,
   ImpactRow,
   KpiFigure,
   RecruiterRow,
@@ -104,6 +103,7 @@ const DAYS = { "30d": 30, "90d": 90, "12m": 365 } as const;
 const LABEL = { "30d": "Last 30 days", "90d": "Last 90 days", "12m": "Last 12 months" } as const;
 const PREVIOUS = { "30d": "previous 30 days", "90d": "previous 90 days", "12m": null } as const;
 import { IMPACT_THRESHOLD, MIN_GROUP } from "@/lib/workflow";
+import { groupsOf, verdict } from "@/lib/fairness";
 export { IMPACT_THRESHOLD, MIN_GROUP };
 
 const time = (s: string) => new Date(s).getTime();
@@ -319,36 +319,6 @@ function testRows(sessions: AnalyticsTestSession[], from: number, to: number): T
       };
     })
     .sort((a, b) => b.sent - a.sent);
-}
-
-function groupsOf<T>(rows: T[], groupOf: (r: T) => string | null, selected: (r: T) => boolean, order: string[]): ImpactGroup[] {
-  const raw = order.map((g) => {
-    const mine = rows.filter((r) => groupOf(r) === g);
-    const sel = mine.filter(selected).length;
-    return { group: g, n: mine.length, selected: sel, rate: mine.length ? sel / mine.length : null, suppressed: mine.length < MIN_GROUP };
-  });
-  const best = Math.max(0, ...raw.filter((g) => !g.suppressed && g.rate !== null).map((g) => g.rate!));
-  return raw.map((g) => ({
-    ...g,
-    rate: g.suppressed || g.rate === null ? null : Math.round(g.rate * 1000) / 10,
-    ratio: g.suppressed || g.rate === null || !best ? null : Math.round((g.rate / best) * 100) / 100,
-  }));
-}
-
-/** Two-proportion z-test between a group and the most-selected group. */
-function significant(a: ImpactGroup, b: ImpactGroup) {
-  const p = (a.selected + b.selected) / (a.n + b.n);
-  const se = Math.sqrt(p * (1 - p) * (1 / a.n + 1 / b.n));
-  return se > 0 && Math.abs(a.selected / a.n - b.selected / b.n) / se >= 1.96;
-}
-
-function verdict(groups: ImpactGroup[]): Pick<ImpactRow, "status" | "flagged"> {
-  const live = groups.filter((g) => !g.suppressed && g.ratio !== null);
-  if (live.length < 2) return { status: "insufficient", flagged: false };
-  const best = live.find((g) => g.ratio === 1)!;
-  const low = live.filter((g) => g.ratio! < IMPACT_THRESHOLD);
-  if (!low.length) return { status: "ok", flagged: false };
-  return low.some((g) => significant(g, best)) ? { status: "review", flagged: true } : { status: "watch", flagged: false };
 }
 
 function impact(cohort: AnalyticsApplication[], sessions: AnalyticsTestSession[], from: number, to: number): ImpactRow[] {

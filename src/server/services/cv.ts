@@ -12,6 +12,7 @@ import { extractText, fileFor } from "../files";
 import { parseCv } from "../engine/cv-parser";
 import { candidateProfileService, profileSnapshot } from "./candidates";
 import { logAudit } from "./settings";
+import { vacancySnapshot } from "./vacancies";
 
 export interface UploadInput {
   name: string;
@@ -116,6 +117,9 @@ export const cvService: CvProcessingService = {
   },
   async upload(vacancyId, vacancyTitle, files) {
     if (!files.length) throw new Error("Choose at least one CV.");
+    const vacancy = vacancySnapshot().find((v) => v.id === vacancyId);
+    if (!vacancy) throw new Error("Choose a vacancy for these CVs.");
+    vacancyTitle = vacancy.title;
     const org = orgId();
     for (const f of files) if (!(await fileFor(org, f.fileId))) throw new Error(`${f.name} didn't finish uploading. Try again.`);
     const id = newId("batch");

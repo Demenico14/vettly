@@ -31,7 +31,7 @@
 
 **Known gaps**
 
-- No automated test suite yet (section 8 still applies).
+- Automated tests (`tests/`): unit tests for the parser, matcher, scoring, fairness and permissions; API tests for organisation isolation, roles and the full hiring flow. Not yet: browser end-to-end tests and continuous integration.
 - No row-level security in Postgres; isolation is in the application (every record query is scoped to the organisation).
 - Single instance only (see storage above).
 - Background work (CV extraction, emails) runs in the web process, not a queue.

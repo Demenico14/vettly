@@ -1,6 +1,6 @@
 import "server-only";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, lt } from "drizzle-orm";
 import type { AuthService } from "@/services/contracts";
 import type { OrganisationSize, Role, Session, TeamInvitation, User } from "@/types";
 import { AuthError } from "@/types";
@@ -228,5 +228,5 @@ export const authService: AuthService = {
 
 /** Removes expired, unused tokens. Safe to run any time. */
 export async function pruneTokens() {
-  await db.delete(schema.tokens).where(and(isNull(schema.tokens.usedAt), eq(schema.tokens.purpose, "reset")));
+  await db.delete(schema.tokens).where(and(isNull(schema.tokens.usedAt), lt(schema.tokens.expiresAt, new Date())));
 }

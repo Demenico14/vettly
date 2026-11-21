@@ -475,6 +475,8 @@ export interface ExtractedExperience {
   /** YYYY-MM */
   start: string;
   end: string | null;
+  /** What the CV says about the role: duties and achievements, one per line. */
+  bullets?: string[];
   flag?: string;
 }
 
