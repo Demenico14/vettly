@@ -24,6 +24,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | — | Backend (first version) | **Approved** (20 Nov) | Branch `backend-docker`. Real API, PostgreSQL, S3 storage, email, built-in auth, server-side permissions; all sample data removed; rule-based CV extraction and matching until the AI branch. See `docs/BACKEND_PLAN.md` §0 |
 | — | Tests and security hardening | **Approved** (21 Nov) | Branches `core-tests` and `security-hardening`. Unit and API tests (98); database row-level security with a restricted app user; role-escalation guards; CSRF refusal, security headers, NIST passwords, sign-in throttling, rate limits, idle timeout. Research: `docs/reports/reports/SaaS RBAC and tenant isolation.md` |
 | — | Custom offer letters | **Approved** (21 Nov) | Branch `offer-letter-editor`. Upload a Word letter or write one in a Notion-style editor (/ commands, formatting toolbar, merge fields); cleaned on the server; part of the approved terms |
+| — | CV certifications | **Approved** (21 Nov) | Branch `cv-certifications`. The CV reader picks up certifications (award, issuing body, year); editable in CV review; added to profiles and used as matching evidence |
 
 ## Module 1 checklist
 
