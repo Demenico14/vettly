@@ -79,6 +79,22 @@ describe("CV parser", () => {
     expect(r.looksLikeCv).toBe(true);
   });
 
+  it("reads a certifications section: the award, the issuing body and the year", () => {
+    const r = parseCv(
+      "Jane Doe\njane@mail.test\n\nExperience\nAccountant, Acme\n2019 - Present\n\nCertifications\nChartered Accountant CA(Z), ICAZ, 2019\n• PMP (2021) - PMI\nFirst aid certificate\n\nSkills\nExcel",
+      1,
+    );
+    expect(r.extraction.certifications).toEqual([
+      { id: "c1", name: "Chartered Accountant CA(Z)", issuer: "ICAZ", year: 2019 },
+      { id: "c2", name: "PMP", issuer: "PMI", year: 2021 },
+      { id: "c3", name: "First aid certificate", issuer: "", year: null, flag: "Issuing body not found" },
+    ]);
+  });
+
+  it("has no certifications when the CV has no such section", () => {
+    expect(parseCv(CV, 1).extraction.certifications).toEqual([]);
+  });
+
   it("does not treat a document that isn't a CV as one", () => {
     const r = parseCv("Minutes of the board meeting held on 3 March.\nApologies were received.", 1);
     expect(r.looksLikeCv).toBe(false);

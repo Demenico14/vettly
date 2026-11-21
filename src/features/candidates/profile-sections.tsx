@@ -139,7 +139,7 @@ export function CertificationsSection({ c }: { c: CandidateProfile }) {
                 <p className="text-sm text-fg-muted">{x.issuer}</p>
                 {x.credentialId && <p className="text-xs text-fg-subtle">Credential {x.credentialId}</p>}
               </div>
-              <span className="shrink-0 text-xs text-fg-subtle tabular">{x.year}</span>
+              <span className="shrink-0 text-xs text-fg-subtle tabular">{x.year || ""}</span>
             </li>
           ))}
         </ul>

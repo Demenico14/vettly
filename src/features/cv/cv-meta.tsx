@@ -53,7 +53,8 @@ export function flagsOf(x: CvExtraction | undefined) {
     .map((k) => ({ key: k, label: FIELD_LABEL[k], flag: x[k].flag! }));
   const exp = x.experience.filter((e) => e.flag).map((e) => ({ key: e.id, label: `${e.title} at ${e.company}`, flag: e.flag! }));
   const edu = x.education.filter((e) => e.flag).map((e) => ({ key: e.id, label: `${e.qualification} ${e.field}`, flag: e.flag! }));
-  return [...scalar, ...exp, ...edu];
+  const certs = (x.certifications ?? []).filter((c) => c.flag).map((c) => ({ key: c.id, label: c.name, flag: c.flag! }));
+  return [...scalar, ...exp, ...edu, ...certs];
 }
 
 export const FIELD_LABEL = {

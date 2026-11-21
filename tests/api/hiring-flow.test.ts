@@ -30,6 +30,9 @@ const CV = [
   "BCom (Hons) Supply Chain Management",
   "National University of Science and Technology, 2014",
   "",
+  "Certifications",
+  "Certificate in Logistics and Transport, CILT, 2018",
+  "",
   "Skills",
   "Fleet management, Logistics, Excel, Team leadership",
 ];
@@ -79,6 +82,8 @@ describe.sequential("hiring flow", () => {
     expect(file.extraction.email.value).toBe(candidateEmail);
     expect(file.extraction.experience.length).toBeGreaterThanOrEqual(2);
     s.candidateId = await hr.ok<string>("cv", "confirm", s.cvId, file.extraction);
+    const profile = await hr.ok<{ certifications: { name: string; issuer: string; year: number }[] }>("profiles", "get", s.candidateId);
+    expect(profile.certifications).toEqual([{ name: "Certificate in Logistics and Transport", issuer: "CILT", year: 2018 }]);
   });
 
   it("refuses to add the same CV twice", async () => {

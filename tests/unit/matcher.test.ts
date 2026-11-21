@@ -31,6 +31,15 @@ describe("matcher: skills and qualifications", () => {
     expect(assess(c, v).requirements[0]!.outcome).toBe("not_met");
   });
 
+  it("meets a certification listed under certifications, with high confidence", () => {
+    const v = vacancy([requirement("Chartered Accountant, registered with ICAZ (or SAICA / ACCA equivalent)", "certification")]);
+    const c = candidate({ certifications: [{ name: "Chartered Accountant CA(Z)", issuer: "ICAZ", year: 2019 }] });
+    const r = assess(c, v).requirements[0]!;
+    expect(r.outcome).toBe("met");
+    expect(r.confidence).toBe("high");
+    expect(r.evidence[0]).toMatchObject({ source: "Certifications", where: "ICAZ · 2019" });
+  });
+
   it("gives partial credit for a related professional qualification", () => {
     const v = vacancy([requirement("Chartered Accountant, registered with ICAZ (or SAICA / ACCA equivalent)", "certification")]);
     const c = candidate({ certifications: [{ name: "CIMA finalist", issuer: "CIMA", year: 2022 }] });

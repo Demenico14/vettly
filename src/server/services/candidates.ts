@@ -51,6 +51,11 @@ function find(id: string) {
   return c;
 }
 
+/** Certifications from a reviewed CV, as stored on the profile. A missing year is recorded as unknown (0). */
+function certificationsFrom(x: CvCandidateInput["extraction"]) {
+  return (x.certifications ?? []).filter((c) => c.name.trim()).map((c) => ({ name: c.name.trim(), issuer: c.issuer.trim(), year: c.year ?? 0 }));
+}
+
 function cvDocument(input: CvCandidateInput): CandidateDocument {
   return { id: newId("doc"), ...(input.fileId ? { fileId: input.fileId } : {}), name: input.fileName, kind: "CV", sizeKb: input.sizeKb, pages: input.extraction.pages, uploadedAt: now() };
 }
@@ -182,7 +187,7 @@ export const candidateProfileService: CandidateProfileService = {
       experience: x.experience.map((e) => ({ id: e.id, title: e.title, company: e.company, location: e.location, start: e.start, end: e.end, bullets: (e.bullets ?? []).map((b) => b.trim()).filter(Boolean) })),
       education: x.education.map((e) => ({ id: e.id, institution: e.institution, qualification: e.qualification, field: e.field, start: e.end ? e.end - 3 : new Date().getFullYear(), end: e.end })),
       skills: input.skillLevels ?? x.skills.map((name) => ({ name, level: "Intermediate" as const })),
-      certifications: [],
+      certifications: certificationsFrom(x),
       projects: [],
       documents: [cvDocument(input)],
       applications: [app],
@@ -197,6 +202,9 @@ export const candidateProfileService: CandidateProfileService = {
   async attachCv(id, input) {
     const c = find(id);
     c.documents = [cvDocument(input), ...c.documents];
+    // A newer CV can list certifications the profile doesn't have yet.
+    const known = new Set(c.certifications.map((x) => x.name.toLowerCase()));
+    c.certifications = [...c.certifications, ...certificationsFrom(input.extraction).filter((x) => !known.has(x.name.toLowerCase()))];
     if (!c.applications.some((a) => a.vacancyId === input.vacancyId)) {
       const app = application(input);
       c.applications = [app, ...c.applications];

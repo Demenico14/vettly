@@ -25,7 +25,7 @@ import { FAILURE_COPY, nameFromFile } from "@/lib/cv";
 import { cn } from "@/lib/utils";
 import { CvStatusBadge, FIELD_LABEL, IN_PROGRESS, flagsOf, sizeLabel } from "./cv-meta";
 import { CvPreview } from "./cv-preview";
-import { EducationSection, ExperienceSection, PersonalSection, SkillsAndSummary, type Errors } from "./review-form";
+import { CertificationsSection, EducationSection, ExperienceSection, PersonalSection, SkillsAndSummary, type Errors } from "./review-form";
 
 type Loaded = { file: CvFile; batch: Omit<CvBatch, "files">; nextToReview: string | null };
 
@@ -155,6 +155,7 @@ export function CvReview({ id }: { id: string }) {
       if (key in FIELD_LABEL) delete d[key as keyof typeof FIELD_LABEL].flag;
       d.experience = d.experience.map((e) => (e.id === key ? { ...e, flag: undefined } : e));
       d.education = d.education.map((e) => (e.id === key ? { ...e, flag: undefined } : e));
+      d.certifications = (d.certifications ?? []).map((c) => (c.id === key ? { ...c, flag: undefined } : c));
       return d;
     });
 
@@ -267,6 +268,7 @@ export function CvReview({ id }: { id: string }) {
                     />
                     <ExperienceSection items={working.experience} checked={checked} onChange={(v) => update((d) => ({ ...d, experience: v }))} onConfirm={confirmFlag} />
                     <EducationSection items={working.education} checked={checked} onChange={(v) => update((d) => ({ ...d, education: v }))} onConfirm={confirmFlag} />
+                    <CertificationsSection items={working.certifications ?? []} checked={checked} onChange={(v) => update((d) => ({ ...d, certifications: v }))} onConfirm={confirmFlag} />
                     <SkillsAndSummary
                       skills={working.skills}
                       summary={working.summary}

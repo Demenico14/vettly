@@ -4,7 +4,7 @@ import "server-only";
  * so HR checks it before the candidate is created. No AI model is called; an AI extractor can replace
  * `parseCv` later with the same output.
  */
-import type { CvExtraction, ExtractedEducation, ExtractedExperience } from "@/types";
+import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience } from "@/types";
 
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const PHONE = /(?:\+|00)?\d[\d\s().-]{7,16}\d/;
@@ -26,6 +26,11 @@ const SKILLS = [
 const DEGREE = /\b(PhD|Doctor|Master|MSc|MBA|MA|MCom|BSc|BCom|BAcc|BA|BEng|BTech|LLB|Bachelor|Honours|Hons|Diploma|Certificate|Degree|HND|ND|ACCA|CIMA|CA\(Z\)|CA\(SA\)|CIPS|IPMZ)\b/;
 const INSTITUTION = /\b(University|College|Polytechnic|Institute|School|Academy|UNISA|UZ|NUST|MSU|HIT|CUT)\b/;
 const NOT_NAME = /(curriculum|vitae|resume|résumé|profile|cv\b|page \d)/i;
+/** Bodies that award or register professional qualifications in the region and beyond, matched case-sensitively. */
+const ISSUERS = /\b(ICAZ|SAICA|SAIPA|ACCA|CIMA|CIPS|IPMZ|SABPP|ICSA|CISA|ISACA|PMI|AXELOS|PRINCE2|CFA Institute|IIA|ECSA|ZIE|HPCSA|Microsoft|AWS|Amazon Web Services|Google|Cisco|CompTIA|Oracle|SAP|Scrum Alliance|Scrum\.org)\b/;
+/** Headings that start a certifications section. */
+const CERT_HEADING = /^(certifications?|certificates|professional (qualifications|certifications|memberships|registrations?)|licen[cs]es( and certifications)?|memberships|accreditations)\s*:?$/i;
+
 const SECTION = /^(profile|summary|professional summary|about me|objective|career objective|experience|work experience|employment history|professional experience|education|qualifications|skills|key skills|competencies|references|referees|certifications|achievements|languages|interests)\s*:?$/i;
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -147,6 +152,25 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
   });
 
   // Skills: known vocabulary found in the text, longest names first so "Sage Evolution" beats "Sage".
+  // Certifications: each line under a certifications heading, split into the award, its issuing body and year.
+  const certifications: ExtractedCertification[] = [];
+  const certHead = lines.findIndex((l) => CERT_HEADING.test(l));
+  if (certHead >= 0) {
+    for (const raw of lines.slice(certHead + 1)) {
+      if (SECTION.test(raw) || CERT_HEADING.test(raw)) break;
+      const l = raw.replace(/^[•·*▪◦-]\s*/, "").trim();
+      if (l.length < 3) continue;
+      const year = l.match(/\b(19[6-9]\d|20[0-4]\d)\b/)?.[1];
+      const parts = l.replace(/\(?\b(19[6-9]\d|20[0-4]\d)\b\)?/g, "").split(/\s*[,|–—]\s*|\s+-\s+/).map((x) => x.trim()).filter(Boolean);
+      const issuerPart = parts.slice(1).find((x) => ISSUERS.test(x)) ?? parts[1] ?? "";
+      const issuer = issuerPart || l.match(ISSUERS)?.[1] || "";
+      const name = (parts[0] ?? l).slice(0, 120);
+      if (certifications.some((c) => c.name === name)) continue;
+      certifications.push({ id: `c${certifications.length + 1}`, name, issuer: issuer.slice(0, 80), year: year ? Number(year) : null, ...(!issuer ? { flag: "Issuing body not found" } : {}) });
+      if (certifications.length >= 12) break;
+    }
+  }
+
   const vocab = [...new Set([...knownSkills, ...SKILLS])].sort((a, b) => b.length - a.length);
   const lower = ` ${flat.toLowerCase()} `;
   const skills: string[] = [];
@@ -183,6 +207,7 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
       summary: summary.slice(0, 900),
       experience,
       education,
+      certifications,
       skills: skills.slice(0, 20),
       pages,
       ocr: false,

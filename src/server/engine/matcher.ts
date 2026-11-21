@@ -123,7 +123,7 @@ function corpus(c: CandidateProfile): Line[] {
     lines.push({ source: "Skills", where: "Skills list", quote, haystack: s.name.toLowerCase(), strong: s.level === "Expert" || s.level === "Advanced" });
   }
   for (const x of c.certifications) {
-    lines.push({ source: "Certifications", where: `${x.issuer} · ${x.year}`, quote: x.name, haystack: `${x.name} ${x.issuer}`.toLowerCase(), strong: true });
+    lines.push({ source: "Certifications", where: [x.issuer, x.year || null].filter(Boolean).join(" · ") || "Certifications", quote: x.name, haystack: `${x.name} ${x.issuer}`.toLowerCase(), strong: true });
   }
   for (const e of c.education) {
     lines.push({

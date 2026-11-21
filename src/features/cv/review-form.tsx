@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Briefcase, Check, CircleCheck, GraduationCap, Plus, Sparkles, Trash2, UserRound } from "@/components/icons";
+import { Briefcase, Certificate, Check, CircleCheck, GraduationCap, Plus, Sparkles, Trash2, UserRound } from "@/components/icons";
 import { Button, Card, Checkbox, Field, Input, Select, Tag, Textarea } from "@/components/ui";
-import type { CvExtraction, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
+import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
 import { AVAILABILITY_OPTIONS } from "@/lib/cv";
 import { cn } from "@/lib/utils";
 import { FIELD_LABEL } from "./cv-meta";
@@ -196,6 +196,80 @@ export function ExperienceSection({
             </li>
           ))}
         </ol>
+      )}
+    </Section>
+  );
+}
+
+export function CertificationsSection({
+  items,
+  checked,
+  onChange,
+  onConfirm,
+}: {
+  items: ExtractedCertification[];
+  checked: Set<string>;
+  onChange: (v: ExtractedCertification[]) => void;
+  onConfirm: (id: string) => void;
+}) {
+  const set = (id: string, patch: Partial<ExtractedCertification>) => onChange(items.map((c) => (c.id === id ? { ...c, ...patch, flag: undefined } : c)));
+  return (
+    <Section
+      icon={<Certificate />}
+      title="Certifications"
+      aside={
+        <Button size="sm" variant="ghost" onClick={() => onChange([...items, { id: nid("c"), name: "", issuer: "", year: null }])}>
+          <Plus />
+          Add certification
+        </Button>
+      }
+    >
+      {items.length === 0 ? (
+        <p className="text-sm text-fg-subtle">No certifications found. Add any the CV mentions, such as a professional registration.</p>
+      ) : (
+        <ul className="flex flex-col gap-4">
+          {items.map((c, i) => (
+            <li key={c.id} className={cn("rounded-md border p-4", c.flag ? "border-dashed border-accent-500 bg-accent-50/30" : "border-line")}>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-fg-subtle">
+                  Certification {i + 1}
+                  {checked.has(c.id) && !c.flag && (
+                    <span className="ml-2">
+                      <CheckedMark />
+                    </span>
+                  )}
+                </p>
+                <Button size="icon-sm" variant="ghost" aria-label={`Remove certification ${i + 1}`} onClick={() => onChange(items.filter((x) => x.id !== c.id))}>
+                  <Trash2 />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_6rem]">
+                <Field label="Certification">
+                  <Input value={c.name} onChange={(ev) => set(c.id, { name: ev.target.value })} placeholder="e.g. Chartered Accountant CA(Z)" />
+                </Field>
+                <Field label="Issued by">
+                  <Input value={c.issuer} onChange={(ev) => set(c.id, { issuer: ev.target.value })} placeholder="e.g. ICAZ" />
+                </Field>
+                <Field label="Year">
+                  <Input
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={c.year ?? ""}
+                    onChange={(ev) => {
+                      const n = ev.target.value.replace(/\D/g, "");
+                      set(c.id, { year: n ? Number(n) : null });
+                    }}
+                  />
+                </Field>
+              </div>
+              {c.flag && (
+                <div className="mt-3">
+                  <FlagNote flag={c.flag} onConfirm={() => onConfirm(c.id)} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
     </Section>
   );

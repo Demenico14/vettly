@@ -489,6 +489,16 @@ export interface ExtractedEducation {
   flag?: string;
 }
 
+export interface ExtractedCertification {
+  id: string;
+  /** e.g. "Chartered Accountant CA(Z)". */
+  name: string;
+  /** The awarding or registering body, e.g. "ICAZ". */
+  issuer: string;
+  year: number | null;
+  flag?: string;
+}
+
 export interface CvExtraction {
   name: ExtractedValue;
   email: ExtractedValue;
@@ -500,6 +510,8 @@ export interface CvExtraction {
   summary: string;
   experience: ExtractedExperience[];
   education: ExtractedEducation[];
+  /** Professional certifications, registrations and licences. Older extractions may not have them. */
+  certifications?: ExtractedCertification[];
   skills: string[];
   pages: number;
   /** Read from a scan or photo, so characters may be misread. */
