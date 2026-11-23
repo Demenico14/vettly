@@ -11,7 +11,8 @@
     "check:psychometrics": "node scripts/check-psychometrics.mjs",
     "test": "vitest run --project unit",
     "test:api": "vitest run --project api",
-    "test:all": "vitest run"
+    "test:all": "vitest run --project unit --project api",
+    "test:models": "vitest run --project models"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.928.0",

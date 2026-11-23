@@ -12,3 +12,4 @@ docs
 tsconfig.tsbuildinfo
 Dockerfile
 docker-compose*.yml
+/models

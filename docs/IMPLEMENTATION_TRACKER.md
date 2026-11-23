@@ -28,6 +28,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | — | Letterhead and branded emails | **Approved** (23 Nov) | Branch `branding-letterhead`. Real logo upload, letterhead footer and contact details; offer letters on the letterhead and as PDF; candidate and team emails in HTML on the letterhead, with the offer PDF attached; logo on the test page |
 | — | QA sweep | **Approved** (23 Nov) | Branch `qa-sweep`. Every page crawled with a seeded organisation; fixed duplicate activity ids, notifications (others' actions, clickable), real billing and trial details, last-active times, the new-offer picker, the sent-offer edit page, CV upload wording, stray separators; dead section route removed; tests added (135) |
 | — | Clear errors for malformed API calls | **Approved** (23 Nov) | Branch `rpc-arg-validation`. Arguments of the wrong shape get a 400 `invalid_arguments` instead of a 500; still logged; test added (136) |
+| — | Local AI models | **Approved** (23 Nov) | Branch `local-models`. Open Hugging Face models run in Docker (`--profile ai`), no outside API: NuExtract reads CVs (combined with the rules, checked against the CV text), Qwen3 reranker matches HR-written requirements; rules remain the fallback. Scored test set (`pnpm test:models`) and stress test on a CV folder. Gemma writing assistant not wired yet |
 
 ## Module 1 checklist
 

@@ -70,6 +70,82 @@ services:
       - "${SMTP_HOST_PORT:-1025}:1025"
     restart: unless-stopped
 
+  # Local AI models, served by llama.cpp from ./models (downloaded from Hugging Face; see scripts/models).
+  # Optional: start with `docker compose --profile ai up -d`. No outside API is called.
+  # CV reading: NuExtract 2.0 2B (MIT), 4-bit.
+  ai-extract:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/NuExtract-2.0-2B-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "8192", "-np", "1", "--threads", "6", "--temp", "0"]
+    ports:
+      - "${AI_EXTRACT_PORT:-8091}:8080"
+    mem_limit: 2g
+    restart: unless-stopped
+
+  # CV reading, larger alternative: NuExtract3 (Apache 2.0, 4B, built on Qwen3.5-4B), 4-bit, about 2.8 GB.
+  # To use it, point AI_EXTRACT_URL here and set AI_EXTRACT_FORMAT=nuextract3.
+  ai-extract3:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/NuExtract3-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "8192", "--threads", "6", "--jinja", "-np", "1"]
+    ports:
+      - "${AI_EXTRACT3_PORT:-8096}:8080"
+    mem_limit: 3500m
+    restart: unless-stopped
+
+  # Matching: Qwen3-Embedding 0.6B (Apache 2.0) turns CV and requirement text into vectors.
+  ai-embed:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/Qwen3-Embedding-0.6B-Q8_0.gguf", "--host", "0.0.0.0", "--port", "8080", "--embedding", "--pooling", "last", "-c", "2048", "-ub", "2048", "--threads", "4"]
+    ports:
+      - "${AI_EMBED_PORT:-8092}:8080"
+    mem_limit: 1500m
+    restart: unless-stopped
+
+  # Matching: Qwen3-Reranker 0.6B (Apache 2.0) scores how well a CV passage answers a requirement.
+  ai-rerank:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/qwen3-reranker-0.6b-q8_0.gguf", "--host", "0.0.0.0", "--port", "8080", "--reranking", "-c", "2048", "-ub", "2048", "--threads", "4"]
+    ports:
+      - "${AI_RERANK_PORT:-8093}:8080"
+    mem_limit: 1500m
+    restart: unless-stopped
+
+  # Scanned CVs and photos: PaddleOCR-VL 1.6 (Apache 2.0) reads the page image into text.
+  ai-ocr:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/PaddleOCR-VL-1.6-GGUF.gguf", "--mmproj", "/models/PaddleOCR-VL-1.6-GGUF-mmproj.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "4096", "--threads", "6", "--temp", "0"]
+    ports:
+      - "${AI_OCR_PORT:-8094}:8080"
+    mem_limit: 2500m
+    restart: unless-stopped
+
+  # Writing (job descriptions, interview questions): Gemma 4 E2B (Apache 2.0), 4-bit, text only.
+  # E4B is better but needs about 6 GB; set the model file here if the machine has the memory.
+  ai-write:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/gemma-4-E2B-it-Q4_0.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "4096", "--threads", "6", "--jinja"]
+    ports:
+      - "${AI_WRITE_PORT:-8095}:8080"
+    mem_limit: 3200m
+    restart: unless-stopped
+
 volumes:
   db-data:
   storage-data:

@@ -107,3 +107,10 @@ describe("CV parser", () => {
     expect(r.extraction.email.flag).toBeTruthy();
   });
 });
+
+describe("personal-details blocks", () => {
+  it("reads a labelled name, not the block's heading", () => {
+    const cv = "CURRICULUM VITAE\nPersonal Details\nFull Name: Tinashe Dube\nCell: 0778 123 456\nEmail: tdube@example.com\nWork Experience\nJan 2022 – Present Motor Mechanic, Zimoco Gweru";
+    expect(parseCv(cv, 1).extraction.name.value).toBe("Tinashe Dube");
+  });
+});
