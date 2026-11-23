@@ -1,7 +1,7 @@
 import "server-only";
 import { orgEmail } from "../org-mail";
 /**
- * Offers service (Module 11). Phase 1: an in-memory store seeded from src/mocks/offers.ts. Offers move through
+ * Offers service. Offers are stored per organisation (see store.ts) and move through
  * approval (hiring manager, HR, and the CFO above the salary band), are sent with a deadline, and record the
  * candidate's response. Sending moves the application to Offer; hiring needs the pre-hire checks and moves it
  * to Hired. Every step is written to the offer's history.

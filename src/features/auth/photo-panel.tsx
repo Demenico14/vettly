@@ -79,7 +79,7 @@ function ReviewStrip() {
             )}
           >
             <Sparkles className="size-3.5" />
-            AI suggestion
+            Suggested
           </span>
           <span
             className={cn(

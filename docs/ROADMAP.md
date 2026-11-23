@@ -35,6 +35,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | Custom offer letters | Approved |
 | — | CV certifications | Approved |
 | — | Letterhead and branded emails | Approved |
+| — | QA sweep | Approved |
 
 ---
 

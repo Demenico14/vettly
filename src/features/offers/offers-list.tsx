@@ -22,6 +22,11 @@ export function OffersList() {
   const [status, setStatus] = React.useState<string[]>([]);
   const [tile, setTile] = React.useState<Tile>(null);
   const [creating, setCreating] = React.useState(false);
+  // "/offers?new=1" opens the picker straight away (where "New offer" links land without a candidate).
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the address once after the page loads
+    if (new URLSearchParams(window.location.search).has("new")) setCreating(true);
+  }, []);
 
   const [attempt, setAttempt] = React.useState(0);
   React.useEffect(() => {

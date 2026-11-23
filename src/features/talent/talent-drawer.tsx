@@ -1,5 +1,6 @@
 "use client";
 
+import { dotted } from "@/lib/utils";
 import * as React from "react";
 import Link from "next/link";
 import { Briefcase, Folder, GraduationCap, Mail, MapPin, Phone, Send, Trash2 } from "@/components/icons";
@@ -40,7 +41,7 @@ export function TalentDrawer({ hit, onOpenChange, vacancyId, onChanged, onCollec
               <p className="text-sm text-fg-muted">{hit.headline}</p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-fg-subtle">
                 <MapPin className="size-3" />
-                {hit.location}, {COUNTRY[hit.country]} · {hit.availability}
+                {dotted([hit.location, COUNTRY[hit.country]].filter(Boolean).join(", "), hit.availability)}
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <Badge tone="outline" size="sm">

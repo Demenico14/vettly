@@ -85,6 +85,28 @@ export function OfferEditor(props: Source) {
       </PageContainer>
     );
 
+  // Only drafts and counter-offers can be changed; an offer awaiting approval, sent or settled is fixed.
+  if (props.mode === "edit" && offer && !["draft", "countered"].includes(offer.status))
+    return (
+      <PageContainer>
+        <Alert
+          tone="info"
+          title="This offer can't be changed now"
+          action={
+            <Button size="sm" variant="secondary" asChild>
+              <Link href={`/offers/${offer.id}`}>Back to the offer</Link>
+            </Button>
+          }
+        >
+          {offer.status === "pending_approval" || offer.status === "approved"
+            ? "It's with the approvers. Ask one of them to send it back with comments, then edit the draft."
+            : offer.status === "sent" || offer.status === "viewed"
+              ? "It has been sent. To change the terms, withdraw it and make a new offer, or record the candidate's counter-offer."
+              : "Its outcome has been recorded."}
+        </Alert>
+      </PageContainer>
+    );
+
   const set = (patch: Partial<OfferTerms>) => setTerms((t) => (t ? { ...t, ...patch } : t));
 
   /** Uploads a Word document and returns it as letter HTML, or null (with a message) when it can't be used. */

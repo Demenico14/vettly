@@ -144,6 +144,10 @@ export interface Subscription {
   cvCreditsTotal: number;
   invoices: { id: string; date: string; amountUsd: number; status: "paid" | "due" }[];
   paymentMethod: string;
+  /** On the free trial (renewsAt is when it ends). */
+  trial: boolean;
+  /** Names of the organisation's admins, who can change the plan. */
+  admins: string[];
 }
 
 export type AuditCategory = "settings" | "users" | "candidates" | "offers" | "assessments" | "security" | "data";

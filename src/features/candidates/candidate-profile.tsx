@@ -209,7 +209,7 @@ export function CandidateProfileView({ id }: { id: string }) {
               <Card className="flex flex-col gap-8 px-6 py-6 sm:px-8">
                 <section>
                   <h2 className="mb-2 text-base font-semibold text-fg">Summary</h2>
-                  <p className="max-w-[68ch] text-md leading-relaxed text-fg-muted">{c.summary}</p>
+                  <p className="max-w-[68ch] text-md leading-relaxed text-fg-muted">{c.summary.trim() || "No summary on the CV."}</p>
                 </section>
                 <ExperienceSection c={c} />
                 <EducationSection c={c} />

@@ -9,7 +9,7 @@ import { IllustrativeNotice, ProvenanceTag } from "@/components/domain/assessmen
 import { StageBadge } from "@/components/domain/status-badge";
 import { services, MOCK_NOW } from "@/services";
 import type { CandidateAssessment, CandidateProfile, Evidence, Vacancy } from "@/types";
-import { cn, ordinal, timeAgo } from "@/lib/utils";
+import { cn, ordinal, timeAgo, dotted } from "@/lib/utils";
 import { CATEGORY_LABEL, essentials } from "./match-meta";
 import { RequirementRow } from "./requirement-row";
 import { EvidenceViewer } from "./evidence-viewer";
@@ -120,7 +120,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
               <div className="min-w-0">
                 <PageTitle>{a.candidateName}</PageTitle>
                 <p className="mt-1.5 text-md text-fg-muted">
-                  {a.headline} · {a.location}
+                  {dotted(a.headline, a.location)}
                 </p>
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
                   <StageBadge stage={a.stage} size="sm" />
@@ -205,7 +205,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
                 Why this score
               </h2>
               <p className="mt-2 text-md leading-relaxed text-pretty text-fg-muted">{a.explanation}</p>
-              <p className="mt-3 text-2xs font-semibold text-accent-700">AI explanation · illustrative · check it against the evidence below</p>
+              <p className="mt-3 text-2xs font-semibold text-accent-700">Written by Vettly&apos;s matching rules · check it against the evidence below</p>
             </section>
             <section aria-labelledby="breakdown-h">
               <h2 id="breakdown-h" className="text-sm font-semibold text-fg">

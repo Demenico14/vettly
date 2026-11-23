@@ -30,8 +30,9 @@ import { cn, timeAgo } from "@/lib/utils";
 import { CvStatusBadge, FileIcon, IN_PROGRESS, flagsOf, personLine, sizeLabel } from "./cv-meta";
 
 const NOW = new Date(MOCK_NOW);
-const ACCEPT_EXT = ["pdf", "doc", "docx", "jpg", "jpeg", "png"];
-const MAX_MB = 10;
+/** Files Vettly can read the text of. Scans, photos and old .doc files need text recognition, which isn't connected yet. */
+const ACCEPT_EXT = ["pdf", "docx"];
+const MAX_MB = 15;
 const MAX_FILES = 50;
 
 type View = "all" | "active" | "review" | "ready" | "failed" | "done";
@@ -180,7 +181,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
     for (const f of Array.from(list)) {
       const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
       const key = `${f.name}:${f.size}`;
-      if (!ACCEPT_EXT.includes(ext)) bad.push(`${f.name} isn't a PDF, Word document or image.`);
+      if (!ACCEPT_EXT.includes(ext)) bad.push(ext === "doc" ? `${f.name} is an old Word file. Save it as .docx or PDF, then upload it.` : `${f.name} isn't a PDF or Word (.docx) file.`);
       else if (f.size > MAX_MB * 1024 * 1024) bad.push(`${f.name} is larger than ${MAX_MB} MB.`);
       else if (seen.has(key)) bad.push(`${f.name} was added twice. Vettly kept one copy.`);
       else if (ok.length >= MAX_FILES) bad.push(`${f.name} wasn't added. A batch holds up to ${MAX_FILES} CVs.`);
@@ -229,11 +230,11 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
             />
           </Field>
           <ul className="flex flex-col gap-1 text-xs text-fg-subtle">
-            <li>PDF, Word, or a photo or scan of a CV</li>
+            <li>PDF or Word (.docx)</li>
             <li>
               Up to {MAX_MB} MB each, {MAX_FILES} per upload
             </li>
-            <li>Scans are read with OCR, so check them</li>
+            <li>Scanned CVs and photos can&apos;t be read yet: ask for a PDF or Word file</li>
           </ul>
         </div>
 
@@ -276,7 +277,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
             className="sr-only"
             tabIndex={-1}
             aria-label="Choose CV files"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            accept=".pdf,.docx"
             onChange={(e) => take(e.target.files)}
           />
         </div>

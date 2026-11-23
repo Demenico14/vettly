@@ -4,7 +4,7 @@
  */
 import "server-only";
 import { orgEmail } from "../org-mail";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, max, ne } from "drizzle-orm";
 import type { AuditEvent, DataRequest, Member, OrgRole, OrgSettings, Permission, RolePermissions, Subscription } from "@/types/settings";
 import type { OrganisationSetup } from "@/types";
 import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS, ROLE_LABEL, defaultSettings } from "@/lib/settings-defaults";
@@ -102,6 +102,15 @@ async function memberRows(): Promise<Member[]> {
     .from(schema.memberships)
     .innerJoin(schema.users, eq(schema.users.id, schema.memberships.userId))
     .where(eq(schema.memberships.organisationId, orgId()));
+  // Last active: the most recent request on any of their sessions in this organisation, or their last sign-in.
+  const seen = rows.length
+    ? await db
+        .select({ userId: schema.sessions.userId, at: max(schema.sessions.lastSeenAt) })
+        .from(schema.sessions)
+        .where(and(eq(schema.sessions.organisationId, orgId()), inArray(schema.sessions.userId, rows.map((r) => r.u.id))))
+        .groupBy(schema.sessions.userId)
+    : [];
+  const lastSeen = new Map(seen.map((r) => [r.userId, r.at]));
   return rows.map(({ m, u }) => ({
     id: u.id,
     name: u.name,
@@ -110,7 +119,7 @@ async function memberRows(): Promise<Member[]> {
     department: m.department,
     role: m.role as OrgRole,
     status: m.status as Member["status"],
-    lastActiveAt: u.lastSignInAt?.toISOString() ?? null,
+    lastActiveAt: [lastSeen.get(u.id), u.lastSignInAt].filter((d): d is Date => !!d).sort((x, y) => y.getTime() - x.getTime())[0]?.toISOString() ?? null,
     invitedAt: m.status === "invited" ? m.createdAt.toISOString() : null,
     twoFactor: false,
   }));
@@ -369,7 +378,9 @@ export const settingsService: SettingsService = {
       cvCreditsUsed: batchStore.reduce((s, b) => s + b.files.length, 0),
       cvCreditsTotal: lim.cvs,
       invoices: [],
-      paymentMethod: o.status === "trial" ? "Free trial, no payment method yet" : "Invoiced by bank transfer",
+      paymentMethod: o.status === "trial" ? "" : "Invoiced by bank transfer",
+      trial: o.status === "trial",
+      admins: (await activeMembers()).filter((m) => m.role === "org_admin").map((m) => m.name),
     };
   },
   async audit() {

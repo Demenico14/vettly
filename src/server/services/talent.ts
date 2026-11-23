@@ -1,7 +1,7 @@
 import "server-only";
 /**
  * Talent service (Module 12). Searches the talent pool and active candidates together, ranks by fit, and keeps
- * saved searches and collections in memory. Retention rules: people whose consent to keep their details has
+ * saved searches and collections per organisation. Retention rules: people whose consent to keep their details has
  * lapsed are hidden by default and can't be approached until consent is renewed or the record is deleted.
  */
 import type { Availability, CandidateProfile } from "@/types";

@@ -79,7 +79,7 @@ export function MatchScore({
             size === "sm" ? "text-sm" : "text-base",
             b.text,
           )}
-          aria-label={`Match score ${score} out of 100, ${b.label.toLowerCase()}${unreviewed ? ", AI suggestion, illustrative" : ""}`}
+          aria-label={`Match score ${score} out of 100, ${b.label.toLowerCase()}${unreviewed ? ", suggested by Vettly, not reviewed" : ""}`}
         >
           {score}
           <span className="text-2xs font-semibold text-fg-subtle">%</span>

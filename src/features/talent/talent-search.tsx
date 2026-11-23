@@ -268,7 +268,7 @@ function ResultCard({ h, f, selected, onSelect, onOpen, onCollect }: { h: Talent
               <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-fg-subtle">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="size-3" />
-                  {h.location}, {COUNTRY[h.country]}
+                  {[h.location, COUNTRY[h.country]].filter(Boolean).join(", ")}
                 </span>
                 <span>· {h.availability}</span>
                 {h.openToRelocation && <span>· Open to relocating</span>}

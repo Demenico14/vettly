@@ -52,3 +52,8 @@ export function ordinal(n: number) {
   const v = n % 100;
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 }
+
+/** Joins the parts that have a value, e.g. dotted("Fleet Controller", "", "Harare") → "Fleet Controller · Harare". */
+export function dotted(...parts: (string | null | undefined | false)[]) {
+  return parts.filter((p): p is string => !!p && !!p.trim()).join(" · ");
+}

@@ -43,7 +43,7 @@ import { services, STATUS_MOVES, MOCK_NOW } from "@/services";
 import { CHANNELS } from "@/lib/catalog";
 import { TEST_BATTERIES } from "@/lib/onboarding";
 import type { CandidateSummary, Requirement, Vacancy, VacancyStatus } from "@/types";
-import { cn, formatDate, timeAgo } from "@/lib/utils";
+import { cn, formatDate, timeAgo, dotted } from "@/lib/utils";
 import { StatusDialog, VacancyActionsMenu, moveLabel } from "./status-actions";
 import { REQUIREMENT_KIND, WEIGHT_LABELS } from "./vacancy-meta";
 
@@ -394,7 +394,7 @@ export function VacancyDetail({ id }: { id: string }) {
                                   {c.name}
                                 </Link>
                                 <span className="block text-xs text-fg-subtle">
-                                  {c.headline} · {c.location}
+                                  {dotted(c.headline, c.location)}
                                 </span>
                               </span>
                             </span>

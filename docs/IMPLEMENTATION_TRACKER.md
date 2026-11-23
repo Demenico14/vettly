@@ -26,6 +26,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | — | Custom offer letters | **Approved** (21 Nov) | Branch `offer-letter-editor`. Upload a Word letter or write one in a Notion-style editor (/ commands, formatting toolbar, merge fields); cleaned on the server; part of the approved terms |
 | — | CV certifications | **Approved** (21 Nov) | Branch `cv-certifications`. The CV reader picks up certifications (award, issuing body, year); editable in CV review; added to profiles and used as matching evidence |
 | — | Letterhead and branded emails | **Approved** (23 Nov) | Branch `branding-letterhead`. Real logo upload, letterhead footer and contact details; offer letters on the letterhead and as PDF; candidate and team emails in HTML on the letterhead, with the offer PDF attached; logo on the test page |
+| — | QA sweep | **Approved** (23 Nov) | Branch `qa-sweep`. Every page crawled with a seeded organisation; fixed duplicate activity ids, notifications (others' actions, clickable), real billing and trial details, last-active times, the new-offer picker, the sent-offer edit page, CV upload wording, stray separators; dead section route removed; tests added (135) |
 
 ## Module 1 checklist
 

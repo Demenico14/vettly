@@ -2,7 +2,7 @@ import * as React from "react";
 import { FileX, Lock } from "@/components/icons";
 import type { CvExtraction, CvFile } from "@/types";
 import { FAILURE_COPY } from "@/lib/cv";
-import { cn } from "@/lib/utils";
+import { cn, dotted } from "@/lib/utils";
 import { DownloadLink, FileView, viewableAs } from "@/components/domain/file-view";
 
 const month = (ym: string) =>
@@ -58,7 +58,7 @@ export function CvPreview({ file, original }: { file: CvFile; original?: CvExtra
               {e.title}, {e.company}
             </p>
             <p className="text-xs text-ink-600">
-              {e.location} · {month(e.start)} – {e.end ? month(e.end) : "to date"}
+              {dotted(e.location, `${month(e.start)} – ${e.end ? month(e.end) : "to date"}`)}
             </p>
           </div>
         ))}

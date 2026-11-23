@@ -36,7 +36,7 @@ import { MatchScore } from "@/components/domain/assessment";
 import { PageContainer, PageHeader } from "@/components/layout/page-header";
 import { services, MOCK_NOW } from "@/services";
 import type { ApplicationStage, AssessmentProvenance, Availability, CandidateProfile } from "@/types";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, dotted } from "@/lib/utils";
 
 const NOW = new Date(MOCK_NOW);
 type SortKey = "appliedAt" | "matchScore" | "name";
@@ -55,7 +55,7 @@ interface Filters {
 const NO_FILTERS: Filters = { stages: [], vacancies: [], locations: [], skills: [], sources: [], availability: [], review: [], minMatch: "0", pool: false };
 
 const REVIEW_LABEL: Record<AssessmentProvenance, string> = {
-  ai_illustrative: "AI suggestion, not reviewed",
+  ai_illustrative: "Suggested by Vettly, not reviewed",
   hr_confirmed: "Confirmed by HR",
   hr_overridden: "Adjusted by HR",
 };
@@ -355,7 +355,7 @@ export function CandidateDirectory() {
                                     {c.inTalentPool && <Bookmark className="size-3.5 shrink-0 text-primary-600" weight="fill" aria-label="In talent pool" />}
                                   </Link>
                                   <span className="block truncate text-xs text-fg-subtle">
-                                    {c.headline} · {c.location}
+                                    {dotted(c.headline, c.location)}
                                   </span>
                                 </span>
                               </span>

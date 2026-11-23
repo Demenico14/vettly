@@ -117,12 +117,14 @@ function attention(): AttentionItem[] {
   return out;
 }
 
-function activity(): ActivityEvent[] {
+/** Everything that happened recently, newest first. `limit` caps the list; ids are unique even within the same millisecond. */
+export function activityFeed(limit = 20): ActivityEvent[] {
   const events: ActivityEvent[] = [];
   for (const { c, a } of apps()) {
-    for (const h of a.history) {
+    for (const [i, h] of a.history.entries()) {
       events.push({
-        id: `act_${a.id}_${h.at}_${h.stage}`,
+        id: `act_${a.id}_${i}`,
+        href: `/candidates/${c.id}`,
         kind: h.stage === "applied" ? "application" : "stage",
         actor: h.stage === "applied" ? c.name : h.by,
         text: h.stage === "applied" ? `applied for ${a.vacancyTitle}` : `moved ${c.name} to ${h.stage}`,
@@ -133,19 +135,20 @@ function activity(): ActivityEvent[] {
   }
   for (const r of invitationStore) {
     const done = r.status === "completed" ? r.audit.filter((e) => e.action === "completed").at(-1) : undefined;
-    if (done) events.push({ id: `act_tst_${r.id}`, kind: "assessment", actor: r.candidateName, text: "completed their tests", context: r.vacancyTitle, at: done.at });
-    events.push({ id: `act_snt_${r.id}`, kind: "assessment", actor: r.sentBy, text: `sent tests to ${r.candidateName}`, context: r.vacancyTitle, at: r.sentAt });
+    if (done) events.push({ id: `act_tst_${r.id}`, kind: "assessment", actor: r.candidateName, text: "completed their tests", context: r.vacancyTitle, at: done.at, href: `/assessments/results/${r.id}` });
+    events.push({ id: `act_snt_${r.id}`, kind: "assessment", actor: r.sentBy, text: `sent tests to ${r.candidateName}`, context: r.vacancyTitle, at: r.sentAt, href: `/assessments/results/${r.id}` });
   }
   for (const o of offerStore)
-    for (const h of o.history) {
+    for (const [i, h] of o.history.entries()) {
       // Steps Vettly takes itself read as "<candidate>'s offer: fully approved"; people's steps as "<person> approved (<candidate>)".
       const system = h.by === "Vettly";
       const text = `${h.text.charAt(0).toLowerCase()}${h.text.slice(1)}`.replace(/\.\s*Ready to send\.$/, ", ready to send").replace(/\.$/, "");
-      events.push({ id: `act_off_${o.id}_${h.at}`, kind: "offer", actor: system ? `${o.candidateName}'s offer:` : h.by, text: system ? text : `${text} (${o.candidateName})`, context: o.vacancyTitle, at: h.at });
+      events.push({ id: `act_off_${o.id}_${i}`, href: `/offers/${o.id}`, kind: "offer", actor: system ? `${o.candidateName}'s offer:` : h.by, text: system ? text : `${text} (${o.candidateName})`, context: o.vacancyTitle, at: h.at });
     }
-  for (const v of vacancySnapshot()) for (const h of v.history.filter((x) => x.status !== "draft")) events.push({ id: `act_vac_${v.id}_${h.at}_${h.status}`, kind: "vacancy", actor: h.by, text: `${h.status === "open" ? "opened" : h.status} ${v.title}`, context: h.reason ? `“${h.reason}”` : v.reference, at: h.at });
+  for (const v of vacancySnapshot())
+    for (const [i, h] of v.history.entries()) if (h.status !== "draft") events.push({ id: `act_vac_${v.id}_${i}`, href: `/vacancies/${v.id}`, kind: "vacancy", actor: h.by, text: `${h.status === "open" ? "opened" : h.status} ${v.title}`, context: h.reason ? `“${h.reason}”` : v.reference, at: h.at });
   void auditLog;
-  return events.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+  return events.sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, limit);
 }
 
 export const dashboardService: DashboardService = {
@@ -185,7 +188,7 @@ export const dashboardService: DashboardService = {
       })),
       tests: invitationStore.filter((r) => r.status !== "cancelled").map(summaryOf),
       applications: recent,
-      activity: activity(),
+      activity: activityFeed(),
     };
   },
   async getFunnel(period, vacancyId) {

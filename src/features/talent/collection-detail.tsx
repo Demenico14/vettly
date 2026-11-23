@@ -162,7 +162,7 @@ function MemberRow({ m, collectionId, onOpen, onRemove }: { m: Member; collectio
               <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-fg-subtle">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="size-3" />
-                  {m.location}, {COUNTRY[m.country]}
+                  {[m.location, COUNTRY[m.country]].filter(Boolean).join(", ")}
                 </span>
                 <span>· {m.availability}</span>
               </p>

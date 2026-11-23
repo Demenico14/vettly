@@ -184,7 +184,7 @@ export function VacanciesPanel({ vacancies, loading }: { vacancies?: VacancySumm
         <ul className="border-t border-line sm:hidden">
           {rows.map((v) => (
             <li key={v.id}>
-              <Link href="/vacancies" className="flex items-start justify-between gap-3 border-b border-line px-5 py-3 last:border-b-0 hover:bg-surface-muted">
+              <Link href={`/vacancies/${v.id}`} className="flex items-start justify-between gap-3 border-b border-line px-5 py-3 last:border-b-0 hover:bg-surface-muted">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-fg">{v.title}</span>
                   <span className="block truncate text-xs text-fg-subtle">
@@ -214,9 +214,9 @@ export function VacanciesPanel({ vacancies, loading }: { vacancies?: VacancySumm
               {rows.map((v) => {
                 const closingSoon = v.closesAt && v.status === "open" && new Date(v.closesAt).getTime() - NOW.getTime() < 3 * 86400000;
                 return (
-                  <TR key={v.id} className="cursor-pointer" onClick={() => router.push("/vacancies")}>
+                  <TR key={v.id} className="cursor-pointer" onClick={() => router.push(`/vacancies/${v.id}`)}>
                     <TD>
-                      <Link href="/vacancies" className="font-semibold text-fg hover:underline" onClick={(e) => e.stopPropagation()}>
+                      <Link href={`/vacancies/${v.id}`} className="font-semibold text-fg hover:underline" onClick={(e) => e.stopPropagation()}>
                         {v.title}
                       </Link>
                       <p className="text-xs text-fg-subtle">

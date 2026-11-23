@@ -2,7 +2,7 @@ import "server-only";
 import { orgEmail } from "../org-mail";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
 /**
- * Interviews service (Module 10). Phase 1: an in-memory store seeded from src/mocks/interviews.ts. Scheduling
+ * Interviews service. Interviews are stored per organisation (see store.ts). Scheduling
  * checks interviewers' recurring commitments and other interviews; scorecards stay hidden from other
  * panellists until each person has submitted their own; the panel decision is recorded with a rationale and
  * can move the candidate in the pipeline. Times are Harare time (UTC+2).

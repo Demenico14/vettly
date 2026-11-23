@@ -245,6 +245,8 @@ export interface ActivityEvent {
   text: string;
   context: string;
   at: string;
+  /** Where the event can be followed up. */
+  href?: string;
 }
 
 export interface TestInvitationSummary {
