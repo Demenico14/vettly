@@ -28,8 +28,10 @@ export interface VacancyService {
   setStatus(id: string, status: VacancyStatus, reason?: string): Promise<Vacancy>;
   duplicate(id: string): Promise<Vacancy>;
   remove(id: string): Promise<void>;
-  /** Writing help in the editor: rewrites text with fixed rules (no AI model). Streams words for progress. */
+  /** Writing help in the editor: Vettly's local writing model, or fixed rules when it isn't running. Streams words for progress. */
   assist(action: AssistAction, input: { title: string; department: string; summary: string; responsibilities: string[] }): AsyncGenerator<string>;
+  /** The local writing model's draft or rewrite, checked on the server. Null when the model isn't available. */
+  write(action: AssistAction, input: { title: string; department: string; summary: string; responsibilities: string[] }): Promise<{ summary: string; responsibilities?: string[] } | null>;
 }
 
 export interface AuthService {

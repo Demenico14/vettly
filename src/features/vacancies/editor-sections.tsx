@@ -300,7 +300,7 @@ export function DescriptionSection({ draft, set, errors }: Props) {
             <Sparkles className="size-4" />
             Writing assistant
           </p>
-          <span className="text-2xs font-medium text-accent-700">Fixed rewriting rules · nothing is sent to an AI model</span>
+          <span className="text-2xs font-medium text-accent-700">Suggestions to check and edit · nothing leaves Vettly</span>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {ASSIST_ACTIONS.map((a) => (

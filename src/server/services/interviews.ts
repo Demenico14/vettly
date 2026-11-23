@@ -1,4 +1,5 @@
 import "server-only";
+import { refreshWrittenQuestions, writtenQuestions } from "./interview-questions";
 import { orgEmail } from "../org-mail";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
 /**
@@ -57,7 +58,9 @@ async function loadInterviewers() {
 const interviewers = { find: (f: (i: Interviewer) => boolean) => (roster.get(context()) ?? []).find(f), all: () => roster.get(context()) ?? [] };
 
 function questionSetsFor(): QuestionSet[] {
-  return [SCREENING_SET, ...vacancySnapshot().filter((v) => v.status !== "draft" && v.requirements.length).map(vacancySet)];
+  const vacancies = vacancySnapshot().filter((v) => v.status !== "draft" && v.requirements.length);
+  for (const v of vacancies) refreshWrittenQuestions(v);
+  return [SCREENING_SET, ...vacancies.map((v) => vacancySet(v, writtenQuestions(v)))];
 }
 const setById = (id: string) => questionSetsFor().find((s) => s.id === id) ?? SCREENING_SET;
 
