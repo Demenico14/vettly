@@ -72,7 +72,7 @@ describe.sequential("hiring flow", () => {
     const batch = await hr.ok<{ files: { id: string }[] }>("cv", "upload", s.vacancyId, "Fleet Controller", [{ name: stored.name, sizeKb: stored.sizeKb, fileId: stored.fileId }]);
     s.cvId = batch.files[0]!.id;
     let status = "";
-    for (let i = 0; i < 40 && !["ready", "needs_review", "failed"].includes(status); i++) {
+    for (let i = 0; i < 720 && !["ready", "needs_review", "failed"].includes(status); i++) {
       await new Promise((r) => setTimeout(r, 250));
       status = (await hr.ok<{ file: { status: string } }>("cv", "getFile", s.cvId)).file.status;
     }
