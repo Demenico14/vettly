@@ -73,6 +73,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ser
     // Validation messages are written for people; anything unexpected is logged and kept generic.
     if (e instanceof Error && (e.constructor === Error || e.name === "Error")) return fail(400, message);
     console.error(`[rpc] ${service}.${method}`, e);
+    // The screens always send arguments of the right shape, so a type error almost always means a hand-made
+    // request with the wrong ones: say so instead of blaming the server (it's still logged, in case it isn't).
+    if (e instanceof TypeError) return fail(400, "The request's details weren't in the expected form.", "invalid_arguments");
     return fail(500, "Something went wrong on our side. Try again.");
   }
 }

@@ -93,6 +93,13 @@ describe("cross-site requests (CSRF)", () => {
     expect((await post(admin.client, { "content-type": "application/x-www-form-urlencoded" }, "args=1")).status).toBe(415);
   });
 
+  it("answers arguments of the wrong shape with a clear 400, not a server error", async () => {
+    const r = await new Client().call("auth", "signIn", { email: "x@vettly-test.local", password: "Wrong-Password-12345" });
+    expect(r.status).toBe(400);
+    expect(r.code).toBe("invalid_arguments");
+    expect(r.error).toMatch(/expected form/);
+  });
+
   it("refuses uploads from another site", async () => {
     const form = new FormData();
     form.append("file", new File([pdf(["x"])], "x.pdf", { type: "application/pdf" }));
