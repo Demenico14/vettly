@@ -36,7 +36,11 @@ async function embed(texts) {
 }
 const cos = (a, b) => {
   let d = 0, na = 0, nb = 0;
-  for (let i = 0; i < a.length; i++) (d += a[i] * b[i]), (na += a[i] ** 2), (nb += b[i] ** 2);
+  for (let i = 0; i < a.length; i++) {
+    d += a[i] * b[i];
+    na += a[i] ** 2;
+    nb += b[i] ** 2;
+  }
   return d / Math.sqrt(na * nb);
 };
 

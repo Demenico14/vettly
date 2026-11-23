@@ -9,7 +9,7 @@ import { formatOf } from "@/lib/cv";
 import { actorName, afterCommit, newId, now, orgId } from "../context";
 import { collection, withOrg } from "../store";
 import { extractText, fileFor } from "../files";
-import { parseCv } from "../engine/cv-parser";
+import { cleanCvText, parseCv } from "../engine/cv-parser";
 import { combine, readCvWithModel } from "../engine/cv-model";
 import { candidateProfileService, profileSnapshot } from "./candidates";
 import { logAudit } from "./settings";
@@ -67,7 +67,8 @@ async function processFile(organisationId: string, cvId: string) {
   }).catch(() => null);
   if (!fileId) return;
   const row = await fileFor(organisationId, fileId);
-  const text = row ? await extractText(row) : ({ ok: false, failure: "unreadable" } as const);
+  const read = row ? await extractText(row) : ({ ok: false, failure: "unreadable" } as const);
+  const text = read.ok ? { ...read, text: cleanCvText(read.text) } : read;
   // The local model reads the CV first, outside the organisation's records (it can take a few seconds).
   const model = text.ok ? await readCvWithModel(text.text).catch(() => null) : null;
   await withOrg(organisationId, null, () => {

@@ -5,7 +5,7 @@ import "server-only";
  * address; when one isn't set or doesn't answer, callers get `null` and Vettly falls back to its rule-based
  * reader, matcher or templates.
  *
- *   AI_EXTRACT_URL  NuExtract 2.0 2B: CV text → structured profile
+ *   AI_EXTRACT_URL  NuExtract (2.0 2B, or NuExtract3 with AI_EXTRACT_FORMAT=nuextract3): CV text → profile
  *   AI_RERANK_URL   Qwen3-Reranker 0.6B: how well a CV line answers a requirement
  *   AI_WRITE_URL    Gemma 4 E2B: job description drafts, interview questions
  */
@@ -58,9 +58,17 @@ export function jsonIn<T>(text: string | undefined): T | null {
   }
 }
 
-/** NuExtract: fills a JSON template from a document. Temperature 0, as its makers recommend. */
-export async function extractWithTemplate<T>(template: unknown, text: string, timeoutMs = 120_000): Promise<T | null> {
-  const r = await post<Chat>("extract", "/v1/chat/completions", { model: "local", temperature: 0, max_tokens: 2000, messages: [{ role: "user", content: `# Template:\n${JSON.stringify(template, null, 4)}\n${text}` }] }, timeoutMs);
+/**
+ * NuExtract: fills a JSON template from a document. NuExtract 2.0 takes the template in the message;
+ * NuExtract3 (AI_EXTRACT_FORMAT=nuextract3) takes it as a chat-template setting, with thinking off.
+ */
+export async function extractWithTemplate<T>(template: unknown, text: string, timeoutMs = 180_000): Promise<T | null> {
+  const tpl = JSON.stringify(template, null, 4);
+  const v3 = process.env.AI_EXTRACT_FORMAT === "nuextract3";
+  const body = v3
+    ? { model: "local", temperature: 0.2, max_tokens: 2500, chat_template_kwargs: { template: tpl, enable_thinking: false }, messages: [{ role: "user", content: [{ type: "text", text }] }] }
+    : { model: "local", temperature: 0, max_tokens: 2000, messages: [{ role: "user", content: `# Template:\n${tpl}\n${text}` }] };
+  const r = await post<Chat>("extract", "/v1/chat/completions", body, timeoutMs);
   return jsonIn<T>(r?.choices?.[0]?.message?.content);
 }
 

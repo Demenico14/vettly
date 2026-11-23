@@ -84,6 +84,19 @@ services:
     mem_limit: 2g
     restart: unless-stopped
 
+  # CV reading, larger alternative: NuExtract3 (Apache 2.0, 4B, built on Qwen3.5-4B), 4-bit, about 2.8 GB.
+  # To use it, point AI_EXTRACT_URL here and set AI_EXTRACT_FORMAT=nuextract3.
+  ai-extract3:
+    profiles: ["ai"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
+    volumes:
+      - ./models:/models:ro
+    command: ["-m", "/models/NuExtract3-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "8192", "--threads", "6", "--jinja", "-np", "1"]
+    ports:
+      - "${AI_EXTRACT3_PORT:-8096}:8080"
+    mem_limit: 3500m
+    restart: unless-stopped
+
   # Matching: Qwen3-Embedding 0.6B (Apache 2.0) turns CV and requirement text into vectors.
   ai-embed:
     profiles: ["ai"]
