@@ -37,6 +37,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | Letterhead and branded emails | Approved |
 | — | QA sweep | Approved |
 | — | Clear errors for malformed API calls | Approved |
+| — | Local AI models | Approved |
 
 ---
 
