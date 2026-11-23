@@ -11,7 +11,7 @@ import "server-only";
  */
 import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
 import { extractWithTemplate } from "../ai/local";
-import { dateRangeIn, type ParsedCv } from "./cv-parser";
+import { cvSections, dateRangeIn, type ParsedCv, type SectionKind } from "./cv-parser";
 
 // NuExtract's template language: field names steer it, so they say exactly what's wanted.
 const PERSON = {
@@ -25,6 +25,7 @@ const PERSON = {
   skills: ["verbatim-string"],
 };
 const JOBS = {
+  // Duties are most of the model's writing time, but without them it splits one job's duties into several jobs.
   work_experience: [{ job_title: "verbatim-string", employer_name: "verbatim-string", location: "verbatim-string", start_date: "date-time", end_date: "date-time", current_job: ["yes", "no"], duties: ["verbatim-string"] }],
 };
 const QUALIFICATIONS = {
@@ -55,14 +56,34 @@ export interface ModelCv {
   skills?: S[] | null;
 }
 
+/** Short CVs go to each question whole; longer ones send each question only the sections it needs. */
+const WHOLE = 6_000;
+/** The model's window is 8k tokens with the template: about 20,000 characters of CV at most. */
+const LIMIT = 18_000;
+
+/** The text each question reads: the whole CV, or for a long one just the relevant sections. */
+export function partsFor(text: string) {
+  if (text.length <= WHOLE) return { person: text, jobs: text, quals: text };
+  const { top, sections } = cvSections(text);
+  const of = (...kinds: SectionKind[]) => sections.filter((s) => s.kinds.some((k) => kinds.includes(k))).map((s) => s.text).join("\n\n");
+  const clip = (t: string) => (t.length > LIMIT ? t.slice(0, LIMIT) : t);
+  const jobs = of("experience");
+  const quals = of("education", "certifications");
+  return {
+    person: clip([top, of("profile", "skills")].filter(Boolean).join("\n\n") || text.slice(0, WHOLE)),
+    // When the headings weren't recognised, fall back to the whole CV (clipped).
+    jobs: clip(jobs || text),
+    quals: clip(quals || text),
+  };
+}
+
 /** Asks the model to read the CV, in three parts. Null when the model isn't running or gave nothing usable. */
 export async function readCvWithModel(text: string): Promise<ModelCv | null> {
-  // NuExtract's window is 8k tokens with the template; very long CVs are cut to their first ~5,000 words.
-  const clipped = text.length > 30_000 ? text.slice(0, 30_000) : text;
-  const person = await extractWithTemplate<Person>(PERSON, clipped);
+  const part = partsFor(text);
+  const person = await extractWithTemplate<Person>(PERSON, part.person);
   if (!person) return null; // not running: don't wait for the other two
-  const jobs = await extractWithTemplate<Jobs>(JOBS, clipped);
-  const quals = await extractWithTemplate<Quals>(QUALIFICATIONS, clipped);
+  const jobs = await extractWithTemplate<Jobs>(JOBS, part.jobs);
+  const quals = await extractWithTemplate<Quals>(QUALIFICATIONS, part.quals);
   return {
     name: person.name,
     email: person.email,
@@ -135,6 +156,32 @@ function around(lines: string[], title: string) {
 const NOT_ON_CV = "Not found word for word on the CV. Check it.";
 
 /**
+ * Duties for jobs the model gave none for: the sentences between the title and the next job's. Lines
+ * that are only dates, an employer or a place are skipped.
+ */
+function addDuties(jobs: ExtractedExperience[], cvText: string) {
+  if (jobs.every((j) => j.bullets?.length)) return;
+  const exp = cvSections(cvText).sections.filter((s) => s.kinds.includes("experience")).map((s) => s.text).join("\n");
+  const lines = linesOf(exp || cvText);
+  const at = jobs.map((j) => {
+    const t = squash(j.title);
+    return t ? lines.findIndex((l) => squash(l) === t || (squash(l).includes(t) && l.length < j.title.length + 80)) : -1;
+  });
+  const starts = at.filter((i) => i >= 0).sort((a, b) => a - b);
+  jobs.forEach((j, k) => {
+    const i = at[k]!;
+    if (i < 0 || j.bullets?.length) return;
+    const next = starts.find((x) => x > i) ?? lines.length;
+    const bullets = lines
+      .slice(i + 1, next)
+      .filter((l) => !dateRangeIn(l) && l.split(/\s+/).length >= 4 && !(j.company && squash(l).includes(squash(j.company)) && l.length < j.company.length + 40))
+      .map((l) => l.replace(/^[•·*▪◦-]\s*/, "").slice(0, 300))
+      .slice(0, 12);
+    if (bullets.length) j.bullets = bullets;
+  });
+}
+
+/**
  * Combines the model's reading with the rule-based one. The rule-based result is the starting point, so a
  * field the model leaves out keeps what the rules found.
  */
@@ -172,7 +219,7 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
         start = near.start;
         end = near.end;
       }
-      const bullets = (e.duties ?? []).map(str).filter((b) => b.length > 2).slice(0, 12).map((b) => b.slice(0, 300));
+      const bullets = (e.duties ?? []).map(str).filter((b) => b.length > 2 && onCv(b)).slice(0, 12).map((b) => b.slice(0, 300));
       const unsure = !title || !company || !start || (!onCv(title) && !onCv(company));
       return {
         id: `x${i + 1}`,
@@ -189,6 +236,7 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
     // The same job listed twice (title and employer swapped, say) counts once.
     .filter((e, i, all) => !all.some((o, j) => j < i && squash(`${o.title}${o.company}`) === squash(`${e.title}${e.company}`)))
     .sort((a, b) => (b.end ?? "9999").localeCompare(a.end ?? "9999") || b.start.localeCompare(a.start));
+  addDuties(experience, cvText);
 
   const education: ExtractedEducation[] = [];
   const certifications: ExtractedCertification[] = [];

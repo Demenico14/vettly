@@ -280,3 +280,38 @@ export function cleanCvText(text: string): string {
   }
   return lines.filter((l, i) => l.trim() || (i > 0 && lines[i - 1]!.trim())).join("\n").trim();
 }
+
+/** What a CV section is about, from its heading. */
+export type SectionKind = "profile" | "skills" | "experience" | "education" | "certifications" | "other";
+const SECTION_KINDS: [SectionKind, RegExp][] = [
+  ["experience", /^(work |professional |employment |career |relevant )?(experience|history|employment|work history|employment history|career history)$/i],
+  ["education", /^(education|educational background|academic (background|qualifications)|qualifications|education and training|education & training)$/i],
+  ["certifications", /^(certifications?|certificates|licen[cs]es|licen[cs]es and certifications|professional (qualifications|certifications|memberships|registrations?)|memberships|accreditations|training|courses|trade test)$/i],
+  ["skills", /^(skills|key skills|core skills|technical skills|competencies|core competencies|highlights|skill highlights|computer skills|languages)$/i],
+  ["profile", /^(profile|summary|professional summary|executive summary|about me|objective|career objective|personal (details|information))$/i],
+  ["other", /^(references|referees|interests|hobbies|accomplishments|achievements|awards|projects|key projects|publications|volunteering|additional information|affiliations)$/i],
+];
+
+/**
+ * Splits a CV into its sections by their headings. "Education & Certifications" counts as both. Returns the
+ * text above the first heading as `top`.
+ */
+export function cvSections(text: string): { top: string; sections: { kinds: SectionKind[]; text: string }[] } {
+  const lines = text.split("\n");
+  const sections: { kinds: SectionKind[]; text: string }[] = [];
+  let top: string[] = [];
+  let current: { kinds: SectionKind[]; lines: string[] } | null = null;
+  for (const line of lines) {
+    const t = line.trim().replace(/:$/, "");
+    const parts = t.length <= 50 ? t.split(/\s+(?:&|and)\s+/i) : [];
+    const kinds = parts.map((p) => SECTION_KINDS.find(([, re]) => re.test(p))?.[0]).filter((k): k is SectionKind => !!k);
+    if (parts.length && kinds.length === parts.length) {
+      if (current) sections.push({ kinds: current.kinds, text: current.lines.join("\n") });
+      current = { kinds: [...new Set(kinds)], lines: [] };
+    } else if (current) current.lines.push(line);
+    else top.push(line);
+  }
+  if (current) sections.push({ kinds: current.kinds, text: current.lines.join("\n") });
+  if (!sections.length) top = lines;
+  return { top: top.join("\n"), sections };
+}

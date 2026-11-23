@@ -24,3 +24,13 @@ describe("dateRangeIn", () => {
     expect(dateRangeIn("Nov 2024 – Nov 2025")).toMatchObject({ start: "2024-11", end: "2025-11" });
   });
 });
+
+describe("cvSections", () => {
+  it("splits a CV by its headings, with combined headings counting as both", async () => {
+    const { cvSections } = await import("@/server/engine/cv-parser");
+    const s = cvSections("Jane Doe\njane@example.com\nProfile\nAccountant.\nWork Experience\nAuditor, KPMG\nEducation & Certifications\nBCom, UZ\nACCA, 2019\nReferences\nAvailable");
+    expect(s.top).toBe("Jane Doe\njane@example.com");
+    expect(s.sections.map((x) => x.kinds.join("+"))).toEqual(["profile", "experience", "education+certifications", "other"]);
+    expect(s.sections[2]!.text).toBe("BCom, UZ\nACCA, 2019");
+  });
+});

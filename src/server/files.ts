@@ -63,25 +63,18 @@ export async function fileBytes(row: StoredFile) {
 
 export type TextResult = { ok: true; text: string; pages: number } | { ok: false; failure: "password_protected" | "unreadable" };
 
-/** Reads the text of a stored PDF or Word file, caching it on the file record. */
-export async function extractText(row: StoredFile): Promise<TextResult> {
-  if (row.text !== null) return { ok: true, text: row.text, pages: row.pages ?? 1 };
-  let bytes: Uint8Array;
-  try {
-    bytes = await fileBytes(row);
-  } catch {
-    return { ok: false, failure: "unreadable" };
-  }
+/** Reads the text of PDF or Word bytes. Shared by uploads and the CV reader's tests. */
+export async function textFromBytes(bytes: Uint8Array, mime: string): Promise<TextResult> {
   let text = "";
   let pages = 1;
   try {
-    if (row.mime === "application/pdf") {
+    if (mime === "application/pdf") {
       const { getDocumentProxy, extractText: pdfText } = await import("unpdf");
       const pdf = await getDocumentProxy(bytes);
       const out = await pdfText(pdf, { mergePages: false });
       pages = out.totalPages;
       text = (out.text as string[]).join("\n");
-    } else if (row.mime.includes("wordprocessingml")) {
+    } else if (mime.includes("wordprocessingml")) {
       const mammoth = await import("mammoth");
       const out = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
       text = out.value;
@@ -95,6 +88,19 @@ export async function extractText(row: StoredFile): Promise<TextResult> {
     return { ok: false, failure: /password/i.test(name) || /password/i.test(String(e)) ? "password_protected" : "unreadable" };
   }
   if (text.replace(/\s/g, "").length < 50) return { ok: false, failure: "unreadable" };
-  await asOrg(row.organisationId, (tx) => tx`update files set text = ${text}, pages = ${pages} where id = ${row.id}`);
   return { ok: true, text, pages };
+}
+
+/** Reads the text of a stored PDF or Word file, caching it on the file record. */
+export async function extractText(row: StoredFile): Promise<TextResult> {
+  if (row.text !== null) return { ok: true, text: row.text, pages: row.pages ?? 1 };
+  let bytes: Uint8Array;
+  try {
+    bytes = await fileBytes(row);
+  } catch {
+    return { ok: false, failure: "unreadable" };
+  }
+  const result = await textFromBytes(bytes, row.mime);
+  if (result.ok) await asOrg(row.organisationId, (tx) => tx`update files set text = ${result.text}, pages = ${result.pages} where id = ${row.id}`);
+  return result;
 }

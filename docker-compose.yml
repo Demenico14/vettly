@@ -78,7 +78,7 @@ services:
     image: ghcr.io/ggml-org/llama.cpp:server@sha256:20db01dc9a92bff54a5b9fe4078caa52be6a0c1fa73859c6449e25b9cb67f998
     volumes:
       - ./models:/models:ro
-    command: ["-m", "/models/NuExtract-2.0-2B-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "8192", "--threads", "6", "--temp", "0"]
+    command: ["-m", "/models/NuExtract-2.0-2B-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "8080", "-c", "8192", "-np", "1", "--threads", "6", "--temp", "0"]
     ports:
       - "${AI_EXTRACT_PORT:-8091}:8080"
     mem_limit: 2g
