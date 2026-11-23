@@ -1,6 +1,6 @@
 /**
- * CV processing service. Uploaded files are stored, their text is read (PDF and Word), and the rule-based
- * reader turns it into a profile for HR to check. Processing runs after the upload request returns; the
+ * CV processing service. Uploaded files are stored, their text is read (PDF and Word), and Vettly's local AI
+ * model (when it's running) and the rule-based reader turn it into a profile for HR to check. Processing runs after the upload request returns; the
  * screen polls for progress.
  */
 import "server-only";
@@ -10,6 +10,7 @@ import { actorName, afterCommit, newId, now, orgId } from "../context";
 import { collection, withOrg } from "../store";
 import { extractText, fileFor } from "../files";
 import { parseCv } from "../engine/cv-parser";
+import { combine, readCvWithModel } from "../engine/cv-model";
 import { candidateProfileService, profileSnapshot } from "./candidates";
 import { logAudit } from "./settings";
 import { vacancySnapshot } from "./vacancies";
@@ -67,6 +68,8 @@ async function processFile(organisationId: string, cvId: string) {
   if (!fileId) return;
   const row = await fileFor(organisationId, fileId);
   const text = row ? await extractText(row) : ({ ok: false, failure: "unreadable" } as const);
+  // The local model reads the CV first, outside the organisation's records (it can take a few seconds).
+  const model = text.ok ? await readCvWithModel(text.text).catch(() => null) : null;
   await withOrg(organisationId, null, () => {
     let found: ReturnType<typeof locate>;
     try {
@@ -84,7 +87,8 @@ async function processFile(organisationId: string, cvId: string) {
     }
     const people = profileSnapshot();
     const known = [...new Set(people.flatMap((p) => p.skills.map((s) => s.name)))];
-    const parsed = parseCv(text.text, text.pages, known);
+    const rules = parseCv(text.text, text.pages, known);
+    const parsed = model ? combine(rules, model, text.text) : { ...rules, extraction: { ...rules.extraction, readBy: "rules" as const } };
     if (!parsed.looksLikeCv) {
       file.status = "failed";
       file.failure = "not_a_cv";

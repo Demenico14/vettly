@@ -11,6 +11,7 @@ import { collection } from "../store";
 import { profileSnapshot, recordMatch } from "./candidates";
 import { testScoreFor } from "./assessments";
 import { vacancySnapshot } from "./vacancies";
+import { modelScoresFor, refreshModelScores } from "./match-model";
 
 export interface VacancyMatchSummary {
   vacancy: Vacancy;
@@ -69,7 +70,9 @@ function saveState(s: State) {
 }
 
 function build(vacancy: Vacancy, candidateId: string): CandidateAssessment {
-  const a = assess(profileOf(candidateId), vacancy, testScoreFor(candidateId, vacancy.id));
+  const c = profileOf(candidateId);
+  refreshModelScores(c, vacancy);
+  const a = assess(c, vacancy, testScoreFor(candidateId, vacancy.id), modelScoresFor(vacancy.id, candidateId));
   const s = stateFor(vacancy, candidateId);
   a.requirements = a.requirements.map((r) => {
     const rv = s.reviews[r.requirement.id];

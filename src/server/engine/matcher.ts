@@ -1,8 +1,9 @@
 import "server-only";
 /**
- * Rule-based evidence matcher. It searches a candidate's CV record for evidence of each vacancy requirement
- * and quotes the lines it relied on. No AI model is called; its output is marked unreviewed until HR confirms
- * it. An AI assessor can replace `assess` later with the same output shape.
+ * Evidence matcher. It searches a candidate's CV record for evidence of each vacancy requirement and quotes
+ * the lines it relied on; its output is marked unreviewed until HR confirms it. Requirements Vettly knows are
+ * matched by rules. Requirements HR typed in themselves are matched by the local reranking model when its
+ * scores are available (see services/match-model.ts), and otherwise by their words.
  */
 import type {
   CandidateAssessment,
@@ -141,6 +142,54 @@ function corpus(c: CandidateProfile): Line[] {
 
 const strip = (l: Line): Evidence => ({ source: l.source, where: l.where, quote: l.quote });
 
+/** Reranker scores per requirement, one per line of the candidate's record, tied to what was scored. */
+export type ModelScores = Record<string, { fingerprint: string; scores: number[] }>;
+
+/** A short, stable hash of the requirement and the record lines it was scored against. */
+function fingerprint(r: Requirement, lines: Line[]) {
+  let h = 0x811c9dc5;
+  for (const ch of `${r.text}\n${lines.map((l) => `${l.source}:${l.quote}`).join("\n")}`) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}
+
+/** Whether a requirement goes to the model: HR's own wording (no rule for it), and not years of experience. */
+const forModel = (r: Requirement) => !RULES[r.text] && r.kind !== "experience";
+
+/** What the reranking model should score for this candidate: each such requirement against every record line. */
+export function modelQueries(c: CandidateProfile, vacancy: Vacancy) {
+  const lines = corpus(c);
+  const documents = lines.map((l) => `${l.source}: ${l.quote}`);
+  return vacancy.requirements.filter(forModel).map((r) => ({ id: r.id, query: r.text, documents, fingerprint: fingerprint(r, lines) }));
+}
+
+/** Thresholds from testing (scripts/models/test-matching.mjs): right passages scored 0.69–1.00, wrong ones under 0.05. */
+const MODEL_MET = 0.5;
+const MODEL_RELATED = 0.15;
+
+function assessWithModel(r: Requirement, lines: Line[], scores: number[]): RequirementAssessment {
+  const ranked = lines.map((l, i) => ({ l, s: scores[i] ?? 0 })).filter((x) => x.l.quote.trim()).sort((a, b) => b.s - a.s);
+  const top = ranked[0];
+  const evidence = ranked.filter((x) => x.s >= MODEL_RELATED).slice(0, 3).map((x) => strip(x.l));
+  let outcome: RequirementOutcome;
+  let confidence: RequirementAssessment["confidence"] = "medium";
+  let rationale: string;
+  if (top && top.s >= MODEL_MET && top.l.strong) {
+    outcome = "met";
+    if (top.s >= 0.8 && (top.l.source === "Experience" || top.l.source === "Certifications")) confidence = "high";
+    rationale = top.l.source === "Experience" ? `Shown in work history.` : top.l.source === "Certifications" ? `Listed under certifications.` : top.l.source === "Education" ? `The CV lists a matching qualification.` : `Listed as an advanced skill.`;
+  } else if (top && top.s >= MODEL_RELATED) {
+    outcome = "partial";
+    rationale = top.s >= MODEL_MET ? `Mentioned, but only in the summary or as a basic skill.` : `The CV shows something related, not clearly this.`;
+  } else {
+    outcome = "missing";
+    rationale = `Nothing on the CV shows this. It may still be true, so ask.`;
+  }
+  return { requirement: r, outcome, aiOutcome: outcome, confidence, rationale, evidence, ...(outcome === "met" ? {} : { question: question(r) }) };
+}
+
 function months(start: string, end: string | null) {
   const s = new Date(`${start}-01`);
   // A current role counts up to today.
@@ -208,7 +257,9 @@ function assessExperience(r: Requirement, rule: Rule, c: CandidateProfile, lines
   };
 }
 
-function assessOne(r: Requirement, c: CandidateProfile, lines: Line[]): RequirementAssessment {
+function assessOne(r: Requirement, c: CandidateProfile, lines: Line[], model?: ModelScores): RequirementAssessment {
+  const m = model?.[r.id];
+  if (m && forModel(r) && m.scores.length === lines.length && m.fingerprint === fingerprint(r, lines)) return assessWithModel(r, lines, m.scores);
   const rule = ruleFor(r);
   if (rule.roles) {
     const j = assessExperience(r, rule, c, lines);
@@ -334,10 +385,10 @@ function explain(c: CandidateProfile, reqs: RequirementAssessment[]) {
   return parts.join(" ");
 }
 
-export function assess(c: CandidateProfile, vacancy: Vacancy, testScore: number | null = null): CandidateAssessment {
+export function assess(c: CandidateProfile, vacancy: Vacancy, testScore: number | null = null, model?: ModelScores): CandidateAssessment {
   const app = c.applications.find((a) => a.vacancyId === vacancy.id) ?? c.applications[0]!;
   const lines = corpus(c);
-  const requirements = vacancy.requirements.map((r) => assessOne(r, c, lines));
+  const requirements = vacancy.requirements.map((r) => assessOne(r, c, lines, model));
   const cv = score(vacancy, requirements, testScore, false);
   const withTests = testScore !== null ? score(vacancy, requirements, testScore, true).value : null;
 

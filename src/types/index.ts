@@ -522,6 +522,8 @@ export interface CvExtraction {
   pages: number;
   /** Read from a scan or photo, so characters may be misread. */
   ocr: boolean;
+  /** Who read it: Vettly's local AI model (with the rules as a check), or the rule-based reader alone. */
+  readBy?: "model" | "rules";
 }
 
 export interface CvFile {
