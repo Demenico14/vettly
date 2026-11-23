@@ -191,7 +191,7 @@ const TEST_STATUS: Record<TestInvitationSummary["status"], string> = {
   cancelled: "Cancelled",
 };
 
-/** Illustrative per-test results for completed invitations, keyed by candidate. */
+/** Per-test results for completed invitations, keyed by candidate. */
 
 export function AssessmentsTab({ c, onSend }: { c: CandidateProfile; onSend: () => void }) {
   const [tests, setTests] = React.useState<TestInvitationSummary[] | null>(null);
@@ -254,7 +254,7 @@ export function AssessmentsTab({ c, onSend }: { c: CandidateProfile; onSend: () 
                     </span>
                   </li>
                 ))}
-                <li className="pt-3 text-2xs text-fg-subtle">Illustrative results · percentile against a general professional norm group</li>
+                <li className="pt-3 text-2xs text-fg-subtle">Sample tests, not validated for hiring decisions · percentile against the test&apos;s norm group</li>
               </ul>
             )}
           </Card>

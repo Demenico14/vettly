@@ -1,6 +1,7 @@
 /**
  * Session, notifications, search and candidate summaries for the app shell.
  */
+import { dotted } from "@/lib/utils";
 import "server-only";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
 import { and, eq, ne } from "drizzle-orm";
@@ -12,7 +13,7 @@ import { single } from "../store";
 import { destroySession, readSession, setSessionOrganisation } from "../session";
 import { profileSnapshot } from "./candidates";
 import { vacancySnapshot } from "./vacancies";
-import { dashboardService } from "./dashboard";
+import { activityFeed } from "./dashboard";
 
 async function orgRow(id: string): Promise<Organisation> {
   const [o] = await db.select().from(schema.organisations).where(eq(schema.organisations.id, id));
@@ -57,13 +58,13 @@ const readState = single<Record<string, string[]>>("notification_reads", () => (
 export const notificationService: NotificationService = {
   async list() {
     const me = actor();
-    const snap = await dashboardService.getSnapshot("30d");
     const read = new Set(readState.get()[me?.userId ?? ""] ?? []);
     const kindOf: Record<string, AppNotification["kind"]> = { application: "application", stage: "system", assessment: "assessment", interview: "interview", offer: "offer", vacancy: "system", ai: "processing" };
-    return snap.activity
+    // Other people's actions (your own aren't news to you), newest first.
+    return activityFeed(500)
       .filter((e) => e.actor !== me?.name)
       .slice(0, 15)
-      .map((e) => ({ id: e.id, kind: kindOf[e.kind] ?? "system", title: `${e.actor} ${e.text}`, body: e.context, createdAt: e.at, read: read.has(e.id), href: undefined }));
+      .map((e) => ({ id: e.id, kind: kindOf[e.kind] ?? "system", title: `${e.actor} ${e.text}`, body: e.context, createdAt: e.at, read: read.has(e.id), href: e.href }));
   },
   async markRead(id) {
     const me = actor()?.userId ?? "";
@@ -86,7 +87,7 @@ export const searchService: SearchService = {
     const cands: SearchResult[] = profileSnapshot()
       .filter((c) => `${c.name} ${c.headline} ${c.email} ${c.skills.map((s) => s.name).join(" ")}`.toLowerCase().includes(q))
       .slice(0, 8)
-      .map((c) => ({ id: c.id, type: "candidate", title: c.name, subtitle: `${c.headline} · ${c.location}`, href: `/candidates/${c.id}` }));
+      .map((c) => ({ id: c.id, type: "candidate", title: c.name, subtitle: dotted(c.headline, c.location), href: `/candidates/${c.id}` }));
     const vacs: SearchResult[] = vacancySnapshot()
       .filter((v) => `${v.title} ${v.department} ${v.location} ${v.reference}`.toLowerCase().includes(q))
       .slice(0, 5)

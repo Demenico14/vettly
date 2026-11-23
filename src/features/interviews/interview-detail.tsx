@@ -11,7 +11,7 @@ import { services, MOCK_NOW, harare, partsOf, type CandidateContext, type Confli
 import { currentUserId } from "@/lib/current-user";
 import type { ApplicationStage } from "@/types";
 import type { DecisionOutcome, Interview, Interviewer, Question, QuestionSet } from "@/types/interviews";
-import { cn } from "@/lib/utils";
+import { cn, dotted } from "@/lib/utils";
 import { RECOMMENDATION, RESPONSE, RatingDots, StatusBadge, dayLong, endTime, time } from "./meta";
 
 type Data = { item: InterviewListItem; interviewers: Interviewer[]; questionSet: QuestionSet; context: CandidateContext; scorecardsVisible: boolean };
@@ -162,7 +162,7 @@ export function InterviewDetail({ id }: { id: string }) {
             <CardHeader title="Candidate" />
             <div className="flex flex-col gap-3 px-5 pb-5 text-sm">
               <p className="text-fg-muted">
-                {cx.headline} · {cx.location}
+                {dotted(cx.headline, cx.location)}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {cx.stage && <StageBadge stage={cx.stage} size="sm" />}

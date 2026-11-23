@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Bell, BellOff, CalendarCheck, FileStack, FileSignature, AtSign, Inbox, Info, ClipboardList } from "@/components/icons";
 import { services, MOCK_NOW } from "@/services";
 import type { AppNotification, NotificationKind } from "@/types";
@@ -21,6 +22,8 @@ const KIND_ICON: Record<NotificationKind, { Icon: typeof Bell; cls: string }> = 
 };
 
 export function NotificationsMenu() {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
   const [items, setItems] = React.useState<AppNotification[] | null>(null);
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
 
@@ -41,7 +44,14 @@ export function NotificationsMenu() {
   };
 
   return (
-    <Popover>
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        // Fresh each time it opens, so new activity shows without reloading the page.
+        if (o) services.notifications.list().then(setItems).catch(() => undefined);
+      }}
+    >
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} className="relative">
           <Bell className="size-[1.125rem]!" />
@@ -88,7 +98,13 @@ export function NotificationsMenu() {
                   <li key={n.id}>
                     <button
                       type="button"
-                      onClick={() => markRead(n.id)}
+                      onClick={() => {
+                        markRead(n.id);
+                        if (n.href) {
+                          setOpen(false);
+                          router.push(n.href);
+                        }
+                      }}
                       className={cn(
                         "flex w-full gap-3 border-b border-line px-4 py-3 text-left last:border-b-0 hover:bg-ink-50",
                         !n.read && "bg-primary-50/40",
@@ -116,7 +132,7 @@ export function NotificationsMenu() {
           <Button variant="link" size="sm" disabled={!unread} onClick={markAll}>
             Mark all as read
           </Button>
-          <span className="text-2xs text-fg-subtle">Illustrative notifications</span>
+          <span className="text-2xs text-fg-subtle">Activity by other people in your organisation</span>
         </div>
       </PopoverContent>
     </Popover>

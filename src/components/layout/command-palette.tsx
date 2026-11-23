@@ -130,7 +130,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                 </Kbd>
                 to open
               </span>
-              <span className="ml-auto">Searches illustrative mock records</span>
+              <span className="ml-auto">Searches candidates and vacancies</span>
             </div>
           </Command>
         </DialogPrimitive.Content>

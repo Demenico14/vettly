@@ -252,7 +252,7 @@ export function WelcomeChecklist() {
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-semibold text-fg">
                     {f.label}
-                    {f.ai && <Sparkles className="size-3.5 text-accent-600" aria-label="AI-assisted" />}
+                    {f.ai && <Sparkles className="size-3.5 text-accent-600" aria-label="Suggested by Vettly" />}
                   </p>
                   <p className="text-xs text-fg-subtle">{f.note}</p>
                 </div>

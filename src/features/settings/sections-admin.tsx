@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/components/layout/session-provider";
 import * as React from "react";
 import { Check, Download, Search } from "@/components/icons";
 import { Badge, Button, Card, EmptyState, Input, Pagination, Progress, Skeleton, Table, TBody, TD, TH, THead, TR, toast, usePagination } from "@/components/ui";
@@ -19,7 +20,10 @@ const PLANS = [
   { id: "enterprise", name: "Enterprise", price: "Priced with you", points: ["Unlimited seats", "Test credits in bulk", "Single sign-on, API and a named contact"] },
 ];
 
+const PLAN_NAME: Record<Subscription["plan"], string> = { starter: "Starter", growth: "Growth", enterprise: "Enterprise" };
+
 export function BillingSection() {
+  const { user } = useSession();
   const [sub, setSub] = React.useState<Subscription | null>(null);
   React.useEffect(() => {
     services.settings.subscription().then(setSub);
@@ -32,8 +36,16 @@ export function BillingSection() {
   ];
   return (
     <div className="flex flex-col gap-5">
-      <ReadOnlyNote>Only organisation admins can change the plan or payment details. Chenai Mutizwa is your organisation admin.</ReadOnlyNote>
-      <Group title="Usage" description={`Growth plan, billed annually. Renews ${longDate(sub.renewsAt)}.`}>
+      {user?.role !== "org_admin" && (
+        <ReadOnlyNote>
+          Only organisation admins can change the plan or payment details.{" "}
+          {sub.admins.length ? `${sub.admins.join(", ")} ${sub.admins.length === 1 ? "is your organisation admin" : "are your organisation admins"}.` : ""}
+        </ReadOnlyNote>
+      )}
+      <Group
+        title="Usage"
+        description={sub.trial ? `Free trial of the ${PLAN_NAME[sub.plan]} plan, until ${longDate(sub.renewsAt)}.` : `${PLAN_NAME[sub.plan]} plan, billed ${sub.billing === "annual" ? "annually" : "monthly"}. Renews ${longDate(sub.renewsAt)}.`}
+      >
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {meters.map((m) => {
             const pct = Math.round((100 * m.used) / m.total);
@@ -74,41 +86,37 @@ export function BillingSection() {
           );
         })}
       </div>
-      <Group title="Invoices" description={`Paid by ${sub.paymentMethod}.`}>
-        <div className="-mx-5 -mb-5 overflow-x-auto">
-          <Table>
-            <THead>
-              <TR>
-                <TH>Invoice</TH>
-                <TH>Date</TH>
-                <TH className="text-right">Amount</TH>
-                <TH>Status</TH>
-                <TH className="w-12">
-                  <span className="sr-only">Download</span>
-                </TH>
-              </TR>
-            </THead>
-            <TBody>
-              {sub.invoices.map((i) => (
-                <TR key={i.id}>
-                  <TD className="font-mono text-sm text-fg">{i.id}</TD>
-                  <TD className="text-sm text-fg-muted">{longDate(i.date)}</TD>
-                  <TD className="text-right text-sm text-fg tabular">US${i.amountUsd.toLocaleString("en-GB")}</TD>
-                  <TD>
-                    <Badge tone="success" size="sm">
-                      Paid
-                    </Badge>
-                  </TD>
-                  <TD>
-                    <Button size="icon-sm" variant="ghost" aria-label={`Download ${i.id}`} onClick={() => toast.info(`${i.id}.pdf`, "Invoices download once billing is connected. This is a mock.")}>
-                      <Download />
-                    </Button>
-                  </TD>
+      <Group title="Invoices" description={sub.trial ? "None while you're on the free trial." : `Paid by ${sub.paymentMethod.toLowerCase()}.`}>
+        {sub.invoices.length === 0 ? (
+          <p className="text-sm text-fg-muted">No invoices yet. They appear here once your plan is billed.</p>
+        ) : (
+          <div className="-mx-5 -mb-5 overflow-x-auto">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Invoice</TH>
+                  <TH>Date</TH>
+                  <TH className="text-right">Amount</TH>
+                  <TH>Status</TH>
                 </TR>
-              ))}
-            </TBody>
-          </Table>
-        </div>
+              </THead>
+              <TBody>
+                {sub.invoices.map((i) => (
+                  <TR key={i.id}>
+                    <TD className="font-mono text-sm text-fg">{i.id}</TD>
+                    <TD className="text-sm text-fg-muted">{longDate(i.date)}</TD>
+                    <TD className="text-right text-sm text-fg tabular">US${i.amountUsd.toLocaleString("en-GB")}</TD>
+                    <TD>
+                      <Badge tone={i.status === "paid" ? "success" : "warning"} size="sm">
+                        {i.status === "paid" ? "Paid" : "Due"}
+                      </Badge>
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
+        )}
       </Group>
     </div>
   );

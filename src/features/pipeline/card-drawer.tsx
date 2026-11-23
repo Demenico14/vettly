@@ -7,7 +7,7 @@ import { Avatar, Button, Drawer } from "@/components/ui";
 import { MatchScore } from "@/components/domain/assessment";
 import { STAGE_META, StageBadge } from "@/components/domain/status-badge";
 import { MOCK_NOW, type PipelineCard } from "@/services";
-import { cn, formatDate, timeAgo } from "@/lib/utils";
+import { cn, formatDate, timeAgo, dotted } from "@/lib/utils";
 import { TestLine } from "./test-line";
 
 const NOW = new Date(MOCK_NOW);
@@ -40,7 +40,7 @@ export function CardDrawer({
               <div className="min-w-0">
                 <p className="font-semibold text-fg">{card.name}</p>
                 <p className="text-sm text-fg-muted">
-                  {card.headline} · {card.location}
+                  {dotted(card.headline, card.location)}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <StageBadge stage={card.stage} size="sm" />

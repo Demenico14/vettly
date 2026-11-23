@@ -1,5 +1,6 @@
 "use client";
 
+import { dotted } from "@/lib/utils";
 import * as React from "react";
 import { Drawer, Skeleton } from "@/components/ui";
 import type { CandidateProfile, Evidence } from "@/types";
@@ -53,7 +54,7 @@ export function EvidenceViewer({
                   {line(`${e.title}, ${e.company}`, "Experience")}
                 </p>
                 <p className="text-xs text-ink-600">
-                  {e.location} · {yr(e.start)}–{yr(e.end)}
+                  {dotted(e.location, `${yr(e.start)}–${yr(e.end)}`)}
                 </p>
                 <ul className="mt-1 list-disc pl-4">
                   {e.bullets.map((b) => (
@@ -107,7 +108,7 @@ export function EvidenceViewer({
             )}
           </article>
         )}
-        <p className="mt-3 text-center text-2xs text-fg-subtle">Illustrative CV rendered from the candidate record</p>
+        <p className="mt-3 text-center text-2xs text-fg-subtle">The CV as Vettly recorded it on the candidate&apos;s profile</p>
       </div>
     </Drawer>
   );

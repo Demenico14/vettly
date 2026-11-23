@@ -1,6 +1,6 @@
 import "server-only";
 /**
- * Analytics service (Module 13). Aggregates the generated history in src/mocks/analytics.ts.
+ * Analytics service. Aggregates the organisation's own vacancies, applications, tests and offers.
  * Equal-opportunity figures are only ever reported for groups of 20 or more, never per person.
  */
 import type { ApplicationSource } from "@/types";

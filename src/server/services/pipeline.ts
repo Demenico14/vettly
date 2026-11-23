@@ -1,9 +1,9 @@
 import "server-only";
 /**
- * Pipeline service. Phase 1: reads and moves applications in the shared in-memory candidate store, so the
- * board, candidate profiles and directory always agree. Every move is written to the application history
- * (the decision record) with who made it, when and why. Test invitations live in a small shared store that
- * Module 9 (psychometric assessments) extends.
+ * Pipeline service. Reads and moves applications in the organisation's candidate records, so the board,
+ * candidate profiles and directory always agree. Every move is written to the application history (the
+ * decision record) with who made it, when and why; moving to Assessment, or shortlisting when the vacancy
+ * says so, sends tests through the assessments service.
  */
 import type { ApplicationEvent, ApplicationSource, ApplicationStage, AssessmentProvenance, TestInvitationSummary, Vacancy } from "@/types";
 import { batterySummary } from "@/mocks/psychometrics";
