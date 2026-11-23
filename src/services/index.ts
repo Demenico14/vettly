@@ -89,8 +89,16 @@ async function* streamWords(text: string) {
   }
 }
 
-/** Writing help in the vacancy editor. Fixed rewriting rules and a plain template; no AI model is involved. */
+/**
+ * Writing help in the vacancy editor. Vettly's local writing model (Gemma) when it's running; otherwise fixed
+ * rewriting rules and a plain template. The result is streamed word by word either way.
+ */
 async function* assist(action: Parameters<VacancyService["assist"]>[0], input: Parameters<VacancyService["assist"]>[1]) {
+  const fromModel = await call<Awaited<ReturnType<VacancyService["write"]>>>("vacancies", "write", [action, input]).catch(() => null);
+  if (fromModel) {
+    yield* streamWords(JSON.stringify(fromModel));
+    return;
+  }
   await wait(300);
   if (action === "draft") {
     const role = input.title || "this role";

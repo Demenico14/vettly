@@ -20,6 +20,7 @@ export function vacancySnapshot(): Vacancy[] {
 }
 
 import { STATUS_MOVES } from "@/lib/workflow";
+import { writeWithModel } from "../engine/writing";
 
 function nextReference() {
   const c = counter.get();
@@ -126,6 +127,16 @@ export const vacancyService: VacancyService = {
     const v = find(id);
     if (v.status !== "draft") throw new Error("Only drafts can be deleted. Close the vacancy instead to keep its history.");
     store.splice(store.indexOf(v), 1);
+  },
+  async write(action, input) {
+    if (!["draft", "inclusive", "concise", "formal"].includes(action)) throw new Error("Choose a writing action.");
+    const text = (s: unknown, max: number) => (typeof s === "string" ? s.slice(0, max) : "");
+    return writeWithModel(action, {
+      title: text(input?.title, 120),
+      department: text(input?.department, 120),
+      summary: text(input?.summary, 3000),
+      responsibilities: (Array.isArray(input?.responsibilities) ? input.responsibilities : []).slice(0, 12).map((r) => text(r, 300)),
+    });
   },
   // Runs in the browser (see src/services/index.ts); never called on the server.
   async *assist() {

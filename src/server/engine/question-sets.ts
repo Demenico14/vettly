@@ -40,8 +40,11 @@ export const SCREENING_SET: QuestionSet =
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
-/** A structured interview built from a vacancy's requirements: one competency per requirement, essentials first. */
-export function vacancySet(v: Vacancy): QuestionSet {
+/**
+ * A structured interview built from a vacancy's requirements: one competency per requirement, essentials
+ * first. `written` holds the local writing model's questions, used where it wrote one for a requirement.
+ */
+export function vacancySet(v: Vacancy, written?: { requirement: string; question: string; lookFor: string[] }[]): QuestionSet {
   const reqs = [...v.requirements].sort((a, b) => (a.priority === b.priority ? 0 : a.priority === "essential" ? -1 : 1)).slice(0, 8);
   return {
     id: `qs_vac_${v.id}`,
@@ -49,7 +52,9 @@ export function vacancySet(v: Vacancy): QuestionSet {
     kind: "first_interview",
     vacancyId: v.id,
     description: `One competency per requirement of the ${v.title} vacancy, essential requirements first. Ask for specific past examples.`,
-    competencies: reqs.map((r, i) => ({
+    competencies: reqs.map((r, i) => {
+      const w = written?.find((x) => x.requirement === r.text);
+      return {
       id: `c_${r.id}`,
       name: r.text.length > 60 ? `${r.text.slice(0, 57)}…` : r.text,
       description: `${r.priority === "essential" ? "Essential" : "Desirable"} requirement.`,
@@ -57,16 +62,18 @@ export function vacancySet(v: Vacancy): QuestionSet {
       questions: [
         q(
           `q_${r.id}_${i}`,
-          r.kind === "experience"
-            ? `Walk us through the roles where you built your experience in ${lower(r.text)}. What were you responsible for?`
-            : r.kind === "certification" || r.kind === "education"
-              ? `Tell us about your ${lower(r.text)}. How have you used it in your work?`
-              : `Tell us about a recent time you used ${lower(r.text)}. What did you do, and what was the result?`,
+          w?.question ??
+            (r.kind === "experience"
+              ? `Walk us through the roles where you built your experience in ${lower(r.text)}. What were you responsible for?`
+              : r.kind === "certification" || r.kind === "education"
+                ? `Tell us about your ${lower(r.text)}. How have you used it in your work?`
+                : `Tell us about a recent time you used ${lower(r.text)}. What did you do, and what was the result?`),
           ["What would you do differently now?", "Who else was involved, and what was your part?"],
-          ["A specific, recent example", "Clear personal contribution", "Measurable result"],
+          w?.lookFor ?? ["A specific, recent example", "Clear personal contribution", "Measurable result"],
           ["Only general or hypothetical answers", "Can't describe their own part"],
         ),
       ],
-    })),
+      };
+    }),
   };
 }
