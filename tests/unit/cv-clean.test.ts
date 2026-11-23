@@ -34,3 +34,12 @@ describe("cvSections", () => {
     expect(s.sections[2]!.text).toBe("BCom, UZ\nACCA, 2019");
   });
 });
+
+describe("split date ranges", () => {
+  it("joins a range written over three lines", async () => {
+    const { cleanCvText, dateRangeIn } = await import("@/server/engine/cv-parser");
+    const t = cleanCvText("Finance Analyst\nNov 2013\nto\nCurrent\nCompany Name ï¼ City , State");
+    expect(t).toBe("Finance Analyst\nNov 2013 to Current\nCompany Name, City , State");
+    expect(dateRangeIn(t.split("\n")[1]!)).toMatchObject({ start: "2013-11", end: null });
+  });
+});

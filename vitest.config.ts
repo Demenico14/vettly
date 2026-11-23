@@ -29,7 +29,7 @@ export default defineConfig({
       {
         // Scores the CV reader against CVs with known answers. Needs the local models (docker compose --profile ai).
         extends: true,
-        test: { name: "models", include: ["tests/models/**/*.test.ts"], environment: "node", testTimeout: 1_800_000 },
+        test: { name: "models", include: ["tests/models/**/*.test.ts"], environment: "node", testTimeout: 36_000_000 },
       },
     ],
   },

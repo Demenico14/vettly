@@ -235,7 +235,17 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
     .filter((e): e is ExtractedExperience => !!e)
     // The same job listed twice (title and employer swapped, say) counts once.
     .filter((e, i, all) => !all.some((o, j) => j < i && squash(`${o.title}${o.company}`) === squash(`${e.title}${e.company}`)))
+    // A sentence of duties returned as a job, with no dates: not a job.
+    .filter((e) => !(sentenceLike(e.title) && !e.start))
     .sort((a, b) => (b.end ?? "9999").localeCompare(a.end ?? "9999") || b.start.localeCompare(a.start));
+  // Jobs the rules found with dates and no doubts, which the model missed (it sometimes stops early on long
+  // histories), are added. Matched on start month and on title or employer.
+  for (const rj of r.experience) {
+    if (rj.flag || !/^\d{4}-\d{2}$/.test(rj.start) || sentenceLike(rj.title)) continue;
+    const same = experience.some((e) => e.start === rj.start || (squash(e.title) === squash(rj.title) && !!e.title) || (!!rj.company && squash(e.company) === squash(rj.company) && e.start.slice(0, 4) === rj.start.slice(0, 4)));
+    if (!same) experience.push({ ...rj, id: `x${experience.length + 1}` });
+  }
+  experience.sort((a, b) => (b.end ?? "9999").localeCompare(a.end ?? "9999") || b.start.localeCompare(a.start));
   addDuties(experience, cvText);
 
   const education: ExtractedEducation[] = [];

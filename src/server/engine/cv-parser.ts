@@ -258,6 +258,8 @@ export function cleanCvText(text: string): string {
     .replace(/\r\n?/g, "\n")
     .replace(/[\u00a0\u2000-\u200b\u202f\u205f\u3000]/g, " ")
     .replace(/\u00ad/g, "")
+    // A full-width colon read with the wrong encoding ("ï¼") between an employer and its place.
+    .replace(/\s*ï¼\s?/g, ", ")
     .split("\n")
     .map((line) => {
       const tokens = line.trim().split(/\s+/);
@@ -269,6 +271,13 @@ export function cleanCvText(text: string): string {
       }
       return line.replace(/[ \t]+/g, " ").trimEnd();
     });
+  // Date ranges split over lines ("Nov 2013" / "to" / "Current") are joined, so both readers see one range.
+  const dateOnly = /^(?:[A-Za-z]{3,9}\.?\s+)?\d{4}$|^(?:present|current|now|to date)$/i;
+  for (let i = 0; i < lines.length - 2; i++) {
+    if (dateOnly.test(lines[i]!.trim()) && /^(?:to|-|–|—|until)$/i.test(lines[i + 1]!.trim()) && dateOnly.test(lines[i + 2]!.trim())) {
+      lines.splice(i, 3, `${lines[i]!.trim()} to ${lines[i + 2]!.trim()}`);
+    }
+  }
   // "implement-" + "ing …" → "implementing …"
   for (let i = 0; i < lines.length - 1; i++) {
     const m = lines[i]!.match(/([A-Za-z]{2,})-$/);
