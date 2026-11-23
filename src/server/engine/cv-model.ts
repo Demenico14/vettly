@@ -12,6 +12,7 @@ import "server-only";
 import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
 import { extractWithTemplate } from "../ai/local";
 import { cvSections, dateRangeIn, type ParsedCv, type SectionKind } from "./cv-parser";
+import { onlyLinks } from "@/lib/links";
 
 // NuExtract's template language: field names steer it, so they say exactly what's wanted.
 const PERSON = {
@@ -295,7 +296,7 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
     phone,
     location,
     // A job title, not the opening sentence of the profile.
-    headline: headline && !sentenceLike(headline) ? value(headline, r.headline, { verbatim: true }) : useExp[0] ? { value: useExp[0].title, flag: "Suggested from the latest role. Check it." } : r.headline,
+    headline: headline && !sentenceLike(headline) && !onlyLinks(headline) ? value(headline, r.headline, { verbatim: true }) : useExp[0] ? { value: useExp[0].title, flag: "Suggested from the latest role. Check it." } : r.headline,
     currentEmployer: current?.company ? { value: current.company } : { value: "", flag: "No current role found." },
     availability: value(model.availability, r.availability),
     // The CV's own summary paragraph; the model's only when the rules found none.

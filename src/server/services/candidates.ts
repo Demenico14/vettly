@@ -179,7 +179,9 @@ export const candidateProfileService: CandidateProfileService = {
       topSkills: x.skills.slice(0, 3),
       email: x.email.value.trim(),
       phone: x.phone.value.trim(),
-      linkedin: null,
+      linkedin: x.links?.linkedin ?? null,
+      github: x.links?.github ?? null,
+      website: x.links?.website ?? null,
       availability: (x.availability.value || "1 month's notice") as Availability,
       currentEmployer: x.currentEmployer.value.trim() || null,
       expectedSalary: null,
@@ -202,6 +204,13 @@ export const candidateProfileService: CandidateProfileService = {
   async attachCv(id, input) {
     const c = find(id);
     c.documents = [cvDocument(input), ...c.documents];
+    // Links the profile doesn't have yet come from the newer CV; ones HR already has are kept.
+    const links = input.extraction.links;
+    if (links) {
+      c.linkedin ||= links.linkedin;
+      c.github ||= links.github;
+      c.website ||= links.website;
+    }
     // A newer CV can list certifications the profile doesn't have yet.
     const known = new Set(c.certifications.map((x) => x.name.toLowerCase()));
     c.certifications = [...c.certifications, ...certificationsFrom(input.extraction).filter((x) => !known.has(x.name.toLowerCase()))];

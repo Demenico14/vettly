@@ -5,6 +5,7 @@ import "server-only";
  * `parseCv` later with the same output.
  */
 import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience } from "@/types";
+import { linksIn, onlyLinks } from "@/lib/links";
 
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const PHONE = /(?:\+|00)?\d[\d\s().-]{7,16}\d/;
@@ -87,7 +88,7 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
   const name = nameLine ? titleCase(nameLine.replace(/\b([A-Z])([A-Z]+)\b/g, (_, a: string, b: string) => a + b.toLowerCase())) : "";
 
   const nameIdx = nameLine ? lines.indexOf(nameLine) : -1;
-  const headlineLine = nameIdx >= 0 ? lines.slice(nameIdx + 1, nameIdx + 4).find((l) => !EMAIL.test(l) && !PHONE.test(l) && !SECTION.test(l) && l.length <= 80 && /[A-Za-z]/.test(l)) : undefined;
+  const headlineLine = nameIdx >= 0 ? lines.slice(nameIdx + 1, nameIdx + 4).find((l) => !EMAIL.test(l) && !PHONE.test(l) && !SECTION.test(l) && !onlyLinks(l) && l.length <= 80 && /[A-Za-z]/.test(l)) : undefined;
 
   const city = CITIES.find((c) => new RegExp(`\\b${c}\\b`, "i").test(lines.slice(0, 15).join(" "))) ?? CITIES.find((c) => new RegExp(`\\b${c}\\b`, "i").test(flat)) ?? "";
 
@@ -223,6 +224,7 @@ export function parseCv(text: string, pages: number, knownSkills: string[] = [])
       skills: skills.slice(0, 20),
       pages,
       ocr: false,
+      links: linksIn(flat),
     },
   };
 }

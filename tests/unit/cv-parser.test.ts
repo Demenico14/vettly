@@ -114,3 +114,12 @@ describe("personal-details blocks", () => {
     expect(parseCv(cv, 1).extraction.name.value).toBe("Tinashe Dube");
   });
 });
+
+describe("links on a CV", () => {
+  it("reads LinkedIn, GitHub and a website, and never takes the links line as the headline", () => {
+    const cv = "Jane Moyo\n+263 77 000 1111 · jane@gmail.com · Harare\nlinkedin.com/in/janemoyo · github.com/janemoyo · janemoyo.co.zw\nProfile\nData engineer.\nWork Experience\nData Engineer, Econet\nJun 2022 – Present";
+    const x = parseCv(cv, 1).extraction;
+    expect(x.links).toEqual({ linkedin: "https://linkedin.com/in/janemoyo", github: "https://github.com/janemoyo", website: "https://janemoyo.co.zw/" });
+    expect(x.headline.value).not.toMatch(/linkedin/);
+  });
+});
