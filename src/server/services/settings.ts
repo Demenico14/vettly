@@ -3,14 +3,16 @@
  * audit log. Members are real accounts (users and memberships tables); everything else is stored per organisation.
  */
 import "server-only";
+import { orgEmail } from "../org-mail";
 import { and, eq, ne } from "drizzle-orm";
 import type { AuditEvent, DataRequest, Member, OrgRole, OrgSettings, Permission, RolePermissions, Subscription } from "@/types/settings";
 import type { OrganisationSetup } from "@/types";
 import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS, ROLE_LABEL, defaultSettings } from "@/lib/settings-defaults";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { db, schema } from "../db";
+import { fileFor } from "../files";
 import { randomToken, sha256 } from "../crypto";
-import { appUrl, sendMail } from "../mail";
+import { appUrl } from "../mail";
 import { actor, actorName, newId, now, orgId } from "../context";
 import { collection, single } from "../store";
 
@@ -62,6 +64,14 @@ function requireCanManageRole(role: OrgRole, what: string) {
   if (a.role !== "org_admin" && !theirs.every((p) => mine.has(p))) throw new Error(`Only an organisation admin can ${what} a ${ROLE_LABEL[role].toLowerCase()}.`);
 }
 
+/** A logo must be an image this organisation uploaded, small enough to send in every email. */
+export async function checkLogo(fileId: string) {
+  const f = await fileFor(orgId(), fileId);
+  if (!f) throw new Error("That logo didn't finish uploading. Try again.");
+  if (!["image/png", "image/jpeg"].includes(f.mime)) throw new Error("Use a PNG or JPG for the logo.");
+  if (f.sizeBytes > 2 * 1024 * 1024) throw new Error("Keep the logo under 2 MB.");
+}
+
 /** Fills in a new organisation's settings from its details. */
 export function initialiseSettings(org: { name: string; city: string; country: string; industry: string; size: string }) {
   settings.set(defaultSettings(org));
@@ -74,6 +84,7 @@ export function applySetup(setup: OrganisationSetup) {
   const s = clone(settings.get());
   s.branding.colour = setup.brandColour;
   s.branding.logoFileName = setup.logoFileName;
+  s.branding.logoFileId = setup.logoFileId ?? null;
   s.profile.currency = setup.currency;
   s.profile.timezone = setup.timezone;
   s.assessments.deadlineDays = setup.defaultTestDeadlineDays;
@@ -129,11 +140,11 @@ async function sendInviteEmail(email: string, userId: string, role: OrgRole) {
     data: { role, invitedBy: actorName(), invitedByTitle: actor()?.title ?? "" },
     expiresAt: new Date(Date.now() + 7 * 86_400_000),
   });
-  await sendMail(
-    email,
-    `${actorName()} invited you to ${o.name} on Vettly`,
-    `${actorName()} invited you to join ${o.name} on Vettly as ${ROLE_LABEL[role].toLowerCase()}.\n\nAccept the invitation (the link works for 7 days):\n${appUrl()}/invite/${token}\n`,
-  );
+  orgEmail({
+    to: email,
+    subject: `${actorName()} invited you to ${o.name} on Vettly`,
+    text: `${actorName()} invited you to join ${o.name} on Vettly as ${ROLE_LABEL[role].toLowerCase()}.\n\nAccept the invitation (the link works for 7 days):\n${appUrl()}/invite/${token}`,
+  });
 }
 
 /** Invites one person. Shared by Settings and the onboarding wizard. */
@@ -209,7 +220,12 @@ export const settingsService: SettingsService = {
       if (!p.legalName.trim()) throw new Error("Enter the organisation's legal name.");
       if (p.website && !/^https?:\/\//.test(p.website)) throw new Error("Start the website with https://");
     }
-    if (section === "branding" && !/^#[0-9a-fA-F]{6}$/.test((value as OrgSettings["branding"]).colour)) throw new Error("Enter a 6-digit hex colour, for example #16624F.");
+    if (section === "branding") {
+      const b = value as OrgSettings["branding"];
+      if (!/^#[0-9a-fA-F]{6}$/.test(b.colour)) throw new Error("Enter a 6-digit hex colour, for example #16624F.");
+      if ((b.letterFooter ?? "").length > 400) throw new Error("Keep the footer to 400 characters.");
+      if (b.logoFileId) await checkLogo(b.logoFileId);
+    }
     if (section === "recruitment") {
       const r = value as OrgSettings["recruitment"];
       const total = Object.values(r.defaultWeights).reduce((s, n) => s + n, 0);

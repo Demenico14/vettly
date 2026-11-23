@@ -13,8 +13,9 @@ import type { CandidateResponse, Offer } from "@/types/offers";
 import { cn } from "@/lib/utils";
 import { BandBar, OfferBadge, money, shortDate, totalPay } from "./meta";
 import { LetterView } from "./letter-view";
+import type { Letterhead } from "@/lib/letterhead";
 
-type Data = { view: OfferView; letter: { heading: string | null; body: string }[]; letterHtml: string | null; vacancy: Vacancy };
+type Data = { view: OfferView; letter: { heading: string | null; body: string }[]; letterHtml: string | null; letterhead: Letterhead; vacancy: Vacancy };
 type Dialog = "approve" | "send_back" | "send" | "respond" | "withdraw" | "extend" | null;
 const NOW = new Date(MOCK_NOW).getTime();
 const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -150,7 +151,7 @@ export function OfferDetail({ id }: { id: string }) {
     >
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
         <div className="flex min-w-0 flex-col gap-5">
-          <StatusMessage offer={o} view={v} onSimulateOpen={() => act(() => services.offers.markViewed(o.id), "Recorded: candidate opened the offer")} />
+          <StatusMessage offer={o} view={v} onMarkRead={() => act(() => services.offers.markViewed(o.id), "Recorded: the candidate has read the offer")} />
 
           {o.status === "accepted" && !o.hiredAt && (
             <Card className="p-5 sm:p-6">
@@ -206,7 +207,7 @@ export function OfferDetail({ id }: { id: string }) {
             )}
           </Card>
 
-          <LetterView letter={data.letter} html={data.letterHtml} title={`Offer letter · version ${o.version}`} />
+          <LetterView letter={data.letter} html={data.letterHtml} letterhead={data.letterhead} title={`Offer letter · version ${o.version}`} pdfHref={`/api/offers/${o.id}/letter`} />
         </div>
 
         <aside className="flex flex-col gap-5">
@@ -304,7 +305,7 @@ function Progress({ offer: o }: { offer: Offer }) {
   );
 }
 
-function StatusMessage({ offer: o, view: v, onSimulateOpen }: { offer: Offer; view: OfferView; onSimulateOpen: () => void }) {
+function StatusMessage({ offer: o, view: v, onMarkRead }: { offer: Offer; view: OfferView; onMarkRead: () => void }) {
   const hours = o.expiresAt ? Math.round((new Date(o.expiresAt).getTime() - NOW) / 3600000) : null;
   if (o.hiredAt)
     return (
@@ -336,8 +337,8 @@ function StatusMessage({ offer: o, view: v, onSimulateOpen }: { offer: Offer; vi
     return (
       <Alert
         tone="info"
-        title={o.status === "viewed" ? `${o.candidateName.split(" ")[0]} opened the offer ${o.viewedAt ? when(o.viewedAt) : ""}` : "Sent, not opened yet"}
-        action={o.status === "sent" ? <Button size="sm" variant="ghost" onClick={onSimulateOpen}><Eye />Simulate opening</Button> : undefined}
+        title={o.status === "viewed" ? `${o.candidateName.split(" ")[0]} has read the offer${o.viewedAt ? ` (recorded ${when(o.viewedAt)})` : ""}` : "Sent by email"}
+        action={o.status === "sent" ? <Button size="sm" variant="ghost" onClick={onMarkRead}><Eye />Mark as read</Button> : undefined}
       >
         Reply due {o.expiresAt ? `${shortDate(o.expiresAt)} at 17:00` : ""}
         {hours !== null && hours < 72 ? ` (${Math.max(0, hours)} hours left)` : ""}. Record the response here when they reply by email, phone or signed letter.

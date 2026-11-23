@@ -132,6 +132,8 @@ export interface OrganisationDraft {
 export interface OrganisationSetup {
   brandColour: string;
   logoFileName: string | null;
+  /** The stored logo, uploaded during setup. */
+  logoFileId?: string | null;
   currency: "USD" | "ZiG" | "ZAR" | "BWP" | "ZMW";
   timezone: string;
   stages: string[];
@@ -149,6 +151,8 @@ export interface CandidateTestAccess {
   candidateEmailMasked: string;
   organisationName: string;
   organisationColour: string;
+  /** The organisation's logo, when it has one and shows it on the test pages. */
+  organisationLogoUrl: string | null;
   vacancyTitle: string;
   deadline: string;
   tests: {

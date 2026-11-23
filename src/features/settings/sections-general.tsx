@@ -4,9 +4,11 @@ import { useSession } from "@/components/layout/session-provider";
 import * as React from "react";
 import { Check, Upload, X } from "@/components/icons";
 import { Badge, Button, Checkbox, Input, Select, Skeleton, SwitchField, Table, TBody, TD, TH, THead, TR, Textarea, toast } from "@/components/ui";
-import { services } from "@/services";
+import { services, logoUrl, uploadFile } from "@/services";
+import { initialsOf, letterheadOf } from "@/lib/letterhead";
+import { LetterheadFooter, LetterheadTop } from "@/features/offers/letter-view";
 import { BRAND_COLOURS, TIMEZONES } from "@/lib/onboarding";
-import type { DataRequest, NotificationEvent } from "@/types/settings";
+import type { DataRequest, NotificationEvent, OrgSettings } from "@/types/settings";
 import { cn } from "@/lib/utils";
 import { Group, Row, SaveBar, SectionSkeleton, useSection } from "./settings-shell";
 
@@ -89,26 +91,70 @@ export function OrganisationSection() {
 
 export function BrandingSection() {
   const s = useSection("branding");
+  const org = useSession().organisation;
   const [hex, setHex] = React.useState<string | null>(null);
+  const [profile, setProfile] = React.useState<OrgSettings["profile"] | null>(null);
+  const [localLogo, setLocalLogo] = React.useState<string | null>(null);
+  const [uploading, setUploading] = React.useState(false);
+  const logoInput = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    services.settings.get().then((all) => setProfile(all.profile)).catch(() => undefined);
+  }, []);
+  React.useEffect(() => () => void (localLogo && URL.revokeObjectURL(localLogo)), [localLogo]);
   const b = s.draft;
   if (!b) return <SectionSkeleton />;
   const shown = hex ?? b.colour;
+  const logoSrc = localLogo ?? (b.logoFileId && org ? logoUrl(org.id, b.logoFileId) : null);
+  const head = profile && org ? letterheadOf(org.id, { profile, branding: b }) : null;
+
+  const uploadLogo = async (file?: File) => {
+    if (!file) return;
+    if (!["image/png", "image/jpeg"].includes(file.type)) return toast.error("Use a PNG or JPG", "Logos in emails and PDFs need a PNG or JPG file.");
+    if (file.size > 2 * 1024 * 1024) return toast.error("Logo too large", "Keep the logo under 2 MB.");
+    setUploading(true);
+    try {
+      const stored = await uploadFile(file);
+      s.set("logoFileId", stored.fileId);
+      s.set("logoFileName", stored.name);
+      setLocalLogo(URL.createObjectURL(file));
+      toast.success("Logo ready", "Save to use it on letters, emails and the test pages.");
+    } catch (e) {
+      toast.error("Logo not uploaded", e instanceof Error ? e.message : undefined);
+    } finally {
+      setUploading(false);
+      if (logoInput.current) logoInput.current.value = "";
+    }
+  };
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <Group title="Look" description="Used on your careers page, candidate emails and the test pages.">
-          <Row label="Logo" hint="SVG or PNG, at least 200px wide.">
+          <Row label="Logo" hint="PNG or JPG, at least 300px wide, under 2 MB. A wide logo on a white or transparent background works best.">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-md text-sm font-bold text-white" style={{ background: b.colour }} aria-hidden>
-                MF
-              </span>
-              <span className="text-sm text-fg-muted">{b.logoFileName ?? "No logo"}</span>
-              <Button variant="secondary" size="sm" onClick={() => (s.set("logoFileName", "msasa-logo-2026.svg"), toast.success("Logo replaced", "msasa-logo-2026.svg (mock upload)"))}>
-                <Upload />
-                Replace
+              {logoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element -- the organisation's uploaded logo
+                <img src={logoSrc} alt={`${org?.name ?? "Organisation"} logo`} className="h-12 w-auto max-w-40 rounded-md border border-line bg-white object-contain p-1" />
+              ) : (
+                <span className="grid size-12 place-items-center rounded-md text-sm font-bold text-white" style={{ background: b.colour }} aria-hidden>
+                  {initialsOf(org?.name ?? "")}
+                </span>
+              )}
+              <span className="max-w-48 truncate text-sm text-fg-muted">{b.logoFileId ? b.logoFileName : "No logo"}</span>
+              <input ref={logoInput} type="file" accept="image/png,image/jpeg" className="sr-only" aria-label="Upload a logo" onChange={(e) => uploadLogo(e.target.files?.[0])} />
+              <Button variant="secondary" size="sm" loading={uploading} onClick={() => logoInput.current?.click()}>
+                {!uploading && <Upload />}
+                {b.logoFileId ? "Replace" : "Upload logo"}
               </Button>
-              {b.logoFileName && (
-                <Button variant="ghost" size="sm" onClick={() => s.set("logoFileName", null)}>
+              {b.logoFileId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    s.set("logoFileId", null);
+                    s.set("logoFileName", null);
+                    setLocalLogo(null);
+                  }}
+                >
                   Remove
                 </Button>
               )}
@@ -148,7 +194,7 @@ export function BrandingSection() {
             <SwitchField label="Show logo" checked={b.showLogoOnTests} onCheckedChange={(c) => s.set("showLogoOnTests", c)} />
           </Row>
         </Group>
-        <Preview colour={b.colour} headline={b.careersHeadline} intro={b.careersIntro} logo={!!b.logoFileName} />
+        <Preview colour={b.colour} headline={b.careersHeadline} intro={b.careersIntro} logo={logoSrc} />
       </div>
       <Group title="Words" description="Your voice on the careers page and in every candidate email.">
         <Row label="Careers page headline" htmlFor="headline">
@@ -161,12 +207,48 @@ export function BrandingSection() {
           <Textarea id="signoff" rows={2} value={b.emailSignOff} onChange={(e) => s.set("emailSignOff", e.target.value)} />
         </Row>
       </Group>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <Group title="Letters and emails" description="Your letterhead: at the top and bottom of offer letters (on screen and as PDF) and of every email to candidates.">
+          {b.logoFileId && (
+            <Row label="Name next to logo" hint="Turn off if your logo already shows your name.">
+              <SwitchField label="Show your name beside the logo" checked={b.letterName !== false} onCheckedChange={(c) => s.set("letterName", c)} />
+            </Row>
+          )}
+          <Row label="Contact details" hint="Your address, phone and website from Organisation settings, under your name.">
+            <SwitchField label="Show contact details" checked={b.letterContact !== false} onCheckedChange={(c) => s.set("letterContact", c)} />
+          </Row>
+          <Row label="Footer" hint={`${(b.letterFooter ?? "").length} of 400 characters. Leave empty to use your registered name and number.`} htmlFor="footer">
+            <Textarea
+              id="footer"
+              rows={3}
+              value={b.letterFooter ?? ""}
+              onChange={(e) => s.set("letterFooter", e.target.value.slice(0, 400))}
+              placeholder="e.g. Registered name (Pvt) Ltd · Registration no. 1234/2019 · Directors: …"
+            />
+          </Row>
+        </Group>
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold text-fg-muted">Letterhead preview</p>
+          {head ? (
+            <div className="rounded-lg bg-ink-100 p-3" aria-label="Preview of the letterhead">
+              <div className="rounded-xs bg-white px-5 py-6 text-[0.8125rem] text-ink-900 shadow-md">
+                <LetterheadTop head={head} localLogo={localLogo} />
+                <p className="text-ink-500">Dear Tariro,</p>
+                <p className="mt-2 text-ink-500">Following your interviews, we are delighted to offer you the position of…</p>
+                <LetterheadFooter head={head} />
+              </div>
+            </div>
+          ) : (
+            <Skeleton className="h-64 rounded-lg" />
+          )}
+        </div>
+      </div>
       <SaveBar dirty={s.dirty} saving={s.saving} error={s.error} onSave={s.save} onDiscard={() => (s.discard(), setHex(null))} />
     </div>
   );
 }
 
-function Preview({ colour, headline, intro, logo }: { colour: string; headline: string; intro: string; logo: boolean }) {
+function Preview({ colour, headline, intro, logo }: { colour: string; headline: string; intro: string; logo: string | null }) {
   const name = useSession().organisation?.name ?? "";
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
   return (
@@ -174,7 +256,12 @@ function Preview({ colour, headline, intro, logo }: { colour: string; headline: 
       <p className="text-xs font-semibold text-fg-muted">Careers page preview</p>
       <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-platter" aria-label="Preview of the careers page">
         <div className="flex items-center gap-2 px-4 py-3 text-white" style={{ background: colour }}>
-          {logo && <span className="grid size-6 place-items-center rounded-sm bg-white/20 text-2xs font-bold">{initials}</span>}
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- the organisation's uploaded logo
+            <img src={logo} alt="" className="h-6 w-auto max-w-20 rounded-sm bg-white object-contain p-0.5" />
+          ) : (
+            <span className="grid size-6 place-items-center rounded-sm bg-white/20 text-2xs font-bold">{initials}</span>
+          )}
           <span className="text-sm font-semibold">{name}</span>
           <span className="ml-auto text-xs opacity-80">Careers</span>
         </div>

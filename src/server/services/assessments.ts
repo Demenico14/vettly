@@ -5,6 +5,7 @@
  * The test catalogue, norms and built-in batteries are reference content from src/mocks/psychometrics.
  */
 import "server-only";
+import { orgEmail } from "../org-mail";
 import type { ApplicationStage, TestInvitationSummary } from "@/types";
 import type {
   Battery,
@@ -30,10 +31,10 @@ import {
   tests,
   toSummary,
 } from "@/mocks/psychometrics";
-import { actorName, afterCommit, newId, now } from "../context";
+import { actorName, newId, now, orgId } from "../context";
 import { collection } from "../store";
 import { randomToken } from "../crypto";
-import { appUrl, sendMail } from "../mail";
+import { appUrl } from "../mail";
 import { profileSnapshot } from "./candidates";
 import { vacancySnapshot } from "./vacancies";
 import { orgSettings } from "./settings";
@@ -223,7 +224,7 @@ function emailInvitation(r: InvitationRecord, email: string, reminder = false) {
     sign_off: s.branding.emailSignOff,
   };
   const subject = (reminder ? "Reminder: " : "") + fill(s.assessments.inviteEmailSubject, vars);
-  afterCommit(() => sendMail(email, subject, fill(s.assessments.inviteEmailBody, vars)));
+  orgEmail({ to: email, subject, text: fill(s.assessments.inviteEmailBody, vars) });
 }
 
 /** Creates an invitation record. Used by this service and the pipeline. */
@@ -461,6 +462,7 @@ export interface CandidateRun {
   items: Record<string, SampleItem[]>;
   organisationName: string;
   organisationColour: string;
+  organisationLogoUrl: string | null;
   feedbackReports: boolean;
 }
 
@@ -478,6 +480,7 @@ export function runFor(token: string): CandidateRun | null {
     items: Object.fromEntries(ids.map((id) => [id, sampleItems.filter((i) => i.testId === id)])),
     organisationName: orgSettings().profile.tradingName || orgSettings().profile.legalName,
     organisationColour: orgSettings().branding.colour,
+    organisationLogoUrl: orgSettings().branding.logoFileId && orgSettings().branding.showLogoOnTests ? `/api/logo/${orgId()}/${orgSettings().branding.logoFileId}` : null,
     feedbackReports: orgSettings().assessments.candidateFeedback,
   };
 }

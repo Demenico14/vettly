@@ -3,6 +3,7 @@
  * signed cookie for this invitation lets them take the tests. Candidates never get an account.
  */
 import "server-only";
+import { currentLetterhead, sendBranded } from "../org-mail";
 import { cookies } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import type { CandidateAccessService } from "@/services/contracts";
@@ -11,7 +12,6 @@ import { AuthError } from "@/types";
 import { sampleItems, tests } from "@/mocks/psychometrics";
 import { db, ready, schema, sql } from "../db";
 import { sha256, sixDigits } from "../crypto";
-import { sendMail } from "../mail";
 import { withOrg } from "../store";
 import { profileSnapshot } from "./candidates";
 import { recordConsent, recordOpen, runFor, saveProgress, submitTest } from "./assessments";
@@ -66,6 +66,7 @@ export const candidateAccessService: CandidateAccessService = {
         candidateEmailMasked: local ? `${local.charAt(0)}•••••@${domain}` : "your email",
         organisationName: run.organisationName,
         organisationColour: run.organisationColour,
+        organisationLogoUrl: run.organisationLogoUrl,
         vacancyTitle: r.vacancyTitle,
         deadline: r.deadline,
         tests: run.tests.map((t) => ({
@@ -85,16 +86,16 @@ export const candidateAccessService: CandidateAccessService = {
 
   async sendCode(token) {
     const org = await orgOf(token);
-    const { email, name } = await withOrg(org, null, () => {
+    const { email, name, head } = await withOrg(org, null, () => {
       const run = runFor(token);
-      return { email: run ? emailOf(run.record.candidateId) : "", name: run?.record.candidateName ?? "" };
+      return { email: run ? emailOf(run.record.candidateId) : "", name: run?.record.candidateName ?? "", head: currentLetterhead() };
     });
     if (!email) throw new AuthError("token_invalid", "There's no email address for this invitation. Contact the organisation that sent it.");
     const code = sixDigits();
     const id = sha256(`candidate_code:${token}`);
     await db.delete(schema.tokens).where(eq(schema.tokens.id, id));
     await db.insert(schema.tokens).values({ id, purpose: "candidate_code", email, organisationId: org, codeHash: sha256(code), expiresAt: new Date(Date.now() + 15 * 60_000) });
-    await sendMail(email, `${code} is your code for your tests`, `Hello ${name.split(" ")[0]},\n\nYour code to start your tests is ${code}. It expires in 15 minutes.\n\nIf you didn't ask for it, ignore this email.`);
+    await sendBranded(head, { to: email, subject: `${code} is your code for your tests`, text: `Hello ${name.split(" ")[0]},\n\nYour code to start your tests is ${code}. It expires in 15 minutes.\n\nIf you didn't ask for it, ignore this email.` });
   },
 
   async verify(token, code) {

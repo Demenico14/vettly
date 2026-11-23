@@ -1,4 +1,5 @@
 import "server-only";
+import { orgEmail } from "../org-mail";
 import { ROLE_LABEL } from "@/lib/settings-defaults";
 /**
  * Interviews service (Module 10). Phase 1: an in-memory store seeded from src/mocks/interviews.ts. Scheduling
@@ -22,9 +23,8 @@ import type {
 } from "@/types/interviews";
 import { tests as catalogue } from "@/mocks/psychometrics";
 import { BAND_LABEL } from "@/lib/psychometrics";
-import { actor, actorName, afterCommit, context, newId, now, type RequestContext } from "../context";
+import { actor, actorName, context, newId, now, type RequestContext } from "../context";
 import { collection } from "../store";
-import { sendMail } from "../mail";
 import { SCREENING_SET, vacancySet } from "../engine/question-sets";
 import { profileSnapshot } from "./candidates";
 import { vacancySnapshot } from "./vacancies";
@@ -325,10 +325,10 @@ export const interviewsService: InterviewsService = {
     store.push(iv);
     const when = new Date(iv.startsAt).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" });
     const panelNames = iv.panel.map((p) => nameOf(p.interviewerId)).join(", ");
-    if (c.email) afterCommit(() => sendMail(c.email, `Interview for ${iv.vacancyTitle}: ${when}`, `Dear ${c.name.split(" ")[0]},\n\nWe'd like to invite you to a ${iv.durationMin}-minute ${iv.round.toLowerCase()} for the ${iv.vacancyTitle} role.\n\nWhen: ${when} (Harare time)\nWhere: ${iv.location}\nWith: ${panelNames}\n${input.message.trim() ? `\n${input.message.trim()}\n` : ""}\nPlease reply to confirm, or to ask for another time.`));
+    if (c.email) orgEmail({ to: c.email, subject: `Interview for ${iv.vacancyTitle}: ${when}`, text: `Dear ${c.name.split(" ")[0]},\n\nWe'd like to invite you to a ${iv.durationMin}-minute ${iv.round.toLowerCase()} for the ${iv.vacancyTitle} role.\n\nWhen: ${when} (Harare time)\nWhere: ${iv.location}\nWith: ${panelNames}\n${input.message.trim() ? `\n${input.message.trim()}\n` : ""}\nPlease reply to confirm, or to ask for another time.` });
     for (const p of iv.panel) {
       const who = interviewers.find((i) => i.id === p.interviewerId);
-      if (who?.email && who.id !== me()) afterCommit(() => sendMail(who.email, `Interview panel: ${c.name}, ${when}`, `${actorName()} added you to the panel for ${c.name}'s ${iv.round.toLowerCase()} (${iv.vacancyTitle}).\n\nWhen: ${when} (Harare time)\nWhere: ${iv.location}\nYour role: ${p.role}`));
+      if (who?.email && who.id !== me()) orgEmail({ to: who.email, subject: `Interview panel: ${c.name}, ${when}`, text: `${actorName()} added you to the panel for ${c.name}'s ${iv.round.toLowerCase()} (${iv.vacancyTitle}).\n\nWhen: ${when} (Harare time)\nWhere: ${iv.location}\nYour role: ${p.role}` });
     }
     return clone(iv);
   },

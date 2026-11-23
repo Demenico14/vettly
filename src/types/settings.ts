@@ -20,6 +20,14 @@ export interface OrgProfile {
 export interface Branding {
   colour: string;
   logoFileName: string | null;
+  /** The stored logo (PNG or JPG), shown on letters, emails and the test pages. */
+  logoFileId?: string | null;
+  /** Show the organisation's name beside its logo (turn off when the logo already spells it out). */
+  letterName?: boolean;
+  /** Put the organisation's address, phone and website under the logo on letters and emails. */
+  letterContact?: boolean;
+  /** Footer on letters and candidate emails, e.g. registered name, company number and address. */
+  letterFooter?: string;
   careersHeadline: string;
   careersIntro: string;
   emailSignOff: string;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, Plus, Trash2, Upload, X } from "@/components/icons";
 import { Alert, Button, Field, Input, RadioGroup, Select, SwitchField, Tag, toast } from "@/components/ui";
 import { Stepper, type Step } from "@/components/ui/stepper";
-import { services } from "@/services";
+import { services, uploadFile } from "@/services";
 import { BRAND_COLOURS, DEFAULT_STAGES, TEST_BATTERIES, TIMEZONES } from "@/lib/onboarding";
 import type { OrganisationSetup, Role } from "@/types";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ export function SetupWizard() {
   const [data, setData] = React.useState<OrganisationSetup>({
     brandColour: BRAND_COLOURS[0]!,
     logoFileName: null,
+    logoFileId: null,
     currency: "USD",
     timezone: "Africa/Harare",
     stages: DEFAULT_STAGES,
@@ -172,10 +173,11 @@ function Branding({
   const [fileError, setFileError] = React.useState<string | null>(null);
   const [drag, setDrag] = React.useState(false);
 
-  const accept = (file?: File) => {
+  const [uploading, setUploading] = React.useState(false);
+  const accept = async (file?: File) => {
     if (!file) return;
-    if (!["image/png", "image/svg+xml", "image/jpeg"].includes(file.type)) {
-      setFileError(`${file.name} isn't a PNG, SVG or JPG.`);
+    if (!["image/png", "image/jpeg"].includes(file.type)) {
+      setFileError(`${file.name} isn't a PNG or JPG. Those work in emails and PDF letters.`);
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -183,13 +185,22 @@ function Branding({
       return;
     }
     setFileError(null);
-    set("logoFileName", file.name);
+    setUploading(true);
+    try {
+      const stored = await uploadFile(file);
+      set("logoFileName", stored.name);
+      set("logoFileId", stored.fileId);
+    } catch (e) {
+      setFileError(e instanceof Error ? e.message : `${file.name} didn't upload. Try again.`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
     <>
       <p className="-mt-3 text-sm text-fg-muted">
-        Candidates see your logo and colour on job adverts, test invitations and the test screens.
+        Candidates see your logo and colour on offer letters, emails and the test screens.
       </p>
       <div>
         <p className="mb-1.5 text-sm font-semibold text-fg">
@@ -201,7 +212,15 @@ function Branding({
               <Check className="size-4 shrink-0 text-success-600" weight="bold" />
               <span className="truncate font-medium">{data.logoFileName}</span>
             </span>
-            <Button type="button" variant="ghost" size="sm" onClick={() => set("logoFileName", null)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                set("logoFileName", null);
+                set("logoFileId", null);
+              }}
+            >
               <X />
               Remove
             </Button>
@@ -231,11 +250,11 @@ function Branding({
                 choose a file
               </button>
             </p>
-            <p className="text-xs text-fg-subtle">PNG, SVG or JPG, up to 2 MB. A square logo works best.</p>
+            <p className="text-xs text-fg-subtle">{uploading ? "Uploading…" : "PNG or JPG, up to 2 MB. A wide logo on a white or transparent background works best."}</p>
             <input
               ref={fileRef}
               type="file"
-              accept="image/png,image/svg+xml,image/jpeg"
+              accept="image/png,image/jpeg"
               className="sr-only"
               aria-label="Upload logo"
               onChange={(e) => accept(e.target.files?.[0])}

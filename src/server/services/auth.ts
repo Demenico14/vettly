@@ -11,7 +11,7 @@ import { appUrl, sendMail } from "../mail";
 import { createSession, readSession, setSessionOrganisation } from "../session";
 import { newId } from "../context";
 import { withOrg } from "../store";
-import { applySetup, initialiseSettings } from "./settings";
+import { applySetup, initialiseSettings, checkLogo } from "./settings";
 
 const MINUTE = 60_000;
 const SIZE_LABEL: Record<OrganisationSize, string> = { "1-50": "1–50 employees", "51-200": "51–200 employees", "201-1000": "201–500 employees", "1000+": "Over 2,000 employees" };
@@ -232,6 +232,7 @@ export const authService: AuthService = {
     if (!s?.organisationId) throw new AuthError("token_invalid", "Your session has ended. Sign in again.");
     const orgId = s.organisationId;
     const actor = { userId: s.user.id, name: s.user.name, email: s.user.email, title: s.user.title, role: "org_admin" as const, isSuperAdmin: s.user.isSuperAdmin };
+    if (setup.logoFileId) await withOrg(orgId, actor, () => checkLogo(setup.logoFileId!));
     await withOrg(orgId, actor, () => applySetup(setup));
     for (const inv of setup.invites.filter((i) => i.email.trim())) {
       const { inviteMember } = await import("./settings");

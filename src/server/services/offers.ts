@@ -1,4 +1,5 @@
 import "server-only";
+import { orgEmail } from "../org-mail";
 /**
  * Offers service (Module 11). Phase 1: an in-memory store seeded from src/mocks/offers.ts. Offers move through
  * approval (hiring manager, HR, and the CFO above the salary band), are sent with a deadline, and record the
@@ -9,11 +10,13 @@ import type { ApplicationStage, Vacancy } from "@/types";
 import type { CandidateResponse, Offer, OfferTerms } from "@/types/offers";
 import { approvalChain, checklistFor, offerLetter, type Approvers } from "@/lib/offers";
 import { fillLetter, letterText, mergeValues, unknownFields } from "@/lib/letter";
+import { letterheadOf, type Letterhead } from "@/lib/letterhead";
 import { cleanLetter, wordToLetter } from "../letter-html";
+import { letterPdf, standardLetterHtml } from "../letter-pdf";
+import { logoImage } from "../branding";
 import { fileFor } from "../files";
-import { actor, actorName, afterCommit, newId, now, orgId } from "../context";
+import { actor, actorName, newId, now, orgId } from "../context";
 import { collection } from "../store";
-import { sendMail } from "../mail";
 import { profileSnapshot } from "./candidates";
 import { vacancyService, vacancySnapshot } from "./vacancies";
 import { STATUS_MOVES } from "@/lib/workflow";
@@ -50,6 +53,21 @@ function customLetterFor(o: Pick<Offer, "candidateName" | "terms" | "expiresAt">
   const p = orgSettings().profile;
   const a = actor();
   return fillLetter(o.terms.letterHtml, mergeValues(o, p.tradingName || p.legalName, { name: a?.name ?? "", title: a?.title ?? "" }));
+}
+
+/**
+ * Everything needed to print an offer's letter as PDF: the letter (HR's own or the standard one) as HTML, and the
+ * letterhead. Runs in the organisation's context; the logo bytes are read separately.
+ */
+export function letterDocument(id: string) {
+  const o = find(id);
+  const html = customLetterFor(o) ?? standardLetterHtml(letterFor(o));
+  return { title: `Offer letter: ${o.candidateName}, ${o.terms.jobTitle}`, fileName: `Offer letter - ${o.candidateName}.pdf`, html, head: letterheadOf(orgId(), orgSettings()) };
+}
+
+/** The letter as PDF bytes, with the organisation's logo when it has one. */
+export async function letterPdfFor(doc: ReturnType<typeof letterDocument>) {
+  return letterPdf({ title: doc.title, html: doc.html, head: doc.head, logo: await logoImage(doc.head) });
 }
 
 const OPEN: Offer["status"][] = ["draft", "pending_approval", "approved", "sent", "viewed", "countered"];
@@ -146,10 +164,10 @@ function view(o: Offer): OfferView {
 export interface OffersService {
   list(): Promise<OfferView[]>;
   /** `letterHtml` is HR's own letter, filled in, when the offer uses one; otherwise `letter` is the standard letter. */
-  get(id: string): Promise<{ view: OfferView; letter: ReturnType<typeof offerLetter>; letterHtml: string | null; vacancy: Vacancy }>;
+  get(id: string): Promise<{ view: OfferView; letter: ReturnType<typeof offerLetter>; letterHtml: string | null; letterhead: Letterhead; vacancy: Vacancy }>;
   /** Sensible starting terms for a new offer, with the approval chain they would need. */
   defaults(candidateId: string, vacancyId: string): Promise<{ terms: OfferTerms; vacancy: Vacancy; candidateName: string; expectedSalary: string | null; existing: Offer | null }>;
-  preview(vacancyId: string, candidateName: string, terms: OfferTerms): Promise<{ letter: ReturnType<typeof offerLetter>; letterHtml: string | null; approvals: Offer["approvals"]; band: Band }>;
+  preview(vacancyId: string, candidateName: string, terms: OfferTerms): Promise<{ letter: ReturnType<typeof offerLetter>; letterHtml: string | null; letterhead: Letterhead; approvals: Offer["approvals"]; band: Band }>;
   /** Turns an uploaded Word document (from POST /api/files) into an editable letter. */
   importLetter(fileId: string): Promise<{ html: string; name: string }>;
   create(candidateId: string, vacancyId: string, terms: OfferTerms, submit: boolean): Promise<Offer>;
@@ -190,7 +208,7 @@ export const offersService: OffersService = {
   },
   async get(id) {
     const o = find(id);
-    return clone({ view: view(o), letter: letterFor(o), letterHtml: customLetterFor(o), vacancy: vacancyOf(o.vacancyId) });
+    return clone({ view: view(o), letter: letterFor(o), letterHtml: customLetterFor(o), letterhead: letterheadOf(orgId(), orgSettings()), vacancy: vacancyOf(o.vacancyId) });
   },
   async defaults(candidateId, vacancyId) {
     const v = vacancyOf(vacancyId);
@@ -230,7 +248,7 @@ export const offersService: OffersService = {
   async preview(vacancyId, candidateName, terms) {
     const v = vacancyOf(vacancyId);
     const draft = { candidateName, vacancyTitle: v.title, terms: { ...terms, letterHtml: terms.letterHtml ? cleanLetter(terms.letterHtml) : null }, expiresAt: null };
-    return clone({ letter: letterFor(draft), letterHtml: customLetterFor(draft), approvals: approvalChain(v, terms, await approvers()), band: bandOf(v, terms) });
+    return clone({ letter: letterFor(draft), letterHtml: customLetterFor(draft), letterhead: letterheadOf(orgId(), orgSettings()), approvals: approvalChain(v, terms, await approvers()), band: bandOf(v, terms) });
   },
   async importLetter(fileId) {
     const file = await fileFor(orgId(), fileId);
@@ -329,9 +347,16 @@ export const offersService: OffersService = {
     o.expiresAt = deadline(o.terms.validDays);
     const cand = profileSnapshot().find((p) => p.id === o.candidateId);
     if (cand?.email) {
-      const custom = customLetterFor(o);
-      const text = custom ? letterText(custom) : letterFor(o).map((p) => (p.heading ? `${p.heading}\n${p.body}` : p.body)).join("\n\n");
-      afterCommit(() => sendMail(cand.email, `Your offer: ${o.terms.jobTitle}`, text));
+      // The letter in the email body, on the letterhead, with the same letter attached as a PDF.
+      const doc = letterDocument(o.id);
+      const intro = `Your offer letter for the ${o.terms.jobTitle} role is below and attached as a PDF to keep.`;
+      orgEmail(async () => ({
+        to: cand.email,
+        subject: `Your offer: ${o.terms.jobTitle}`,
+        text: `${intro}\n\n${letterText(doc.html)}`,
+        html: `<p style="margin:0 0 18px;color:#6b6f68;font-size:13px">${intro}</p>${doc.html}`,
+        attachments: [{ filename: doc.fileName, content: await letterPdfFor(doc), contentType: "application/pdf" }],
+      }));
     }
     log(o, `Sent to the candidate by email. Respond by ${o.expiresAt.slice(0, 10)}.`);
     const c = profileSnapshot().find((p) => p.id === o.candidateId);
@@ -347,7 +372,8 @@ export const offersService: OffersService = {
     if (o.status === "sent") {
       o.status = "viewed";
       o.viewedAt = now();
-      log(o, "Opened the offer", o.candidateName);
+      // Offers go by email, so Vettly can't see them opened; HR records it when the candidate confirms.
+      log(o, `Recorded that ${o.candidateName} has read the offer`);
     }
     return clone(o);
   },
@@ -429,7 +455,7 @@ export const offersService: OffersService = {
       const r = await pipelineService.move([{ candidateId: cid, applicationId: app.id }], "rejected", "Position filled. Candidate notified with the standard message.");
       n += r.moved;
       const email = profileSnapshot().find((p) => p.id === cid)?.email;
-      if (r.moved && email) afterCommit(() => sendMail(email, `Your application: ${app.vacancyTitle}`, message.trim()));
+      if (r.moved && email) orgEmail({ to: email, subject: `Your application: ${app.vacancyTitle}`, text: message.trim() });
     }
     return n;
   },

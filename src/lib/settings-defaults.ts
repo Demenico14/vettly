@@ -63,6 +63,9 @@ export function defaultSettings(org: { name: string; city: string; country: stri
     branding: {
       colour: "#16624F",
       logoFileName: null,
+      logoFileId: null,
+      letterContact: true,
+      letterFooter: "",
       careersHeadline: `Build a career with ${short}`,
       careersIntro: "",
       emailSignOff: `Kind regards,\nThe ${short} recruitment team`,

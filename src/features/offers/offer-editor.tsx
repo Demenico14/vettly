@@ -8,6 +8,7 @@ import { Alert, Button, Card, CardHeader, Checkbox, Field, Input, Select, Skelet
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, uploadFile, type Band } from "@/services";
 import { STANDARD_TEMPLATE } from "@/lib/letter";
+import type { Letterhead } from "@/lib/letterhead";
 import { LetterEditor } from "./letter-editor";
 import type { Vacancy } from "@/types";
 import type { Approval, ContractType, Offer, OfferTerms } from "@/types/offers";
@@ -26,7 +27,7 @@ export function OfferEditor(props: Source) {
   const [expected, setExpected] = React.useState<string | null>(null);
   const [existing, setExisting] = React.useState<Offer | null>(null);
   const [offer, setOffer] = React.useState<Offer | null>(null);
-  const [preview, setPreview] = React.useState<{ letter: Letter; letterHtml: string | null; approvals: Approval[]; band: Band } | null>(null);
+  const [preview, setPreview] = React.useState<{ letter: Letter; letterHtml: string | null; letterhead: Letterhead; approvals: Approval[]; band: Band } | null>(null);
   const [editingLetter, setEditingLetter] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
   const wordRef = React.useRef<HTMLInputElement>(null);
@@ -343,7 +344,7 @@ export function OfferEditor(props: Source) {
               ))}
             </ol>
           </Card>
-          <LetterView letter={preview?.letter ?? null} html={preview?.letterHtml} title={`Letter preview · ${name}`} />
+          <LetterView letter={preview?.letter ?? null} html={preview?.letterHtml} letterhead={preview?.letterhead} title={`Letter preview · ${name}`} />
         </aside>
       </div>
     </PageContainer>

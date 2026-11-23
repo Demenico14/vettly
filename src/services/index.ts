@@ -154,6 +154,8 @@ export async function uploadFile(file: File): Promise<{ fileId: string; name: st
 }
 
 export const fileUrl = (fileId: string, download = false) => `/api/files/${fileId}${download ? "?download=1" : ""}`;
+/** An organisation's logo (public; only the file its branding names is served). */
+export const logoUrl = (organisationId: string, fileId: string) => `/api/logo/${organisationId}/${fileId}`;
 
 export const services = {
   auth: remote<AuthService>("auth"),

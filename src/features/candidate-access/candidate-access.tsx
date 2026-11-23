@@ -51,7 +51,13 @@ export function CandidateAccess({ token }: { token: string }) {
       <header className="border-b border-line bg-surface" style={{ borderTop: `4px solid ${access?.organisationColour ?? "var(--color-primary-600)"}` }}>
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5">
           {access ? (
-            <p className="text-sm font-semibold text-fg">{access.organisationName}</p>
+            <span className="flex min-w-0 items-center gap-2.5">
+              {access.organisationLogoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- the organisation's logo
+                <img src={access.organisationLogoUrl} alt="" className="h-7 w-auto max-w-28 object-contain" />
+              )}
+              <span className="truncate text-sm font-semibold text-fg">{access.organisationName}</span>
+            </span>
           ) : (
             <Skeleton className="h-4 w-40" />
           )}
