@@ -28,7 +28,7 @@ export const TIMEZONES = [
   { value: "Africa/Nairobi", label: "East Africa Time (EAT, UTC+3)" },
 ];
 
-export const DEFAULT_STAGES = ["Applied", "Screening", "Shortlisted", "Assessment", "Interview", "Offer", "Hired"];
+export const DEFAULT_STAGES = ["Applied", "Screening", "Shortlisted", "Tests", "Interview", "Offer", "Hired"];
 
 /** Battery picker options, from the psychometric database. */
 export const TEST_BATTERIES = batteryOptions;

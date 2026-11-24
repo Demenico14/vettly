@@ -508,7 +508,7 @@ function BoardCard({
             <DropdownMenuItem asChild>
               <Link href={`/matching/${vacancyId}/${c.candidateId}`}>
                 <Sparkles />
-                Assessment
+                Screening
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>

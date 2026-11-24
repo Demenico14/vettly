@@ -30,7 +30,7 @@ export function MatchCompare({ vacancyId }: { vacancyId: string }) {
   const back = (
     <Link href={`/matching?vacancy=${vacancyId}`} className="inline-flex items-center gap-1 text-sm font-medium text-fg-subtle hover:text-fg">
       <ArrowLeft className="size-4" />
-      Matching{data ? ` · ${data.vacancy.title}` : ""}
+      Screening{data ? ` · ${data.vacancy.title}` : ""}
     </Link>
   );
 

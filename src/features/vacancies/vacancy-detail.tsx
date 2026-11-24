@@ -38,12 +38,13 @@ import {
 } from "@/components/ui";
 import { StageBadge, VacancyStatusBadge, VACANCY_META } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
+import { HiringPath, PATH_STEPS, stepOf, type PathAction, type PathStepKey } from "@/components/domain/hiring-path";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services, STATUS_MOVES, MOCK_NOW } from "@/services";
 import { CHANNELS } from "@/lib/catalog";
 import { TEST_BATTERIES } from "@/lib/onboarding";
 import type { CandidateSummary, Requirement, Vacancy, VacancyStatus } from "@/types";
-import { cn, formatDate, timeAgo, dotted } from "@/lib/utils";
+import { formatDate, timeAgo, dotted } from "@/lib/utils";
 import { StatusDialog, VacancyActionsMenu, moveLabel } from "./status-actions";
 import { REQUIREMENT_KIND, WEIGHT_LABELS } from "./vacancy-meta";
 
@@ -56,6 +57,7 @@ export function VacancyDetail({ id }: { id: string }) {
   const [reload, setReload] = React.useState(0);
   const [move, setMove] = React.useState<VacancyStatus | null>(null);
   const [cands, setCands] = React.useState<CandidateSummary[] | null>(null);
+  const [cvQueue, setCvQueue] = React.useState<{ waiting: number; reading: number } | null>(null);
 
   React.useEffect(() => {
     let alive = true;
@@ -69,6 +71,14 @@ export function VacancyDetail({ id }: { id: string }) {
       .candidatesFor(id)
       .then((r) => alive && setCands(r))
       .catch(() => alive && setCands([]));
+    services.cv
+      .listBatches()
+      .then((batches) => {
+        if (!alive) return;
+        const files = batches.filter((b) => b.vacancyId === id).flatMap((b) => b.files);
+        setCvQueue({ waiting: files.filter((f) => f.status === "ready" || f.status === "needs_review").length, reading: files.filter((f) => ["queued", "uploading", "extracting"].includes(f.status)).length });
+      })
+      .catch(() => alive && setCvQueue({ waiting: 0, reading: 0 }));
     return () => {
       alive = false;
     };
@@ -203,24 +213,7 @@ export function VacancyDetail({ id }: { id: string }) {
           </Alert>
         )}
 
-        <section aria-label="Pipeline" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: "Applicants", value: v.applicants, sub: v.newApplicants ? `+${v.newApplicants} new` : "No new today" },
-            { label: "Shortlisted", value: v.shortlisted, sub: v.applicants ? `${Math.round((v.shortlisted / v.applicants) * 100)}% of applicants` : "—" },
-            { label: "Interviewing", value: v.interviewing, sub: `${v.openings} ${v.openings === 1 ? "opening" : "openings"}` },
-            {
-              label: "Closes",
-              value: v.closesAt ? formatDate(v.closesAt) : "Not set",
-              sub: v.closesAt && v.status === "open" ? timeAgo(v.closesAt, NOW) : VACANCY_META[v.status].label,
-            },
-          ].map((s) => (
-            <Card key={s.label} className="p-4">
-              <p className="text-[0.8125rem] font-medium text-fg-muted">{s.label}</p>
-              <p className={cn("mt-1 font-bold tracking-[-0.01em] text-fg tabular", typeof s.value === "number" ? "text-2xl" : "text-lg")}>{s.value}</p>
-              <p className="text-xs text-fg-subtle">{s.sub}</p>
-            </Card>
-          ))}
-        </section>
+{v.status !== "draft" && <VacancyPath v={v} cands={cands} cvQueue={cvQueue} />}
 
         <Tabs defaultValue="overview">
           <TabsList>
@@ -488,3 +481,55 @@ function RequirementGroup({ title, items }: { title: string; items: Requirement[
   );
 }
 
+
+/** Where this vacancy's candidates are on the hiring path, and the one thing to do next. */
+function VacancyPath({ v, cands, cvQueue }: { v: Vacancy; cands: CandidateSummary[] | null; cvQueue: { waiting: number; reading: number } | null }) {
+  if (!cands || !cvQueue) return <Skeleton className="h-36 rounded-lg" />;
+  const count = (k: PathStepKey) => (k === "cvs" ? cvQueue.waiting + cvQueue.reading : cands.filter((c) => stepOf(c.stage) === k).length);
+  const offPath = cands.filter((c) => !stepOf(c.stage)).length;
+  const href: Record<PathStepKey, string> = {
+    cvs: "/cv-processing",
+    screening: `/matching?vacancy=${v.id}`,
+    shortlisted: `/pipeline?vacancy=${v.id}`,
+    tests: "/assessments",
+    interview: "/interviews",
+    offer: "/offers",
+    hired: `/pipeline?vacancy=${v.id}`,
+  };
+  const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const actions: Record<Exclude<PathStepKey, "hired">, (n: number) => PathAction> = {
+    cvs: () =>
+      cvQueue.waiting
+        ? { label: `Check ${plural(cvQueue.waiting, "CV")}`, href: href.cvs, note: "Confirm what Vettly read before they become candidates." }
+        : { label: "See CVs being read", href: href.cvs, note: `${plural(cvQueue.reading, "CV")} still being read.` },
+    screening: (n) => ({ label: `Screen ${plural(n, "candidate")}`, href: href.screening, note: "Check each one against the requirements, then shortlist or reject." }),
+    shortlisted: (n) => ({
+      label: `Review the shortlist (${n})`,
+      href: href.shortlisted,
+      note: v.assessment.autoSendOnShortlist ? "Tests are sent automatically when someone is shortlisted." : "Send their tests from the pipeline.",
+    }),
+    tests: (n) => ({ label: `Follow ${plural(n, "candidate")} in tests`, href: href.tests, note: "Results appear as candidates finish." }),
+    interview: (n) => ({ label: `Plan ${plural(n, "interview")}`, href: href.interview, note: "Schedule the panel, then collect scorecards." }),
+    offer: (n) => ({ label: `Follow up ${plural(n, "offer")}`, href: href.offer, note: "Approve, send and record the candidate's answer." }),
+  };
+  // The next step to act on: the earliest one with people waiting.
+  const nextKey = PATH_STEPS.map((s) => s.key).find((k) => k !== "hired" && count(k) > 0) as Exclude<PathStepKey, "hired"> | undefined;
+  const next: PathAction | null = nextKey
+    ? actions[nextKey](count(nextKey))
+    : v.status === "open"
+      ? { label: "Upload CVs", href: href.cvs, note: "Add the CVs you've received for this vacancy." }
+      : null;
+  const facts = [
+    plural(cands.length, "applicant"),
+    plural(v.openings, "opening"),
+    v.closesAt ? (v.status === "open" ? `closes ${formatDate(v.closesAt)}` : `closed ${formatDate(v.closesAt)}`) : null,
+  ].filter(Boolean);
+  return (
+    <HiringPath
+      description={facts.join(" · ")}
+      steps={PATH_STEPS.map((s) => ({ key: s.key, count: count(s.key), href: href[s.key], state: s.key === nextKey ? "current" : "upcoming" }))}
+      next={next}
+      footnote={offPath ? `${plural(offPath, "candidate")} not progressing (rejected or withdrawn).` : undefined}
+    />
+  );
+}

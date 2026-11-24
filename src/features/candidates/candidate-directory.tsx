@@ -194,7 +194,7 @@ export function CandidateDirectory() {
             <FilterSelect label="Availability" value={f.availability} onChange={(v) => set("availability", v)} options={AVAILABILITY.map((s) => ({ value: s, label: s }))} />
             <FilterSelect label="Source" value={f.sources} onChange={(v) => set("sources", v)} options={ALL_SOURCES.map((s) => ({ value: s, label: s }))} />
             <FilterSelect
-              label="Assessment"
+              label="Screening"
               value={f.review}
               onChange={(v) => set("review", v)}
               options={(Object.keys(REVIEW_LABEL) as AssessmentProvenance[]).map((s) => ({ value: s, label: REVIEW_LABEL[s], count: count((c) => primary(c).provenance === s) }))}

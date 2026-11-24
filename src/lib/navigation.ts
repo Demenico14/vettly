@@ -41,12 +41,18 @@ export const NAV: NavGroup[] = [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, module: 3, built: true, description: "Recruitment overview, key statistics, funnel and upcoming interviews." },
       { label: "Vacancies", href: "/vacancies", icon: Briefcase, module: 4, built: true, description: "Create, edit, publish and manage vacancies, requirements and screening weights." },
       { label: "Candidates", href: "/candidates", icon: Users, module: 5, built: true, description: "Candidate directory, search, filters and full candidate profiles." },
-      { label: "CV processing", href: "/cv-processing", icon: FileStack, module: 6, built: true, description: "Bulk CV upload, processing queue, extraction preview and manual correction." },
-      { label: "Matching", href: "/matching", icon: Sparkles, module: 7, built: true, description: "Requirement-by-requirement assessment, evidence, ranking and comparison." },
-      { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, module: 8, built: true, description: "Kanban pipeline with stage transitions, bulk actions and decision records." },
-      { label: "Assessments", href: "/assessments", icon: ClipboardList, module: 9, built: true, description: "Psychometric test library, sending tests to candidates, invitation tracking, reminders and result reports." },
-      { label: "Interviews", href: "/interviews", icon: CalendarDays, module: 10, built: true, description: "Interview calendar, scheduling, panels, questions and scorecards." },
-      { label: "Offers", href: "/offers", icon: FileSignature, module: 11, built: true, description: "Offer creation, status tracking and the hiring workflow." },
+      { label: "Pipeline", href: "/pipeline", icon: KanbanSquare, module: 8, built: true, description: "Every candidate on one board, by hiring step, with bulk moves and decision records." },
+    ],
+  },
+  {
+    // The hiring steps, in the order they happen (the same steps as the hiring path on vacancies and profiles).
+    label: "Hiring steps",
+    items: [
+      { label: "CV processing", href: "/cv-processing", icon: FileStack, module: 6, built: true, description: "Step 1. Upload CVs and check what Vettly read before candidates are created." },
+      { label: "Screening", href: "/matching", icon: Sparkles, module: 7, built: true, description: "Step 2. Check each candidate against the requirements, with evidence, then shortlist or reject." },
+      { label: "Tests", href: "/assessments", icon: ClipboardList, module: 9, built: true, description: "Step 3. Psychometric tests for shortlisted candidates: sending, tracking and results." },
+      { label: "Interviews", href: "/interviews", icon: CalendarDays, module: 10, built: true, description: "Step 4. Schedule panels, ask the structured questions, collect scorecards." },
+      { label: "Offers", href: "/offers", icon: FileSignature, module: 11, built: true, description: "Step 5. Make the offer, get approval, send it and record the answer." },
     ],
   },
   {

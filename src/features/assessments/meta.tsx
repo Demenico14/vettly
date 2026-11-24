@@ -111,7 +111,7 @@ const NAV = [
 export function AssessmentsNav() {
   const path = usePathname();
   return (
-    <nav aria-label="Assessments" className="-mx-4 mt-6 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0">
+    <nav aria-label="Tests" className="-mx-4 mt-6 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0">
       <ul className="flex gap-5">
         {NAV.map((n) => {
           const active = n.href === "/assessments" ? path === "/assessments" : path.startsWith(n.href);
@@ -141,7 +141,7 @@ export function AssessmentsHeader({ actions }: { actions?: React.ReactNode }) {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <PageTitle>Assessments</PageTitle>
+          <PageTitle>Tests</PageTitle>
           <p className="mt-1.5 max-w-2xl text-md text-fg-muted">
             Psychometric tests sent to candidates, and their results. Results help you decide; they never reject anyone on their own.
           </p>
