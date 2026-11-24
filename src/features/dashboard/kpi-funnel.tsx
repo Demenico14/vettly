@@ -16,7 +16,7 @@ const nf = new Intl.NumberFormat("en-GB");
 function Delta({ kpi, period }: { kpi: Kpi; period: DashboardPeriod }) {
   const { delta, better, deltaUnit = "" } = kpi;
   const flat = delta === 0;
-  const good = better === "none" || flat ? null : (delta > 0) === (better === "up");
+  const good = better === "none" || flat ? null : delta > 0 === (better === "up");
   const Icon = flat ? Minus : delta > 0 ? ArrowUp : ArrowDown;
   const text = flat ? "No change" : `${delta > 0 ? "+" : "−"}${nf.format(Math.abs(delta))}${deltaUnit}`;
   return (
@@ -83,10 +83,11 @@ function History({ kpi }: { kpi: Kpi }) {
 
 export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: DashboardPeriod; loading: boolean }) {
   return (
-    <section aria-label="Key statistics" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    // One surface ruled into cells, like the public site's ruled sections, rather than six floating tiles.
+    <section aria-label="Key statistics" className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-line shadow-platter md:grid-cols-3 xl:grid-cols-6">
       {loading || !kpis
         ? Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-platter">
+            <div key={i} className="flex flex-col gap-3 bg-surface p-4 sm:p-5">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-8 w-20" />
               <Skeleton className="h-9 w-full" />
@@ -98,7 +99,7 @@ export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: Dash
               <Link
                 key={k.id}
                 href={k.href}
-                className="pressable group flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-platter transition-shadow hover:shadow-md"
+                className="group flex flex-col gap-3 bg-surface p-4 transition-colors hover:bg-ink-50 focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-500 sm:p-5"
               >
                 <span className="flex items-center gap-2">
                   <span className={cn("grid size-6 shrink-0 place-items-center rounded-md", st.tile)}>
@@ -107,7 +108,7 @@ export function KpiStrip({ kpis, period, loading }: { kpis?: Kpi[]; period: Dash
                   <span className={cn("min-w-0 text-[0.8125rem] leading-tight font-semibold", st.label)}>{k.label}</span>
                 </span>
                 <span>
-                  <span className="block text-title-sm leading-none font-bold text-fg tabular">
+                  <span className="block text-[2.25rem] leading-none font-medium tracking-[-0.04em] text-ink-900 tabular">
                     {nf.format(k.value)}
                     {k.unit && <span className="ml-1 text-sm font-semibold tracking-normal text-fg-subtle">{k.unit}</span>}
                   </span>
@@ -199,10 +200,7 @@ export function Funnel({
                   <li
                     key={s.stage}
                     onMouseEnter={() => setHover(i)}
-                    className={cn(
-                      "relative grid grid-cols-[6.5rem_minmax(0,1fr)_4.5rem] items-center gap-3 rounded-sm py-1",
-                      hover === i && "bg-surface-muted",
-                    )}
+                    className={cn("relative grid grid-cols-[6.5rem_minmax(0,1fr)_4.5rem] items-center gap-3 rounded-sm py-1", hover === i && "bg-surface-muted")}
                   >
                     <span className="text-sm text-fg-muted">{STAGE_META[s.stage].label}</span>
                     <span className="relative h-5">
@@ -228,9 +226,7 @@ export function Funnel({
                 );
               })}
             </ol>
-            <p className="mt-4 text-xs text-fg-subtle">
-              Psychometric tests are sent at the Assessment stage. Hover a stage for its conversion.
-            </p>
+            <p className="mt-4 text-xs text-fg-subtle">Psychometric tests are sent at the Assessment stage. Hover a stage for its conversion.</p>
           </>
         )}
       </div>
