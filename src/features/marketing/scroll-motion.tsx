@@ -12,6 +12,7 @@ import { useEffect } from "react";
  *  data-parallax   drifts up at this fraction of the scroll (hero photos)
  *  data-fill       a heading whose [data-word] children fill in, word by word, as it crosses the viewport
  *  data-grow       scales from 0.92 to 1 as it enters
+ *  data-marquee    a running ticker, paused while it is off screen
  *
  * With reduced motion the pin and sheet stay (they are layout, not movement); drift, fill and growth are skipped.
  */
@@ -53,7 +54,11 @@ export function ScrollMotion() {
         // Starts filling when the heading's top is 85% down the viewport, done by 40%.
         const p = clamp((vh * 0.85 - r.top) / (vh * 0.45));
         const lit = p * words.length;
-        words.forEach((w, i) => (w.style.opacity = String(0.18 + 0.82 * clamp(lit - i))));
+        words.forEach((w, i) => {
+          const q = clamp(lit - i);
+          w.style.opacity = String(0.15 + 0.85 * q);
+          w.style.filter = q >= 1 ? "" : `blur(${((1 - q) * 8).toFixed(1)}px)`;
+        });
       }
 
       for (const el of growers) {
@@ -71,6 +76,12 @@ export function ScrollMotion() {
       onScroll();
     };
 
+    // Tickers only run while on screen.
+    const io = new IntersectionObserver((entries) =>
+      entries.forEach((e) => (e.isIntersecting ? (e.target as HTMLElement).removeAttribute("data-paused") : (e.target as HTMLElement).setAttribute("data-paused", ""))),
+    );
+    document.querySelectorAll("[data-marquee]").forEach((el) => io.observe(el));
+
     layout();
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -82,6 +93,7 @@ export function ScrollMotion() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       ro?.disconnect();
+      io.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
