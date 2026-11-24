@@ -647,3 +647,27 @@
 @media (prefers-reduced-motion: reduce) {
   .ticker-track { animation: none; }
 }
+
+/* Front page: the floating nav slides in once the hero has gone. The bar spans the width, so only the pill takes clicks. */
+.floating-nav {
+  opacity: 0;
+  translate: 0 -12px;
+  transition:
+    opacity 220ms ease-out,
+    translate 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.floating-nav[data-shown],
+.floating-nav:focus-within {
+  opacity: 1;
+  translate: 0 0;
+}
+.floating-nav[data-shown] nav,
+.floating-nav:focus-within nav {
+  pointer-events: auto;
+}
+/* Front page: each principle settles in when the slider changes. */
+@media (prefers-reduced-motion: no-preference) {
+  .principle-in {
+    animation: landing-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}

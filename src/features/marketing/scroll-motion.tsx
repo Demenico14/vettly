@@ -11,7 +11,8 @@ import { useEffect } from "react";
  *  data-sheet      the rounded section that slides up over the pinned hero
  *  data-parallax   drifts up at this fraction of the scroll (hero photos)
  *  data-fill       a heading whose [data-word] children fill in, word by word, as it crosses the viewport
- *  data-grow       scales from 0.92 to 1 as it enters
+ *  data-grow       scales up to 1 as it enters, from its value (default 0.92)
+ *  data-float      a floating nav, shown (data-shown) once the hero is mostly scrolled past
  *  data-marquee    a running ticker, paused while it is off screen
  *
  * With reduced motion the pin and sheet stay (they are layout, not movement); drift, fill and growth are skipped.
@@ -24,22 +25,28 @@ export function ScrollMotion() {
     const sheet = document.querySelector<HTMLElement>("[data-sheet]");
     const drifters = [...document.querySelectorAll<HTMLElement>("[data-parallax]")].map((el) => ({ el, speed: Number(el.dataset.parallax) || 0 }));
     const fills = [...document.querySelectorAll<HTMLElement>("[data-fill]")].map((el) => ({ el, words: [...el.querySelectorAll<HTMLElement>("[data-word]")] }));
-    const growers = [...document.querySelectorAll<HTMLElement>("[data-grow]")];
+    const growers = [...document.querySelectorAll<HTMLElement>("[data-grow]")].map((el) => ({ el, from: Number(el.dataset.grow) || 0.92 }));
+    const float = document.querySelector<HTMLElement>("[data-float]");
 
     const clamp = (n: number) => Math.min(1, Math.max(0, n));
     let vh = window.innerHeight;
+    let pinned = false;
     let frame = 0;
 
     const layout = () => {
       vh = window.innerHeight;
-      if (pin) pin.style.top = `${Math.min(0, vh - pin.offsetHeight)}px`;
+      pinned = !!pin && getComputedStyle(pin).position === "sticky";
+      // Only a sticky hero gets an offset; on a relative one (phones) top would shift it off screen.
+      if (pin) pin.style.top = pinned ? `${Math.min(0, vh - pin.offsetHeight)}px` : "";
     };
 
     const update = () => {
       frame = 0;
       const y = window.scrollY;
+      if (float) float.toggleAttribute("data-shown", y > vh * 0.85);
 
-      if (sheet && pin) {
+      // The pin (and so the sheet covering the hero) only happens where the hero is sticky.
+      if (sheet && pin && pinned) {
         // 0 while the sheet is below the fold, 1 once it reaches the top.
         const cover = clamp(1 - sheet.getBoundingClientRect().top / vh);
         if (dim) dim.style.opacity = String(cover * 0.55);
@@ -61,10 +68,10 @@ export function ScrollMotion() {
         });
       }
 
-      for (const el of growers) {
+      for (const { el, from } of growers) {
         const r = el.getBoundingClientRect();
-        const p = clamp((vh - r.top) / (vh * 0.6));
-        el.style.scale = String(0.92 + 0.08 * p);
+        const p = clamp((vh - r.top) / (vh * 0.7));
+        el.style.scale = String(from + (1 - from) * p);
       }
     };
 
