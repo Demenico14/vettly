@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <AuthLayout>
+    <AuthLayout switchTo="register">
       <LoginForm />
     </AuthLayout>
   );

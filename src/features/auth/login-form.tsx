@@ -12,6 +12,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { services } from "@/services";
 import { AuthError } from "@/types";
 import { AuthHeading } from "./auth-layout";
+import { TRIAL_DAYS } from "@/lib/plans";
 import { routeAfterSignIn, writeFlow } from "./session-store";
 
 const schema = z.object({
@@ -50,7 +51,7 @@ export function LoginForm() {
 
   return (
     <>
-      <AuthHeading title="Sign in to Vettly" description="Use your work email and password." />
+      <AuthHeading title="Welcome back." description="Sign in with your work email and password." />
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {error && (
           <Alert tone="danger" title={error.code === "account_locked" ? "Account locked" : "Sign-in failed"}>
@@ -88,14 +89,14 @@ export function LoginForm() {
           label="Keep me signed in"
           description="Not recommended on shared computers."
         />
-        <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+        <Button type="submit" size="lg" loading={isSubmitting} className="mt-1 h-12 w-full">
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
       <p className="mt-6 text-center text-sm text-fg-muted">
         New to Vettly?{" "}
         <Link href="/register" className="font-semibold text-primary-700 hover:underline">
-          Create an account
+          Start a {TRIAL_DAYS}-day free trial
         </Link>
       </p>
     </>
