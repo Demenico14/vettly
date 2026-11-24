@@ -42,6 +42,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | Hiring path | Approved |
 | — | CV links | Approved |
 | — | Update profile from a newer CV | Approved |
+| — | Public front page | Approved |
 
 ---
 

@@ -262,3 +262,412 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* The front page's one authored moment: the brand canvas rises into place on load. */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-rise {
+    animation: landing-rise 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    /* Waits for the intro's canvas to lift; the intro's skip script and IntroSkip set this to 0s. */
+    animation-delay: var(--intro-delay, 2.95s);
+  }
+}
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------------------------
+ * Front page intro (src/features/marketing/intro-loader.tsx). One 3.6s timeline; every step is a keyframe on
+ * the same clock, so percentages below are moments: 1% = 36ms. Sizes hang off --m, the mark's width.
+ * ---------------------------------------------------------------------------------------------------------- */
+@property --vi-n {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+.vi {
+  --m: clamp(72px, 12vw, 132px);
+  --vi-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  color: #fff;
+  animation: vi-root 3.6s linear forwards;
+}
+.vi.is-skipped {
+  animation: vi-skip 320ms ease-out forwards;
+}
+.vi-panel {
+  position: absolute;
+  inset: 0;
+  background: #0b0c0b;
+  animation: vi-panel 3.6s forwards;
+}
+/* The curved trailing edge the canvas lifts away on. */
+.vi-panel::after {
+  content: "";
+  position: absolute;
+  left: -15%;
+  width: 130%;
+  top: calc(100% - 9vh);
+  height: 18vh;
+  border-radius: 50%;
+  background: #0b0c0b;
+}
+.vi-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--m) * 0.2);
+  animation: vi-stage 3.6s forwards;
+}
+.vi-mark {
+  position: relative;
+  width: var(--m);
+  height: calc(var(--m) * 0.88);
+}
+.vi-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.vi-leaf-l,
+.vi-leaf-r {
+  transform-box: view-box;
+}
+.vi-leaf-l {
+  transform-origin: 48px 84px;
+  animation: vi-leaf-l 3.6s forwards;
+}
+.vi-leaf-r {
+  transform-origin: 52px 84px;
+  animation: vi-leaf-r 3.6s forwards;
+}
+.vi-select {
+  position: absolute;
+  left: 7%;
+  top: 6%;
+  width: 47%;
+  height: 91%;
+  border: 1.5px dashed #db7a4a;
+  animation: vi-select 3.6s forwards;
+}
+.vi-h {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #0b0c0b;
+  border: 1.5px solid #db7a4a;
+}
+.vi-h-tl { left: -4px; top: -4px; }
+.vi-h-tr { right: -4px; top: -4px; }
+.vi-h-bl { left: -4px; bottom: -4px; }
+.vi-h-br { right: -4px; bottom: -4px; }
+.vi-select-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  translate: -50% 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #db7a4a;
+  color: #0b0c0b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: vi-label 3.6s forwards;
+}
+.vi-ripple {
+  position: absolute;
+  left: 70%;
+  top: 45%;
+  width: calc(var(--m) * 0.5);
+  aspect-ratio: 1;
+  margin: calc(var(--m) * -0.25) 0 0 calc(var(--m) * -0.25);
+  border: 2px solid #5fb08d;
+  border-radius: 50%;
+  opacity: 0;
+  animation: vi-ripple 3.6s forwards;
+}
+.vi-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  opacity: 0;
+  will-change: transform;
+}
+.vi-arrow {
+  width: 16px;
+  height: 21px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+.vi-tag {
+  margin-top: 16px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b0c0b;
+}
+.vi-cursor-ai { color: #db7a4a; animation: vi-cursor-ai 3.6s forwards; }
+.vi-cursor-ai .vi-tag { background: #db7a4a; }
+.vi-cursor-hr { color: #5fb08d; animation: vi-cursor-hr 3.6s forwards; }
+.vi-cursor-hr .vi-tag { background: #5fb08d; }
+.vi-word {
+  display: flex;
+  font-size: calc(var(--m) * 0.92);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+.vi-word span {
+  position: relative;
+  opacity: 0;
+  animation: vi-letter 140ms var(--vi-ease) forwards;
+  animation-delay: calc(1.95s + var(--i) * 75ms);
+}
+/* The caret sits after the newest letter, then blinks on the last one. */
+.vi-word span::after {
+  content: "";
+  position: absolute;
+  right: -0.07em;
+  top: 0.12em;
+  width: 0.05em;
+  height: 0.8em;
+  background: #5fb08d;
+  opacity: 0;
+  animation: vi-caret 75ms step-end 1;
+  animation-delay: inherit;
+}
+.vi-word span:last-child::after {
+  animation: vi-caret-blink 650ms step-end 1;
+  animation-delay: inherit;
+}
+.vi-avatars {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  animation: vi-ui 3.6s forwards;
+}
+.vi-av {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #0b0c0b;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b0c0b;
+}
+.vi-av + .vi-av { margin-left: -8px; }
+.vi-av-ai { background: #db7a4a; }
+.vi-av-hr { background: #5fb08d; }
+.vi-status {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  height: 32px;
+  min-width: 190px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: vi-ui 3.6s forwards;
+}
+.vi-status span {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  white-space: nowrap;
+  opacity: 0;
+}
+.vi-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.vi-s1 { animation: vi-s1 3.6s forwards; }
+.vi-s2 { animation: vi-s2 3.6s forwards; }
+.vi-s3 { animation: vi-s3 3.6s forwards; }
+.vi-count {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.7);
+  counter-reset: vi var(--vi-n);
+  animation:
+    vi-count 3.6s forwards,
+    vi-ui 3.6s forwards;
+}
+.vi-count::after {
+  content: counter(vi) "%";
+}
+@media (min-width: 640px) {
+  .vi-avatars { top: 28px; right: 32px; }
+  .vi-status { left: 32px; bottom: 28px; }
+  .vi-count { right: 32px; bottom: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vi { display: none; }
+}
+
+@keyframes vi-root {
+  0%, 99.9% { visibility: visible; }
+  80% { pointer-events: auto; }
+  81%, 100% { pointer-events: none; }
+  100% { visibility: hidden; }
+}
+@keyframes vi-skip {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+@keyframes vi-panel {
+  0%, 79% { transform: translateY(0); animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1); }
+  100% { transform: translateY(calc(-100% - 10vh)); }
+}
+@keyframes vi-stage {
+  0%, 78% { transform: none; opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0); }
+  94%, 100% { transform: translateY(-6vh) scale(0.94); opacity: 0; }
+}
+@keyframes vi-ui {
+  0%, 2% { opacity: 0; }
+  6%, 72% { opacity: 1; }
+  77%, 100% { opacity: 0; }
+}
+@keyframes vi-count {
+  0%, 3% { --vi-n: 0; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+  70%, 100% { --vi-n: 100; }
+}
+/* Vettly's cursor: in from the lower left, to the selection's corner, drags it out, steps back. */
+@keyframes vi-cursor-ai {
+  0%, 4% { opacity: 0; transform: translate(calc(var(--m) * -1.5), calc(var(--m) * 1.3)); animation-timing-function: var(--vi-ease); }
+  9% { opacity: 1; }
+  19.4% { opacity: 1; transform: translate(calc(var(--m) * 0.06), calc(var(--m) * 0.04)); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  30.6% { transform: translate(calc(var(--m) * 0.53), calc(var(--m) * 0.84)); animation-timing-function: var(--vi-ease); }
+  40%, 72% { opacity: 1; transform: translate(calc(var(--m) * 0.3), calc(var(--m) * 1.12)); }
+  77%, 100% { opacity: 0; transform: translate(calc(var(--m) * 0.3), calc(var(--m) * 1.12)); }
+}
+@keyframes vi-select {
+  0%, 19.4% { opacity: 0; clip-path: inset(-12px 100% 100% -12px); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  19.5% { opacity: 1; }
+  30.6%, 44% { opacity: 1; clip-path: inset(-12px -60px -40px -12px); }
+  50%, 100% { opacity: 0; clip-path: inset(-12px -60px -40px -12px); }
+}
+@keyframes vi-label {
+  0%, 30% { opacity: 0; }
+  33%, 100% { opacity: 1; }
+}
+@keyframes vi-leaf-l {
+  0%, 30.6% { opacity: 0; transform: scale(0.4); animation-timing-function: var(--vi-ease); }
+  39%, 100% { opacity: 1; transform: none; }
+}
+/* HR's cursor: in from the upper right, onto the empty half of the mark, clicks, then follows the wordmark. */
+@keyframes vi-cursor-hr {
+  0%, 27.8% { opacity: 0; transform: translate(calc(var(--m) * 2.8), calc(var(--m) * -0.6)); animation-timing-function: var(--vi-ease); }
+  32% { opacity: 1; }
+  41.7% { transform: translate(calc(var(--m) * 0.68), calc(var(--m) * 0.36)) scale(1); }
+  44.4% { transform: translate(calc(var(--m) * 0.68), calc(var(--m) * 0.36)) scale(0.8); }
+  47.2% { transform: translate(calc(var(--m) * 0.68), calc(var(--m) * 0.36)) scale(1); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  54% { transform: translate(calc(var(--m) * 1.3), calc(var(--m) * 0.98)); animation-timing-function: linear; }
+  68%, 72% { opacity: 1; transform: translate(calc(var(--m) * 3.7), calc(var(--m) * 0.98)); }
+  77%, 100% { opacity: 0; transform: translate(calc(var(--m) * 3.7), calc(var(--m) * 0.98)); }
+}
+@keyframes vi-ripple {
+  0%, 44.4% { opacity: 0; transform: scale(0.2); animation-timing-function: var(--vi-ease); }
+  45% { opacity: 0.8; }
+  53%, 100% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes vi-leaf-r {
+  0%, 44.4% { opacity: 0; transform: scale(0); animation-timing-function: var(--vi-ease); }
+  45% { opacity: 1; }
+  55%, 100% { opacity: 1; transform: none; }
+}
+@keyframes vi-letter {
+  from { opacity: 0; transform: translateY(0.06em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vi-caret {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes vi-caret-blink {
+  0%, 45% { opacity: 1; }
+  46%, 70% { opacity: 0; }
+  71%, 99% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes vi-s1 {
+  0%, 5% { opacity: 0; transform: translateY(6px); }
+  8%, 35% { opacity: 1; transform: none; }
+  38%, 100% { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes vi-s2 {
+  0%, 37% { opacity: 0; transform: translateY(6px); }
+  40%, 56% { opacity: 1; transform: none; }
+  59%, 100% { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes vi-s3 {
+  0%, 58% { opacity: 0; transform: translateY(6px); }
+  61%, 100% { opacity: 1; transform: none; }
+}
+
+/* Front page ticker: the qualifications and bodies Vettly reads, running slowly; still for reduced motion. */
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 48s linear infinite;
+}
+.ticker:hover .ticker-track,
+.ticker[data-paused] .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes ticker {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
+
+/* Front page: the floating nav slides in once the hero has gone. The bar spans the width, so only the pill takes clicks. */
+.floating-nav {
+  opacity: 0;
+  translate: 0 -12px;
+  transition:
+    opacity 220ms ease-out,
+    translate 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.floating-nav[data-shown],
+.floating-nav:focus-within {
+  opacity: 1;
+  translate: 0 0;
+}
+.floating-nav[data-shown] nav,
+.floating-nav:focus-within nav {
+  pointer-events: auto;
+}
+/* Front page: each principle settles in when the slider changes. */
+@media (prefers-reduced-motion: no-preference) {
+  .principle-in {
+    animation: landing-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
