@@ -59,6 +59,9 @@ export function MoveDialog({
   const back = !!stage && cards.some((c) => order(c.stage) >= 0 && order(stage) >= 0 && order(stage) < order(c.stage));
   const needsNote = stage === "rejected" || back;
   const hiredBlocked = stage === "hired" ? cards.filter((c) => c.stage !== "offer") : [];
+  // Shortlisting sends tests on vacancies set up that way: shown (and can be turned off) rather than silent.
+  const autoOnShortlist = stage === "shortlisted" && vacancy.assessment.autoSendOnShortlist;
+  const offersTests = stage === "assessment" || autoOnShortlist;
   const fromStages = [...new Set(cards.map((c) => c.stage))];
   const options = [...PIPELINE_STAGES, ...CLOSED_STAGES].filter((s) => s !== "withdrawn" && !(fromStages.length === 1 && s === fromStages[0]));
 
@@ -71,7 +74,7 @@ export function MoveDialog({
         cards.map((c) => ({ candidateId: c.candidateId, applicationId: c.applicationId })),
         stage,
         note,
-        { sendTests: stage === "assessment" && sendTests },
+        { sendTests: offersTests && sendTests },
       );
       const label = STAGE_META[stage].label;
       const who = many ? `${r.moved} ${r.moved === 1 ? "candidate" : "candidates"}` : first.name;
@@ -148,7 +151,7 @@ export function MoveDialog({
             </Alert>
           )}
 
-          {stage === "assessment" && (
+          {offersTests && (
             <div className={cn("rounded-md border px-4 py-3", batteryLabel ? "border-line" : "border-dashed border-line-strong")}>
               {batteryLabel ? (
                 <label className="flex items-start gap-3 text-sm">
@@ -159,6 +162,7 @@ export function MoveDialog({
                       Send the {batteryLabel} now
                     </span>
                     <span className="mt-0.5 block text-xs text-fg-muted">
+                      {autoOnShortlist ? "This vacancy sends tests when someone is shortlisted. Untick to send them later. " : ""}
                       Due in {vacancy.assessment.deadlineDays} days. Candidates who already have tests open are skipped.
                     </span>
                   </span>

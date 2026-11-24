@@ -50,7 +50,7 @@ export function ResultsCompare() {
         <div>
           <Link href="/assessments" className="inline-flex items-center gap-1 text-sm font-medium text-fg-subtle hover:text-fg">
             <ArrowLeft className="size-4" />
-            Assessments
+            Tests
           </Link>
           <PageHeader
             className="mt-4"

@@ -62,14 +62,14 @@ export function MatchingOverview() {
     <PageContainer
       header={
         <PageHeader
-          title="Matching"
+          title="Screening"
           description="Vettly checks every CV against the vacancy's requirements and shows the evidence it found. Scores are suggestions until someone in HR confirms them."
           meta={<IllustrativeNotice>Scores come from fixed matching rules · no AI model is used</IllustrativeNotice>}
         />
       }
     >
       {error ? (
-        <LoadError title="Matching didn't load" onRetry={() => (setError(null), setAttempt((a) => a + 1))}>
+        <LoadError title="Screening didn't load" onRetry={() => (setError(null), setAttempt((a) => a + 1))}>
           {error}
         </LoadError>
       ) : !summaries ? (

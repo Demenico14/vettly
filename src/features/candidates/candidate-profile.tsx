@@ -35,9 +35,10 @@ import {
 } from "@/components/ui";
 import { StageBadge } from "@/components/domain/status-badge";
 import { MatchScore } from "@/components/domain/assessment";
+import { HiringPath, PATH_STEPS, stepOf, type PathAction } from "@/components/domain/hiring-path";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
-import type { CandidateProfile } from "@/types";
+import type { CandidateApplication, CandidateProfile, TestInvitationSummary } from "@/types";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
 import { AddToCollectionDialog } from "@/features/talent/meta";
 import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
@@ -157,7 +158,7 @@ export function CandidateProfileView({ id }: { id: string }) {
                     {app.vacancyTitle}
                     <StageBadge stage={app.stage} size="sm" />
                   </span>
-                  <Link href={`/matching/${app.vacancyId}/${c.id}`} className="rounded-sm hover:opacity-80" aria-label="Open the assessment for this application">
+                  <Link href={`/matching/${app.vacancyId}/${c.id}`} className="rounded-sm hover:opacity-80" aria-label="Open the screening for this application">
                     <MatchScore score={app.matchScore} provenance={app.provenance} size="sm" showTag />
                   </Link>
                 </div>
@@ -189,6 +190,7 @@ export function CandidateProfileView({ id }: { id: string }) {
         </div>
       }
     >
+      <CandidatePath c={c} app={app} offerId={offerId} onSendTests={() => setSendingTests(true)} onSchedule={() => setScheduling(true)} className="mb-5" />
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
           <Tabs defaultValue="profile">
@@ -362,5 +364,85 @@ function BackLink() {
       <ArrowLeft className="size-4" />
       Candidates
     </Link>
+  );
+}
+
+/** Where this candidate is on the hiring path for their current application, and the one thing to do next. */
+function CandidatePath({
+  c,
+  app,
+  offerId,
+  onSendTests,
+  onSchedule,
+  className,
+}: {
+  c: CandidateProfile;
+  app: CandidateApplication;
+  offerId: string | null;
+  onSendTests: () => void;
+  onSchedule: () => void;
+  className?: string;
+}) {
+  const [tests, setTests] = React.useState<TestInvitationSummary | null | undefined>(undefined);
+  React.useEffect(() => {
+    let alive = true;
+    services.profiles
+      .tests(c.name)
+      .then((all) => alive && setTests(all.filter((t) => t.vacancyTitle === app.vacancyTitle && t.status !== "cancelled").sort((a, b) => b.sentAt.localeCompare(a.sentAt))[0] ?? null))
+      .catch(() => alive && setTests(null));
+    return () => {
+      alive = false;
+    };
+  }, [c.name, app.vacancyTitle, app.stage]);
+
+  const at = stepOf(app.stage);
+  const index = at ? PATH_STEPS.findIndex((s) => s.key === at) : -1;
+  // Steps they actually went through. Moving someone straight to Interview skips Shortlisted and Tests, and the
+  // path says so rather than ticking steps that never happened. CVs in and Screening are passed by anyone past them.
+  const visited = new Set(app.history.map((h) => stepOf(h.stage)).filter(Boolean));
+  const stateFor = (key: (typeof PATH_STEPS)[number]["key"], i: number): "done" | "skipped" | "current" | "upcoming" => {
+    if (index < 0) return visited.has(key) || key === "cvs" ? "done" : "upcoming";
+    if (i === index) return at === "hired" ? "done" : "current";
+    if (i > index) return "upcoming";
+    return key === "cvs" || key === "screening" || visited.has(key) ? "done" : "skipped";
+  };
+  const results = tests ? `/assessments/results/${tests.id}` : "/assessments";
+  const testsOut = tests && ["sent", "opened", "in_progress"].includes(tests.status);
+  const testsDone = tests?.status === "completed";
+  const due = tests ? new Date(tests.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+
+  let next: PathAction | null = null;
+  switch (at) {
+    case "screening":
+      next = { label: "Review their screening", href: `/matching/${app.vacancyId}/${c.id}`, note: "Check the evidence for each requirement, then shortlist or reject." };
+      break;
+    case "shortlisted":
+    case "tests":
+      next = testsDone
+        ? { label: "See test results", href: results, note: "Then invite them to interview." }
+        : testsOut
+          ? { label: "Check their tests", href: results, note: `${tests!.completed} of ${tests!.total} done · due ${due}.` }
+          : tests === undefined
+            ? null
+            : { label: "Send tests", onClick: onSendTests, note: "Or move them straight to Interview with Move stage." };
+      break;
+    case "interview":
+      next = { label: "Schedule interview", onClick: onSchedule, note: "When the panel has decided, move them to Offer." };
+      break;
+    case "offer":
+      next = offerId
+        ? { label: "View offer", href: `/offers/${offerId}`, note: "Approve, send and record their answer." }
+        : { label: "Make offer", href: `/offers/new?candidate=${c.id}&vacancy=${app.vacancyId}`, note: "Set the terms; it goes for approval before it's sent." };
+      break;
+  }
+
+  return (
+    <HiringPath
+      title={`Hiring path · ${app.vacancyTitle}`}
+      steps={PATH_STEPS.map((s, i) => ({ key: s.key, state: stateFor(s.key, i) }))}
+      next={next}
+      footnote={index < 0 ? `Not progressing: ${app.stage === "withdrawn" ? "withdrew their application" : "rejected"}.` : at === "hired" ? "Hired. Nothing left to do on this application." : undefined}
+      className={className}
+    />
   );
 }

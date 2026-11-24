@@ -49,10 +49,10 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
   if (error)
     return (
       <PageContainer>
-        <BackLink vacancyId={vacancyId} title="Matching" />
+        <BackLink vacancyId={vacancyId} title="Screening" />
         <Alert
           tone="danger"
-          title="Assessment not available"
+          title="Screening not available"
           className="mt-4"
           action={
             <Button size="sm" variant="secondary" onClick={() => setReload((r) => r + 1)}>
@@ -97,8 +97,8 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
       const next = await services.matching.confirm(vacancy.id, a.candidateId);
       set(next);
       toast.withUndo(
-        "Assessment confirmed",
-        () => act(() => services.matching.reopen(vacancy.id, a.candidateId), "Assessment reopened"),
+        "Screening confirmed",
+        () => act(() => services.matching.reopen(vacancy.id, a.candidateId), "Screening reopened"),
         `${a.candidateName} · ${next.score}%`,
       );
     } finally {
@@ -113,7 +113,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
     <PageContainer
       header={
         <div>
-          <BackLink vacancyId={vacancy.id} title={`Matching · ${vacancy.title}`} />
+          <BackLink vacancyId={vacancy.id} title={`Screening · ${vacancy.title}`} />
           <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-4">
               <Avatar name={a.candidateName} size="lg" />
@@ -179,7 +179,7 @@ export function MatchDetail({ vacancyId, candidateId }: { vacancyId: string; can
                       Confirmed by {a.confirmedBy} {a.confirmedAt ? timeAgo(a.confirmedAt, NOW) : ""}
                     </span>
                   </p>
-                  <Button size="sm" variant="ghost" className="self-start" onClick={() => act(() => services.matching.reopen(vacancy.id, a.candidateId), "Assessment reopened")}>
+                  <Button size="sm" variant="ghost" className="self-start" onClick={() => act(() => services.matching.reopen(vacancy.id, a.candidateId), "Screening reopened")}>
                     Reopen to review
                   </Button>
                 </div>

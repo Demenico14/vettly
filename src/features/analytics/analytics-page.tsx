@@ -18,7 +18,7 @@ const TABS: [Tab, string][] = [
   ["vacancies", "Vacancies"],
   ["sources", "Sources"],
   ["team", "Team"],
-  ["assessments", "Assessments"],
+  ["assessments", "Tests"],
   ["fairness", "Fairness"],
 ];
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });

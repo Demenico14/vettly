@@ -177,7 +177,7 @@ export function InterviewDetail({ id }: { id: string }) {
                   <Link href={`/candidates/${iv.candidateId}`}>Profile</Link>
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
-                  <Link href={`/matching/${iv.vacancyId}/${iv.candidateId}`}>Assessment</Link>
+                  <Link href={`/matching/${iv.vacancyId}/${iv.candidateId}`}>Screening</Link>
                 </Button>
               </div>
             </div>

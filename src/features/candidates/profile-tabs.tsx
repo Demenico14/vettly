@@ -48,6 +48,19 @@ export function MoveStageDialog({
   const [note, setNote] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
+  // Whether this vacancy sends its tests when someone is shortlisted, so the option can say so.
+  const [autoSend, setAutoSend] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    services.vacancies
+      .get(app.vacancyId)
+      .then((v) => alive && setAutoSend(v.assessment.autoSendOnShortlist && !!v.assessment.battery && v.assessment.battery !== "none"))
+      .catch(() => alive && setAutoSend(false));
+    return () => {
+      alive = false;
+    };
+  }, [open, app.vacancyId]);
   const STAGE_LINE = ["applied", "screening", "shortlisted", "assessment", "interview", "offer", "hired"];
   const needsNote = stage === "rejected" || (STAGE_LINE.indexOf(stage) >= 0 && STAGE_LINE.indexOf(stage) < STAGE_LINE.indexOf(app.stage));
 
@@ -83,7 +96,7 @@ export function MoveStageDialog({
                   if (r.moved === 0) throw new Error(r.skipped.map((x) => `${x.name} ${x.reason}.`).join(" ") || "The move could not be saved.");
                   const c = await services.profiles.get(candidate.id);
                   onMoved(c);
-                  toast.success(`Moved to ${STAGE_META[stage as ApplicationStage].label}`, `${candidate.name} · ${app.vacancyTitle}`);
+                  toast.success(`Moved to ${STAGE_META[stage as ApplicationStage].label}`, [`${candidate.name} · ${app.vacancyTitle}`, r.testsSent ? "Their tests have been sent" : null].filter(Boolean).join(" · "));
                   onOpenChange(false);
                 } catch (e) {
                   setError(e instanceof Error ? e.message : "The move could not be saved.");
@@ -113,7 +126,7 @@ export function MoveStageDialog({
               options={STAGES.filter((s) => s !== app.stage).map((s) => ({
                 value: s,
                 label: STAGE_META[s].label,
-                description: s === "assessment" ? "Sends the vacancy's psychometric tests" : s === "hired" ? "Only from Offer" : undefined,
+                description: s === "assessment" || (s === "shortlisted" && autoSend) ? "Sends the vacancy's psychometric tests" : s === "hired" ? "Only from Offer" : undefined,
               }))}
             />
           </Field>
@@ -145,7 +158,7 @@ export function ApplicationsTab({ c, onChange }: { c: CandidateProfile; onChange
               <MatchScore score={a.matchScore} provenance={a.provenance} size="sm" showTag />
               <StageBadge stage={a.stage} />
               <Button size="sm" variant="ghost" asChild>
-                <Link href={`/matching/${a.vacancyId}/${c.id}`}>Assessment</Link>
+                <Link href={`/matching/${a.vacancyId}/${c.id}`}>Screening</Link>
               </Button>
               {a.stage !== "hired" && a.stage !== "withdrawn" && (
                 <Button size="sm" variant="secondary" onClick={() => setMoving(a)}>
@@ -210,7 +223,7 @@ export function AssessmentsTab({ c, onSend }: { c: CandidateProfile; onSend: () 
         <EmptyState
           icon={<ClipboardList />}
           title="No psychometric tests sent"
-          description="Tests are sent when a candidate reaches the Assessment stage, or by hand from the pipeline."
+          description="Tests are sent when a candidate is shortlisted (if the vacancy is set to send them then) or moved to Tests, or by hand from the pipeline."
           action={
             <Button size="sm" variant="secondary" onClick={onSend}>
               Send tests

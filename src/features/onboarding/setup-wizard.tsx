@@ -14,7 +14,7 @@ import { readFlow } from "@/features/auth/session-store";
 const STEPS: Step[] = [
   { id: "branding", label: "Branding", description: "What candidates see" },
   { id: "recruitment", label: "Recruitment defaults", description: "Currency, time zone, stages" },
-  { id: "assessments", label: "Assessments", description: "Psychometric test defaults" },
+  { id: "assessments", label: "Tests", description: "Psychometric test defaults" },
   { id: "team", label: "Invite your team", description: "Optional, you can do this later" },
 ];
 
@@ -393,7 +393,7 @@ function Recruitment({ data, set, error }: StepProps & { error?: string }) {
             <li key={s} className="flex min-h-11 items-center gap-3 px-3 py-1.5 text-sm">
               <span className="w-5 text-xs text-fg-subtle tabular">{i + 1}</span>
               <span className="flex-1 font-medium">{s}</span>
-              {s === "Assessment" && <Tag className="hidden h-5 text-2xs sm:inline-flex">Psychometric tests</Tag>}
+              {s === "Tests" && <Tag className="hidden h-5 text-2xs sm:inline-flex">Psychometric tests</Tag>}
               {fixed ? (
                 <span className="pr-2 text-xs text-fg-subtle">Final stage</span>
               ) : (

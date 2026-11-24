@@ -8,7 +8,7 @@ export const STAGE_META: Record<ApplicationStage, { label: string; tone: Tone }>
   applied: { label: "Applied", tone: "neutral" },
   screening: { label: "Screening", tone: "secondary" },
   shortlisted: { label: "Shortlisted", tone: "primary" },
-  assessment: { label: "Assessment", tone: "warning" },
+  assessment: { label: "Tests", tone: "warning" },
   interview: { label: "Interview", tone: "secondary" },
   offer: { label: "Offer", tone: "warning" },
   hired: { label: "Hired", tone: "success" },

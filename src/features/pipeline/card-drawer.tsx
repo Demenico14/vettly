@@ -53,7 +53,7 @@ export function CardDrawer({
               <Button size="sm" variant="ghost" asChild>
                 <Link href={`/matching/${vacancyId}/${card.candidateId}`}>
                   <Sparkles />
-                  Assessment
+                  Screening
                 </Link>
               </Button>
             </div>

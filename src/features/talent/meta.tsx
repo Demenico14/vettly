@@ -204,7 +204,7 @@ export function AddToVacancyDialog({ open, onOpenChange, person, defaultVacancy,
     try {
       const id = await services.talent.addToVacancy(person.id, v);
       const title = vacs?.find((x) => x.id === v)?.title;
-      toast.success(`${person.name} added to ${title}`, "They're now a candidate at the Applied stage. Their CV can be assessed from Matching.");
+      toast.success(`${person.name} added to ${title}`, "They're now a candidate at the Applied stage. Screen them against the requirements from Screening.");
       onOpenChange(false);
       onAdded?.(id);
       router.push(`/candidates/${id}`);

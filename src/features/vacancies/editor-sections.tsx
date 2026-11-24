@@ -636,7 +636,7 @@ export function AssessmentSection({ draft, set }: Props) {
       <RadioGroup
         value={a.battery ?? "none"}
         onValueChange={(v) => set("assessment", { ...a, battery: v === "none" ? null : v })}
-        options={[...TEST_BATTERIES, { value: "none", label: "No tests for this vacancy", description: "Skip the Assessment stage" }]}
+        options={[...TEST_BATTERIES, { value: "none", label: "No tests for this vacancy", description: "Skip the Tests stage" }]}
         className="gap-3"
       />
       {a.battery && (

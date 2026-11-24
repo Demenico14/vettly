@@ -122,7 +122,7 @@ export function BillingSection() {
   );
 }
 
-const CATEGORY: Record<AuditCategory, string> = { settings: "Settings", users: "Users", candidates: "Candidates", offers: "Offers", assessments: "Assessments", security: "Security", data: "Data and privacy" };
+const CATEGORY: Record<AuditCategory, string> = { settings: "Settings", users: "Users", candidates: "Candidates", offers: "Offers", assessments: "Tests", security: "Security", data: "Data and privacy" };
 
 export function AuditSection() {
   const [rows, setRows] = React.useState<AuditEvent[] | null>(null);
