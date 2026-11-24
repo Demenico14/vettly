@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { emptyDraft } from "@/lib/workflow";
+import { TRIAL_DAYS, TRIAL_PLAN } from "@/lib/plans";
 import { Client, PASSWORD, cleanUp, email, mailTo, newOrganisation } from "../support/api";
 
 /** The workspace around the work: activity feed, notifications, the team list and plan and billing. */
@@ -44,8 +45,13 @@ describe("team and billing", () => {
   });
 
   it("describes the free trial and names the organisation's real admins", async () => {
-    const sub = await recruiter.ok<{ trial: boolean; admins: string[]; paymentMethod: unknown }>("settings", "subscription");
+    const sub = await recruiter.ok<{ trial: boolean; plan: string; renewsAt: string; admins: string[]; paymentMethod: unknown }>("settings", "subscription");
     expect(sub.trial).toBe(true);
+    // A new organisation gets a five-day trial of Growth.
+    expect(sub.plan).toBe(TRIAL_PLAN);
+    const days = (new Date(sub.renewsAt).getTime() - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(TRIAL_DAYS - 1);
+    expect(days).toBeLessThanOrEqual(TRIAL_DAYS);
     expect(sub.admins.length).toBe(1);
     expect(sub.admins.join()).not.toContain("Kuda");
     expect(sub.paymentMethod ?? null).toBeFalsy();
@@ -53,6 +59,14 @@ describe("team and billing", () => {
 });
 
 describe("pages", () => {
+  it("shows pricing to people who aren't signed in", async () => {
+    const res = await new Client().raw("/pricing");
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain(`Start with ${TRIAL_DAYS} days free`);
+  });
+
+
   it("sends a new offer without a candidate to the picker", async () => {
     const res = await admin.raw("/offers/new");
     expect([307, 308]).toContain(res.status);

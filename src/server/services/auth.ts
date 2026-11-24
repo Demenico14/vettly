@@ -10,16 +10,32 @@ import { hashPassword, randomToken, sha256, sixDigits, verifyPassword } from "..
 import { appUrl, sendMail } from "../mail";
 import { createSession, readSession, setSessionOrganisation } from "../session";
 import { newId } from "../context";
+import { TRIAL_DAYS, TRIAL_PLAN } from "@/lib/plans";
 import { withOrg } from "../store";
 import { applySetup, initialiseSettings, checkLogo } from "./settings";
 
 const MINUTE = 60_000;
-const SIZE_LABEL: Record<OrganisationSize, string> = { "1-50": "1–50 employees", "51-200": "51–200 employees", "201-1000": "201–500 employees", "1000+": "Over 2,000 employees" };
-const superAdmins = () => (process.env.VETTLY_SUPER_ADMINS ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+const SIZE_LABEL: Record<OrganisationSize, string> = {
+  "1-50": "1–50 employees",
+  "51-200": "51–200 employees",
+  "201-1000": "201–500 employees",
+  "1000+": "Over 2,000 employees",
+};
+const superAdmins = () =>
+  (process.env.VETTLY_SUPER_ADMINS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 const norm = (email: string) => email.trim().toLowerCase();
 
 function toUser(u: typeof schema.users.$inferSelect, role: Role): User {
-  return { id: u.id, name: u.name, email: u.email, role, title: u.title || (role === "super_admin" ? "Vettly staff" : ROLE_LABEL[role as keyof typeof ROLE_LABEL]) || "" };
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role,
+    title: u.title || (role === "super_admin" ? "Vettly staff" : ROLE_LABEL[role as keyof typeof ROLE_LABEL]) || "",
+  };
 }
 
 async function sessionPayload(u: typeof schema.users.$inferSelect): Promise<Session> {
@@ -30,30 +46,47 @@ async function sessionPayload(u: typeof schema.users.$inferSelect): Promise<Sess
     .orderBy(desc(schema.memberships.createdAt));
   const [org] = m ? await db.select().from(schema.organisations).where(eq(schema.organisations.id, m.organisationId)) : [];
   const role = (m?.role as Role) ?? (u.isSuperAdmin ? "super_admin" : "org_admin");
-  return { user: toUser(u, role), organisationId: m?.organisationId ?? null, needsOnboarding: !u.isSuperAdmin && (!m || (org ? !org.setupComplete && m.role === "org_admin" : true)) };
+  return {
+    user: toUser(u, role),
+    organisationId: m?.organisationId ?? null,
+    needsOnboarding: !u.isSuperAdmin && (!m || (org ? !org.setupComplete && m.role === "org_admin" : true)),
+  };
 }
 
 async function issueCode(email: string, purpose: "verify_email") {
   const code = sixDigits();
   await db.delete(schema.tokens).where(and(eq(schema.tokens.email, email), eq(schema.tokens.purpose, purpose)));
   await db.insert(schema.tokens).values({ id: sha256(`${purpose}:${email}`), purpose, email, codeHash: sha256(code), expiresAt: new Date(Date.now() + 15 * MINUTE) });
-  await sendMail(email, `${code} is your Vettly code`, `Your Vettly verification code is ${code}.\n\nIt expires in 15 minutes. If you didn't ask for it, you can ignore this email.`);
+  await sendMail(
+    email,
+    `${code} is your Vettly code`,
+    `Your Vettly verification code is ${code}.\n\nIt expires in 15 minutes. If you didn't ask for it, you can ignore this email.`,
+  );
 }
 
 async function checkCode(email: string, purpose: string, code: string) {
-  const [t] = await db.select().from(schema.tokens).where(eq(schema.tokens.id, sha256(`${purpose}:${email}`)));
+  const [t] = await db
+    .select()
+    .from(schema.tokens)
+    .where(eq(schema.tokens.id, sha256(`${purpose}:${email}`)));
   if (!t || t.usedAt) throw new AuthError("invalid_code", "That code is incorrect. Ask for a new one.");
   if (t.expiresAt < new Date()) throw new AuthError("code_expired", "That code has expired. Ask for a new one.");
   if (t.attempts >= 5) throw new AuthError("code_expired", "Too many attempts. Ask for a new code.");
   if (t.codeHash !== sha256(code.trim())) {
-    await db.update(schema.tokens).set({ attempts: t.attempts + 1 }).where(eq(schema.tokens.id, t.id));
+    await db
+      .update(schema.tokens)
+      .set({ attempts: t.attempts + 1 })
+      .where(eq(schema.tokens.id, t.id));
     throw new AuthError("invalid_code", "That code is incorrect.");
   }
   await db.update(schema.tokens).set({ usedAt: new Date() }).where(eq(schema.tokens.id, t.id));
 }
 
 async function findInvite(token: string) {
-  const [t] = await db.select().from(schema.tokens).where(and(eq(schema.tokens.id, sha256(token)), eq(schema.tokens.purpose, "invite")));
+  const [t] = await db
+    .select()
+    .from(schema.tokens)
+    .where(and(eq(schema.tokens.id, sha256(token)), eq(schema.tokens.purpose, "invite")));
   if (!t) throw new AuthError("token_invalid", "This invitation link is not valid.");
   return t;
 }
@@ -61,7 +94,10 @@ async function findInvite(token: string) {
 export const authService: AuthService = {
   async signIn(email, password, remember) {
     await ready();
-    const [u] = await db.select().from(schema.users).where(eq(schema.users.email, norm(email)));
+    const [u] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, norm(email)));
     // A lock set by Vettly staff; only they can lift it.
     if (u?.locked) throw new AuthError("account_locked", "This account is locked. Contact Vettly support.");
     // Throttling, not a hard lock, so nobody can lock someone else out by guessing wrong on purpose.
@@ -132,12 +168,19 @@ export const authService: AuthService = {
     if (!u) return;
     const token = randomToken();
     await db.insert(schema.tokens).values({ id: sha256(token), purpose: "reset", email: e, ref: u.id, expiresAt: new Date(Date.now() + 60 * MINUTE) });
-    await sendMail(e, "Reset your Vettly password", `Someone asked to reset the password for ${e}.\n\nReset it here (the link works for one hour):\n${appUrl()}/reset-password?token=${token}\n\nIf it wasn't you, ignore this email; your password stays the same.`);
+    await sendMail(
+      e,
+      "Reset your Vettly password",
+      `Someone asked to reset the password for ${e}.\n\nReset it here (the link works for one hour):\n${appUrl()}/reset-password?token=${token}\n\nIf it wasn't you, ignore this email; your password stays the same.`,
+    );
   },
 
   async checkResetToken(token) {
     await ready();
-    const [t] = await db.select().from(schema.tokens).where(and(eq(schema.tokens.id, sha256(token)), eq(schema.tokens.purpose, "reset")));
+    const [t] = await db
+      .select()
+      .from(schema.tokens)
+      .where(and(eq(schema.tokens.id, sha256(token)), eq(schema.tokens.purpose, "reset")));
     if (!t || t.usedAt) throw new AuthError("token_invalid", "This reset link is not valid.");
     if (t.expiresAt < new Date()) throw new AuthError("token_expired", "This reset link has expired.");
     return { email: t.email };
@@ -148,10 +191,19 @@ export const authService: AuthService = {
     const weak = passwordProblem(password, [email]);
     if (weak) throw new AuthError("invalid_credentials", weak);
     // Clears the failed-attempt pause, but never a lock set by Vettly staff.
-    await db.update(schema.users).set({ passwordHash: await hashPassword(password), failedSignIns: 0, signInPausedUntil: null, emailVerifiedAt: new Date() }).where(eq(schema.users.email, email));
+    await db
+      .update(schema.users)
+      .set({ passwordHash: await hashPassword(password), failedSignIns: 0, signInPausedUntil: null, emailVerifiedAt: new Date() })
+      .where(eq(schema.users.email, email));
     // Every other reset link for this account stops working too.
-    await db.update(schema.tokens).set({ usedAt: new Date() }).where(and(eq(schema.tokens.email, email), eq(schema.tokens.purpose, "reset"), isNull(schema.tokens.usedAt)));
-    await db.update(schema.tokens).set({ usedAt: new Date() }).where(eq(schema.tokens.id, sha256(token)));
+    await db
+      .update(schema.tokens)
+      .set({ usedAt: new Date() })
+      .where(and(eq(schema.tokens.email, email), eq(schema.tokens.purpose, "reset"), isNull(schema.tokens.usedAt)));
+    await db
+      .update(schema.tokens)
+      .set({ usedAt: new Date() })
+      .where(eq(schema.tokens.id, sha256(token)));
     const [u] = await db.select().from(schema.users).where(eq(schema.users.email, email));
     if (u) await db.delete(schema.sessions).where(eq(schema.sessions.userId, u.id));
   },
@@ -183,7 +235,11 @@ export const authService: AuthService = {
     const passwordHash = await hashPassword(password);
     const [existing] = await db.select().from(schema.users).where(eq(schema.users.email, inv.email));
     const userId = existing?.id ?? newId("usr");
-    if (existing) await db.update(schema.users).set({ name: name.trim() || existing.name, passwordHash, emailVerifiedAt: new Date() }).where(eq(schema.users.id, userId));
+    if (existing)
+      await db
+        .update(schema.users)
+        .set({ name: name.trim() || existing.name, passwordHash, emailVerifiedAt: new Date() })
+        .where(eq(schema.users.id, userId));
     else await db.insert(schema.users).values({ id: userId, email: inv.email, name: name.trim(), passwordHash, emailVerifiedAt: new Date() });
     await db
       .update(schema.memberships)
@@ -218,12 +274,15 @@ export const authService: AuthService = {
       city: draft.city,
       country: draft.country,
       size: SIZE_LABEL[draft.size] ?? draft.size,
+      plan: TRIAL_PLAN,
       status: "trial",
-      trialEndsAt: new Date(Date.now() + 30 * 86_400_000),
+      trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86_400_000),
     });
     await db.insert(schema.memberships).values({ userId: s.user.id, organisationId: id, role: "org_admin" });
     await setSessionOrganisation(s.sessionId, id);
-    await withOrg(id, null, () => initialiseSettings({ name, city: draft.city, country: draft.country, industry: draft.industry, size: SIZE_LABEL[draft.size] ?? draft.size }));
+    await withOrg(id, null, () =>
+      initialiseSettings({ name, city: draft.city, country: draft.country, industry: draft.industry, size: SIZE_LABEL[draft.size] ?? draft.size }),
+    );
     return { id };
   },
 
