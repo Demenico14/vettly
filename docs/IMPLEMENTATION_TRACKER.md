@@ -30,6 +30,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | — | Clear errors for malformed API calls | **Approved** (23 Nov) | Branch `rpc-arg-validation`. Arguments of the wrong shape get a 400 `invalid_arguments` instead of a 500; still logged; test added (136) |
 | — | Local AI models | **Approved** (23 Nov) | Branch `local-models`. Open Hugging Face models run in Docker (`--profile ai`), no outside API: NuExtract reads CVs (combined with the rules, checked against the CV text), Qwen3 reranker matches HR-written requirements; rules remain the fallback. Scored test set (`pnpm test:models`) and stress test on a CV folder. Gemma writing assistant not wired yet |
 | — | Gemma writing assistant | **Approved** (23 Nov) | Branch `gemma-writing`. Local Gemma drafts and rewrites job descriptions and writes interview questions per requirement, with checks (placeholders, invented pay, protected topics); templates when the model is off |
+| — | CV links | **Approved** (24 Nov) | Branch `cv-links`. LinkedIn, GitHub and website read from CVs and opened as absolute links; a line of links is never a headline; qualification end years; web addresses not taken as certificate issuers; API tests wait for local-model CV reads |
 
 ## Module 1 checklist
 
