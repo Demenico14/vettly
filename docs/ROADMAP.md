@@ -43,6 +43,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | CV links | Approved |
 | — | Update profile from a newer CV | Approved |
 | — | Public front page | Approved |
+| — | Pricing page and 5-day trial | Approved |
 
 ---
 

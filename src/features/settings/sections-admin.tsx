@@ -9,16 +9,11 @@ import { services } from "@/services";
 import type { AuditCategory, AuditEvent, Subscription } from "@/types/settings";
 import { downloadCsv } from "@/features/analytics/charts";
 import { cn } from "@/lib/utils";
+import { PLANS } from "@/lib/plans";
 import { Group, ReadOnlyNote, SectionSkeleton } from "./settings-shell";
 
 const longDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 const stamp = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" });
-
-const PLANS = [
-  { id: "starter", name: "Starter", price: "US$1,200 a year", points: ["5 seats", "100 test credits", "Careers page and pipeline"] },
-  { id: "growth", name: "Growth", price: "US$4,800 a year", points: ["20 seats", "500 test credits", "Talent pool, analytics and fairness reports"] },
-  { id: "enterprise", name: "Enterprise", price: "Priced with you", points: ["Unlimited seats", "Test credits in bulk", "Single sign-on, API and a named contact"] },
-];
 
 const PLAN_NAME: Record<Subscription["plan"], string> = { starter: "Starter", growth: "Growth", enterprise: "Enterprise" };
 
@@ -44,7 +39,11 @@ export function BillingSection() {
       )}
       <Group
         title="Usage"
-        description={sub.trial ? `Free trial of the ${PLAN_NAME[sub.plan]} plan, until ${longDate(sub.renewsAt)}.` : `${PLAN_NAME[sub.plan]} plan, billed ${sub.billing === "annual" ? "annually" : "monthly"}. Renews ${longDate(sub.renewsAt)}.`}
+        description={
+          sub.trial
+            ? `Free trial of the ${PLAN_NAME[sub.plan]} plan, until ${longDate(sub.renewsAt)}.`
+            : `${PLAN_NAME[sub.plan]} plan, billed ${sub.billing === "annual" ? "annually" : "monthly"}. Renews ${longDate(sub.renewsAt)}.`
+        }
       >
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {meters.map((m) => {
@@ -71,9 +70,14 @@ export function BillingSection() {
             <Card key={p.id} className={cn("flex flex-col p-5", current && "ring-2 ring-primary-500")}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-md font-semibold text-fg">{p.name}</span>
-                {current && <Badge tone="primary" size="sm">Your plan</Badge>}
+                {current && (
+                  <Badge tone="primary" size="sm">
+                    Your plan
+                  </Badge>
+                )}
               </div>
               <span className="mt-1 text-sm text-fg-muted">{p.price}</span>
+              <span className="text-xs text-fg-subtle">{p.billing}</span>
               <ul className="mt-3 flex flex-col gap-1.5">
                 {p.points.map((x) => (
                   <li key={x} className="flex items-start gap-2 text-sm text-fg">
@@ -86,6 +90,12 @@ export function BillingSection() {
           );
         })}
       </div>
+      <p className="-mt-2 text-sm text-fg-muted">
+        Plans differ by size; every plan includes everything Vettly does.{" "}
+        <a href="/pricing" target="_blank" rel="noreferrer" className="font-medium text-primary-700 underline-offset-2 hover:underline">
+          Compare plans
+        </a>
+      </p>
       <Group title="Invoices" description={sub.trial ? "None while you're on the free trial." : `Paid by ${sub.paymentMethod.toLowerCase()}.`}>
         {sub.invoices.length === 0 ? (
           <p className="text-sm text-fg-muted">No invoices yet. They appear here once your plan is billed.</p>
@@ -122,7 +132,15 @@ export function BillingSection() {
   );
 }
 
-const CATEGORY: Record<AuditCategory, string> = { settings: "Settings", users: "Users", candidates: "Candidates", offers: "Offers", assessments: "Tests", security: "Security", data: "Data and privacy" };
+const CATEGORY: Record<AuditCategory, string> = {
+  settings: "Settings",
+  users: "Users",
+  candidates: "Candidates",
+  offers: "Offers",
+  assessments: "Tests",
+  security: "Security",
+  data: "Data and privacy",
+};
 
 export function AuditSection() {
   const [rows, setRows] = React.useState<AuditEvent[] | null>(null);
@@ -136,7 +154,12 @@ export function AuditSection() {
       .then(setRows)
       .catch((e: unknown) => setDenied(e instanceof Error ? e.message : "The audit log couldn't be loaded."));
   }, []);
-  const shown = (rows ?? []).filter((r) => (!cats.length || cats.includes(r.category)) && (!actors.length || actors.includes(r.actor)) && (!query || `${r.action} ${r.detail} ${r.actor}`.toLowerCase().includes(query.toLowerCase())));
+  const shown = (rows ?? []).filter(
+    (r) =>
+      (!cats.length || cats.includes(r.category)) &&
+      (!actors.length || actors.includes(r.actor)) &&
+      (!query || `${r.action} ${r.detail} ${r.actor}`.toLowerCase().includes(query.toLowerCase())),
+  );
   const pager = usePagination(shown, { resetKey: JSON.stringify([query, cats, actors]) });
   if (denied) return <p className="text-sm text-fg-muted">{denied}</p>;
   if (!rows) return <Skeleton className="h-96 rounded-lg" />;
@@ -148,13 +171,21 @@ export function AuditSection() {
         <div className="w-full sm:max-w-xs">
           <Input leading={<Search />} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the log" aria-label="Search the audit log" />
         </div>
-        <FilterSelect label="Area" value={cats} onChange={setCats} options={(Object.keys(CATEGORY) as AuditCategory[]).map((c) => ({ value: c, label: CATEGORY[c], count: rows.filter((r) => r.category === c).length }))} />
+        <FilterSelect
+          label="Area"
+          value={cats}
+          onChange={setCats}
+          options={(Object.keys(CATEGORY) as AuditCategory[]).map((c) => ({ value: c, label: CATEGORY[c], count: rows.filter((r) => r.category === c).length }))}
+        />
         <FilterSelect label="Person" value={actors} onChange={setActors} options={people.map((p) => ({ value: p, label: p }))} />
         <Button
           variant="secondary"
           className="sm:ml-auto"
           onClick={() => {
-            downloadCsv("audit-log", shown.map((r) => ({ time: r.at, person: r.actor, area: CATEGORY[r.category], action: r.action, detail: r.detail, ip_address: r.ip })));
+            downloadCsv(
+              "audit-log",
+              shown.map((r) => ({ time: r.at, person: r.actor, area: CATEGORY[r.category], action: r.action, detail: r.detail, ip_address: r.ip })),
+            );
             toast.success("Audit log exported", `${shown.length} entries. The export itself is logged.`);
           }}
         >
