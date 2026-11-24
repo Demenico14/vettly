@@ -20,7 +20,10 @@ import {
 } from "@/components/ui";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
-import type { CvBatch, CvExtraction, CvFile } from "@/types";
+import type { CandidateProfile, CvBatch, CvExtraction, CvFile } from "@/types";
+import { changesFromCv } from "@/lib/cv-update";
+
+type AttachChoice = "update" | "attach" | "new";
 import { FAILURE_COPY, nameFromFile } from "@/lib/cv";
 import { cn } from "@/lib/utils";
 import { CvStatusBadge, FIELD_LABEL, IN_PROGRESS, flagsOf, sizeLabel } from "./cv-meta";
@@ -67,7 +70,9 @@ export function CvReview({ id }: { id: string }) {
   const [reload, setReload] = React.useState(0);
   const [x, setX] = React.useState<CvExtraction | null>(null);
   const [manual, setManual] = React.useState(false);
-  const [attach, setAttach] = React.useState<"attach" | "new">("attach");
+  // For a CV whose email matches a candidate: update their profile from it (default), only file it, or keep apart.
+  const [attach, setAttach] = React.useState<AttachChoice>("update");
+  const [existing, setExisting] = React.useState<CandidateProfile | null>(null);
   const [errors, setErrors] = React.useState<Errors>({});
   const [blocked, setBlocked] = React.useState(false);
   const [saving, setSaving] = React.useState<"draft" | "add" | null>(null);
@@ -99,6 +104,20 @@ export function CvReview({ id }: { id: string }) {
       off();
     };
   }, [id, reload]);
+
+  // The candidate this CV matches, to show what updating their profile would change.
+  const duplicateId = data?.file.duplicateOf?.id ?? null;
+  React.useEffect(() => {
+    if (!duplicateId) return;
+    let alive = true;
+    services.profiles
+      .get(duplicateId)
+      .then((p) => alive && setExisting(p))
+      .catch(() => alive && setExisting(null));
+    return () => {
+      alive = false;
+    };
+  }, [duplicateId]);
 
   if (error) {
     return (
@@ -144,7 +163,8 @@ export function CvReview({ id }: { id: string }) {
   const originalFlags = new Set(flagsOf(file.extraction).map((f) => f.key));
   const checked = new Set([...originalFlags].filter((k) => !remaining.some((r) => r.key === k)));
   const title = working?.name.value || original?.name.value || file.name;
-  const attaching = !!file.duplicateOf && attach === "attach";
+  const attaching = !!file.duplicateOf && attach !== "new";
+  const changes = existing && working ? changesFromCv(existing, working) : null;
 
   const update = (fn: (d: CvExtraction) => CvExtraction) => {
     setX((cur) => (cur ? fn(structuredClone(cur)) : cur));
@@ -161,7 +181,9 @@ export function CvReview({ id }: { id: string }) {
 
   const submit = async () => {
     if (!x) return;
-    const errs = validate(x);
+    // Adding to an existing candidate: their profile already has these details, and an update keeps them where
+    // this CV is blank, so nothing here is required.
+    const errs = attaching ? {} : validate(x);
     setErrors(errs);
     if (Object.keys(errs).length) {
       toast.error("Some details are missing", "Fix the highlighted fields, then add the candidate.");
@@ -180,8 +202,11 @@ export function CvReview({ id }: { id: string }) {
         experience: x.experience.filter((e) => e.title.trim() || e.company.trim()),
         education: x.education.filter((e) => e.qualification.trim() || e.institution.trim()),
       };
-      const candidateId = await services.cv.confirm(file.id, clean, attaching ? file.duplicateOf!.id : undefined);
-      toast.success(attaching ? `CV added to ${file.duplicateOf!.name}'s record` : `${x.name.value} added to candidates`, `Applying for ${batch.vacancyTitle}`);
+      const candidateId = await services.cv.confirm(file.id, clean, attaching ? file.duplicateOf!.id : undefined, attaching && attach === "update");
+      toast.success(
+        !attaching ? `${x.name.value} added to candidates` : attach === "update" ? `${file.duplicateOf!.name}'s profile updated from this CV` : `CV added to ${file.duplicateOf!.name}'s record`,
+        `Applying for ${batch.vacancyTitle}`,
+      );
       router.push(data.nextToReview ? `/cv-processing/${data.nextToReview}` : `/candidates/${candidateId}`);
     } catch (e) {
       toast.error("Candidate not added", e instanceof Error ? e.message : undefined);
@@ -219,6 +244,7 @@ export function CvReview({ id }: { id: string }) {
           manual={manual}
           attach={attach}
           onAttach={setAttach}
+          changes={changes}
           onManual={() => {
             setManual(true);
             setX(blankFor(file));
@@ -319,7 +345,7 @@ export function CvReview({ id }: { id: string }) {
                   </Button>
                 )}
                 <Button loading={saving === "add"} onClick={submit} className="max-sm:flex-1">
-                  {attaching ? `Add to ${file.duplicateOf!.name.split(" ")[0]}'s record` : data.nextToReview ? "Add and review next" : "Add candidate"}
+                  {attaching ? (attach === "update" ? `Add and update ${file.duplicateOf!.name.split(" ")[0]}'s profile` : `Add to ${file.duplicateOf!.name.split(" ")[0]}'s record`) : data.nextToReview ? "Add and review next" : "Add candidate"}
                 </Button>
               </div>
             </div>
@@ -349,6 +375,7 @@ function StatusMessage({
   manual,
   attach,
   onAttach,
+  changes,
   onManual,
   onRetry,
   onDiscard,
@@ -357,8 +384,10 @@ function StatusMessage({
   flags: number;
   blocked: boolean;
   manual: boolean;
-  attach: "attach" | "new";
-  onAttach: (v: "attach" | "new") => void;
+  attach: AttachChoice;
+  onAttach: (v: AttachChoice) => void;
+  /** What updating would change on their profile; null while it loads. */
+  changes: string[] | null;
   onManual: () => void;
   onRetry: () => void;
   onDiscard: () => void;
@@ -426,10 +455,11 @@ function StatusMessage({
           </Link>
           . It&apos;s probably a newer copy.
         </p>
-        <div role="radiogroup" aria-label="What to do with this CV" className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div role="radiogroup" aria-label="What to do with this CV" className="mt-3 grid grid-cols-1 gap-2">
           {(
             [
-              ["attach", "Add to their record", "Keeps one record. The CV goes into their Documents."],
+              ["update", "Add and update their profile", "Their details are updated from this CV. Notes, stage and applications stay as they are."],
+              ["attach", "Add the CV only", "The CV goes into their Documents; their profile stays as it is."],
               ["new", "Create a separate candidate", "Only if this is a different person with the same email."],
             ] as const
           ).map(([value, label, hint]) => (
@@ -454,6 +484,29 @@ function StatusMessage({
             </button>
           ))}
         </div>
+        {attach === "update" && (
+          <div className="mt-3 rounded-md bg-surface px-3 py-2.5 text-fg" aria-live="polite">
+            {changes === null ? (
+              <p className="text-xs text-fg-muted">Comparing with their profile…</p>
+            ) : changes.length === 0 ? (
+              <p className="text-xs text-fg-muted">Their profile already matches this CV, so only the CV is added.</p>
+            ) : (
+              <>
+                <p className="text-xs font-semibold text-fg">What changes on their profile</p>
+                <ul className="mt-1.5 flex flex-col gap-1 text-xs text-fg-muted">
+                  {changes.slice(0, 8).map((c) => (
+                    <li key={c} className="flex gap-1.5">
+                      <span aria-hidden className="mt-1.5 size-1 shrink-0 rounded-full bg-ink-400" />
+                      <span className="min-w-0">{c}</span>
+                    </li>
+                  ))}
+                  {changes.length > 8 && <li>and {changes.length - 8} more</li>}
+                </ul>
+                <p className="mt-2 text-xs text-fg-subtle">Corrections you make on this page are included.</p>
+              </>
+            )}
+          </div>
+        )}
       </div>
     );
   if (flags > 0)

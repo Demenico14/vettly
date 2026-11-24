@@ -8,6 +8,8 @@ import { assess } from "../engine/matcher";
 import { actorName, newId, now, orgId } from "../context";
 import { collection } from "../store";
 import { vacancySnapshot } from "./vacancies";
+import { logAudit } from "./settings";
+import { changesFromCv, fieldsFromCv } from "@/lib/cv-update";
 
 export interface CandidateProfileService {
   list(): Promise<CandidateProfile[]>;
@@ -23,7 +25,8 @@ export interface CandidateProfileService {
   /** New candidate from a reviewed CV, applying for the CV batch's vacancy. */
   createFromCv(input: CvCandidateInput): Promise<CandidateProfile>;
   /** Adds a newer CV to an existing candidate, and an application if they haven't applied for this vacancy. */
-  attachCv(id: string, input: CvCandidateInput): Promise<CandidateProfile>;
+  /** Adds a newer CV to a candidate; with `updateProfile`, their details are updated from it (lib/cv-update.ts). */
+  attachCv(id: string, input: CvCandidateInput, updateProfile?: boolean): Promise<CandidateProfile>;
 }
 
 export interface CvCandidateInput {
@@ -201,9 +204,14 @@ export const candidateProfileService: CandidateProfileService = {
     scoreNew(c, input.vacancyId);
     return clone(c);
   },
-  async attachCv(id, input) {
+  async attachCv(id, input, updateProfile) {
     const c = find(id);
     c.documents = [cvDocument(input), ...c.documents];
+    if (updateProfile) {
+      const changes = changesFromCv(c, input.extraction);
+      Object.assign(c, fieldsFromCv(c, input.extraction));
+      if (changes.length) logAudit("candidates", "Updated a profile from a newer CV", `${c.name}: ${changes.length} ${changes.length === 1 ? "change" : "changes"}`);
+    }
     // Links the profile doesn't have yet come from the newer CV; ones HR already has are kept.
     const links = input.extraction.links;
     if (links) {

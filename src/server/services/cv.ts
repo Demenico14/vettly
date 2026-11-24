@@ -31,8 +31,11 @@ export interface CvProcessingService {
   retry(fileId: string): Promise<void>;
   remove(fileId: string): Promise<void>;
   saveDraft(fileId: string, extraction: CvExtraction): Promise<CvFile>;
-  /** Creates the candidate, or adds the CV to an existing one when `attachTo` is set. Returns the candidate id. */
-  confirm(fileId: string, extraction: CvExtraction, attachTo?: string): Promise<string>;
+  /**
+   * Creates the candidate, or adds the CV to an existing one when `attachTo` is set; with `updateProfile`,
+   * their profile is updated from this CV too (see lib/cv-update.ts). Returns the candidate id.
+   */
+  confirm(fileId: string, extraction: CvExtraction, attachTo?: string, updateProfile?: boolean): Promise<string>;
   /** Adds every file in the batch that Vettly read with confidence. Returns how many were added. */
   confirmReady(batchId: string): Promise<number>;
   discard(fileId: string, reason: string): Promise<void>;
@@ -167,11 +170,11 @@ export const cvService: CvProcessingService = {
     file.updatedAt = now();
     return clone(file);
   },
-  async confirm(fileId, extraction, attachTo) {
+  async confirm(fileId, extraction, attachTo, updateProfile) {
     const { batch, file } = locate(fileId);
     if (file.status === "added") throw new Error("This CV has already been added.");
     const input = { extraction, vacancyId: batch.vacancyId, vacancyTitle: batch.vacancyTitle, fileName: file.name, sizeKb: file.sizeKb, fileId: file.fileId };
-    const c = attachTo ? await candidateProfileService.attachCv(attachTo, input) : await candidateProfileService.createFromCv(input);
+    const c = attachTo ? await candidateProfileService.attachCv(attachTo, input, updateProfile === true) : await candidateProfileService.createFromCv(input);
     file.status = "added";
     file.candidateId = c.id;
     file.extraction = clone(extraction);
