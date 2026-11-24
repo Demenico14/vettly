@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Create account" };
 
 export default function RegisterPage() {
   return (
-    <AuthLayout aside="team">
+    <AuthLayout aside="team" switchTo="login">
       <RegisterForm />
     </AuthLayout>
   );
