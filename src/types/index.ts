@@ -445,6 +445,8 @@ export interface CandidateProfile extends CandidateSummary {
   email: string;
   phone: string;
   linkedin: string | null;
+  github?: string | null;
+  website?: string | null;
   availability: Availability;
   currentEmployer: string | null;
   expectedSalary: string | null;
@@ -524,6 +526,8 @@ export interface CvExtraction {
   ocr: boolean;
   /** Who read it: Vettly's local AI model (with the rules as a check), or the rule-based reader alone. */
   readBy?: "model" | "rules";
+  /** LinkedIn, GitHub and personal website addresses on the CV, as absolute links. */
+  links?: { linkedin: string | null; github: string | null; website: string | null };
 }
 
 export interface CvFile {

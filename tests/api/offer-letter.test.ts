@@ -14,7 +14,7 @@ beforeAll(async () => {
   const batch = await hr.ok<{ files: { id: string }[] }>("cv", "upload", s.vacancyId, "Fleet Controller", [{ name: cv.name, sizeKb: cv.sizeKb, fileId: cv.fileId }]);
   const id = batch.files[0]!.id;
   let file: { status: string; extraction: unknown } = { status: "", extraction: null };
-  for (let i = 0; i < 40 && !["ready", "needs_review"].includes(file.status); i++) {
+  for (let i = 0; i < 720 && !["ready", "needs_review"].includes(file.status); i++) {
     await new Promise((r) => setTimeout(r, 250));
     file = (await hr.ok<{ file: typeof file }>("cv", "getFile", id)).file;
   }

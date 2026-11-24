@@ -12,6 +12,7 @@ import "server-only";
 import type { CvExtraction, ExtractedCertification, ExtractedEducation, ExtractedExperience, ExtractedValue } from "@/types";
 import { extractWithTemplate } from "../ai/local";
 import { cvSections, dateRangeIn, type ParsedCv, type SectionKind } from "./cv-parser";
+import { onlyLinks } from "@/lib/links";
 
 // NuExtract's template language: field names steer it, so they say exactly what's wanted.
 const PERSON = {
@@ -250,7 +251,9 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
 
   const education: ExtractedEducation[] = [];
   const certifications: ExtractedCertification[] = [];
-  const addCert = (name: string, issuer: string, year: number | null) => {
+  const addCert = (name: string, rawIssuer: string, year: number | null) => {
+    // A web address isn't an issuing body (it's usually a project's site): treated as no issuer.
+    const issuer = /^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(rawIssuer) ? "" : rawIssuer;
     if (!name || sentenceLike(name)) return;
     // With no issuing body or year, only names that read like a credential count (not skills or project names).
     if (!issuer && !year && (isSkill(name) || !CERT_LIKE.test(name))) return;
@@ -262,7 +265,10 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
     const qualification = str(e.qualification);
     if (!qualification) continue;
     const institution = str(e.institution);
-    const year = yearOf(e.year);
+    // "BSc … Aug 2022 – Aug 2026": the year it ends (or ended), not the year it started.
+    const line = lines.find((l) => squash(l).includes(squash(qualification)));
+    const range = line ? dateRangeIn(line) : null;
+    const year = range ? (range.end ? Number(range.end.slice(0, 4)) : yearOf(e.year)) : yearOf(e.year);
     // Certificates and tests filed under education (common when a CV has one "Education & Certifications" section).
     if (!DEGREE_LIKE.test(qualification) && CERT_LIKE.test(`${qualification} ${institution}`)) {
       addCert(qualification, institution, year);
@@ -295,7 +301,7 @@ export function combine(rules: ParsedCv, model: ModelCv, cvText: string): Parsed
     phone,
     location,
     // A job title, not the opening sentence of the profile.
-    headline: headline && !sentenceLike(headline) ? value(headline, r.headline, { verbatim: true }) : useExp[0] ? { value: useExp[0].title, flag: "Suggested from the latest role. Check it." } : r.headline,
+    headline: headline && !sentenceLike(headline) && !onlyLinks(headline) ? value(headline, r.headline, { verbatim: true }) : useExp[0] ? { value: useExp[0].title, flag: "Suggested from the latest role. Check it." } : r.headline,
     currentEmployer: current?.company ? { value: current.company } : { value: "", flag: "No current role found." },
     availability: value(model.availability, r.availability),
     // The CV's own summary paragraph; the model's only when the rules found none.

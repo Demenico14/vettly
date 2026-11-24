@@ -39,7 +39,7 @@ beforeAll(async () => {
   const cv = await org.client.upload("cv.pdf", pdf(["Chiedza Banda", "Fleet Controller", `${candidateEmail} | +263 77 555 0199`, "", "Work experience", "Fleet Controller, Kopje Freight", "March 2019 - Present", "Ran the fleet."]), "application/pdf");
   const batch = await org.client.ok<{ files: { id: string }[] }>("cv", "upload", s.vacancyId, "Fleet Controller", [{ name: cv.name, sizeKb: cv.sizeKb, fileId: cv.fileId }]);
   let file: { status: string; extraction: unknown } = { status: "", extraction: null };
-  for (let i = 0; i < 40 && !["ready", "needs_review"].includes(file.status); i++) {
+  for (let i = 0; i < 720 && !["ready", "needs_review"].includes(file.status); i++) {
     await new Promise((r) => setTimeout(r, 250));
     file = (await org.client.ok<{ file: typeof file }>("cv", "getFile", batch.files[0]!.id)).file;
   }
@@ -113,7 +113,7 @@ describe.sequential("letterhead", () => {
     const cv = await org.client.upload("cv2.pdf", pdf(["Farai Dube", "Analyst", `${second} | +263 77 555 0200`, "", "Work experience", "Analyst, Acme", "2020 - Present", "Analysis."]), "application/pdf");
     const batch = await org.client.ok<{ files: { id: string }[] }>("cv", "upload", s.vacancyId, "Fleet Controller", [{ name: cv.name, sizeKb: cv.sizeKb, fileId: cv.fileId }]);
     let file: { status: string; extraction: unknown } = { status: "", extraction: null };
-    for (let i = 0; i < 40 && !["ready", "needs_review"].includes(file.status); i++) {
+    for (let i = 0; i < 720 && !["ready", "needs_review"].includes(file.status); i++) {
       await new Promise((r) => setTimeout(r, 250));
       file = (await org.client.ok<{ file: typeof file }>("cv", "getFile", batch.files[0]!.id)).file;
     }

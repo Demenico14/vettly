@@ -22,8 +22,9 @@ export default defineConfig({
           include: ["tests/api/**/*.test.ts"],
           globalSetup: ["tests/support/api-setup.ts"],
           environment: "node",
-          testTimeout: 60_000,
-          hookTimeout: 60_000,
+          // Long enough for a CV read by the local AI model when it's running (about a minute on CPU).
+          testTimeout: 240_000,
+          hookTimeout: 240_000,
         },
       },
       {

@@ -75,6 +75,8 @@ export {
   Keyboard,
   SquaresFour as LayoutDashboard,
   LinkedinLogo as Linkedin,
+  GithubLogo as Github,
+  Globe,
   SignOut as LogOut,
   MapPin,
   List as Menu,

@@ -40,6 +40,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | Local AI models | Approved |
 | — | Gemma writing assistant | Approved |
 | — | Hiring path | Approved |
+| — | CV links | Approved |
 
 ---
 

@@ -10,6 +10,8 @@ import {
   Copy,
   ExternalLink,
   Folder,
+  Github,
+  Globe,
   Linkedin,
   Mail,
   MapPin,
@@ -39,6 +41,7 @@ import { HiringPath, PATH_STEPS, stepOf, type PathAction } from "@/components/do
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { services } from "@/services";
 import type { CandidateApplication, CandidateProfile, TestInvitationSummary } from "@/types";
+import { displayUrl, externalUrl } from "@/lib/links";
 import { CertificationsSection, EducationSection, ExperienceSection, ProjectsSection, SkillsCard } from "./profile-sections";
 import { AddToCollectionDialog } from "@/features/talent/meta";
 import { SendTestsDialog } from "@/features/assessments/send-tests-dialog";
@@ -260,18 +263,31 @@ export function CandidateProfileView({ id }: { id: string }) {
                   </Button>
                 </Tooltip>
               </li>
-              <li className="flex items-center gap-2.5 py-2">
-                <Linkedin className="size-4 shrink-0 text-ink-500" aria-hidden />
-                {c.linkedin ? (
-                  <a href={c.linkedin} target="_blank" rel="noreferrer noopener" className="inline-flex min-w-0 items-center gap-1 truncate font-medium text-primary-700 hover:underline">
-                    LinkedIn profile
-                    <ExternalLink className="size-3.5 shrink-0" />
-                    <span className="sr-only">(opens in a new tab)</span>
-                  </a>
-                ) : (
-                  <span className="text-fg-subtle">No LinkedIn profile</span>
-                )}
-              </li>
+              {(
+                [
+                  ["LinkedIn", Linkedin, c.linkedin, "No LinkedIn profile"],
+                  ["GitHub", Github, c.github, null],
+                  ["Website", Globe, c.website, null],
+                ] as const
+              ).map(([label, Icon, raw, empty]) => {
+                // CVs write links without "https://"; made absolute so they open the right site, not a Vettly page.
+                const url = externalUrl(raw);
+                if (!url && !empty) return null;
+                return (
+                  <li key={label} className="flex items-center gap-2.5 border-b border-line py-2 last:border-b-0">
+                    <Icon className="size-4 shrink-0 text-ink-500" aria-hidden />
+                    {url ? (
+                      <a href={url} target="_blank" rel="noreferrer noopener" className="inline-flex min-w-0 items-center gap-1 truncate font-medium text-primary-700 hover:underline" title={url}>
+                        <span className="truncate">{label === "Website" ? displayUrl(url) : `${label} profile`}</span>
+                        <ExternalLink className="size-3.5 shrink-0" />
+                        <span className="sr-only">(opens in a new tab)</span>
+                      </a>
+                    ) : (
+                      <span className="text-fg-subtle">{empty}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </Card>
 
