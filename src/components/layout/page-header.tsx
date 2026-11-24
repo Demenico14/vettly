@@ -7,15 +7,7 @@ const INNER = "mx-auto w-full max-w-[84rem] px-4 sm:px-8 lg:px-12";
  * Page frame, Notion style: the title sits directly on the white page with generous space above,
  * then the content. Pass the PageHeader as `header`.
  */
-export function PageContainer({
-  header,
-  className,
-  children,
-}: {
-  header?: React.ReactNode;
-  className?: string;
-  children: React.ReactNode;
-}) {
+export function PageContainer({ header, className, children }: { header?: React.ReactNode; className?: string; children: React.ReactNode }) {
   return (
     <>
       {header && <div className={cn(INNER, "pt-6 pb-1 lg:pt-10")}>{header}</div>}
@@ -54,5 +46,5 @@ export function PageHeader({
 
 /** The page's one h1, at the large-title size. Use it on screens with a custom header layout. */
 export function PageTitle({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <h1 className={cn("text-title-sm font-bold text-fg sm:text-title", className)}>{children}</h1>;
+  return <h1 className={cn("text-[2rem] leading-[1.05] font-medium tracking-[-0.04em] text-balance text-ink-900 sm:text-[2.5rem]", className)}>{children}</h1>;
 }

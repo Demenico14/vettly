@@ -21,11 +21,16 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className={cn(row, active && "bg-surface font-medium text-shell-fg shadow-xs", collapsed && "justify-center px-0")}
+      className={cn(
+        row,
+        active &&
+          "bg-shell-raised font-medium text-shell-fg before:absolute before:top-1.5 before:bottom-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-[#5FB08D]",
+        collapsed && "justify-center px-0",
+      )}
     >
       <item.icon
         weight={active ? "fill" : "regular"}
-        className={cn("size-[1.05rem] shrink-0", active ? "text-primary-600" : "text-ink-400 group-hover:text-ink-600")}
+        className={cn("size-[1.05rem] shrink-0", active ? "text-[#5FB08D]" : "text-shell-fg-muted group-hover:text-shell-fg")}
         aria-hidden
       />
       {!collapsed && <span className="truncate">{item.label}</span>}
@@ -46,7 +51,7 @@ function Utilities({ collapsed, onOpenSearch, onNavigate }: { collapsed: boolean
   const pathname = usePathname();
   const search = (
     <button type="button" onClick={onOpenSearch} className={cn(row, collapsed && "justify-center px-0")}>
-      <Search className="size-[1.05rem] shrink-0 text-ink-400 group-hover:text-ink-600" aria-hidden />
+      <Search className="size-[1.05rem] shrink-0 text-shell-fg-muted group-hover:text-shell-fg" aria-hidden />
       {!collapsed && (
         <>
           <span>Search</span>
@@ -66,7 +71,7 @@ function Utilities({ collapsed, onOpenSearch, onNavigate }: { collapsed: boolean
       aria-current={pathname === "/welcome" ? "page" : undefined}
       className={cn(row, pathname === "/welcome" && "bg-shell-raised font-medium text-shell-fg", collapsed && "justify-center px-0")}
     >
-      <Sparkles className="size-[1.05rem] shrink-0 text-ink-400 group-hover:text-ink-600" aria-hidden />
+      <Sparkles className="size-[1.05rem] shrink-0 text-shell-fg-muted group-hover:text-shell-fg" aria-hidden />
       {collapsed ? <span className="sr-only">Getting started</span> : <span>Getting started</span>}
     </Link>
   );
@@ -127,10 +132,8 @@ function Workspace({ collapsed }: { collapsed: boolean }) {
       aria-label={`${organisation?.name ?? "Vettly"} home`}
       className={cn("flex h-9 items-center gap-2 rounded-sm px-2 hover:bg-shell-raised", collapsed && "justify-center px-0")}
     >
-      <LogoMark className="h-5" />
-      {!collapsed && (
-        <span className="min-w-0 truncate text-sm font-semibold text-shell-fg">{organisation?.shortName ?? "Vettly"}</span>
-      )}
+      <LogoMark onDark className="h-5" />
+      {!collapsed && <span className="min-w-0 truncate text-sm font-semibold text-shell-fg">{organisation?.shortName ?? "Vettly"}</span>}
     </Link>
   );
 }
@@ -152,7 +155,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: { collapsed: bool
   return (
     <aside
       className={cn(
-        "material-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-shell-line transition-[width] duration-200 ease-(--ease-out-expo) lg:flex",
+        "material-sidebar shell-ink sticky top-0 hidden h-dvh shrink-0 flex-col transition-[width] duration-200 ease-(--ease-out-expo) lg:flex",
         collapsed ? "w-14" : "w-60",
       )}
     >
@@ -181,7 +184,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: { collapsed: bool
 
 export function MobileSidebarContent({ onNavigate, onOpenSearch }: { onNavigate: () => void; onOpenSearch: () => void }) {
   return (
-    <div className="flex h-full flex-col bg-shell">
+    <div className="shell-ink flex h-full flex-col bg-shell">
       <div className="flex flex-col gap-3 px-2 pt-3">
         <Workspace collapsed={false} />
         <Utilities

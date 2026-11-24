@@ -154,7 +154,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
       <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} onOpenSearch={() => setSearchOpen(true)} />
-      <Drawer open={navOpen} onOpenChange={setNavOpen} side="left" title="Navigation" hideHeader className="w-[min(17rem,85vw)] bg-shell">
+      <Drawer open={navOpen} onOpenChange={setNavOpen} side="left" title="Navigation" hideHeader className="w-[min(17rem,85vw)] bg-[#0B0C0B]">
         <MobileSidebarContent onNavigate={() => setNavOpen(false)} onOpenSearch={() => setSearchOpen(true)} />
       </Drawer>
       <div className="flex min-w-0 flex-1 flex-col">
