@@ -32,6 +32,7 @@ Full scope of every module: [ROADMAP.md](ROADMAP.md). Restructured 19 Nov 2026 t
 | — | Gemma writing assistant | **Approved** (23 Nov) | Branch `gemma-writing`. Local Gemma drafts and rewrites job descriptions and writes interview questions per requirement, with checks (placeholders, invented pay, protected topics); templates when the model is off |
 | — | Hiring path | **Approved** (24 Nov) | Branch `hiring-path`. Seven-step hiring path with counts and one next action on vacancies and candidate profiles (skipped steps marked); Matching renamed Screening, Assessments renamed Tests; menu in process order; tests sent on shortlisting shown and controllable |
 | — | CV links | **Approved** (24 Nov) | Branch `cv-links`. LinkedIn, GitHub and website read from CVs and opened as absolute links; a line of links is never a headline; qualification end years; web addresses not taken as certificate issuers; API tests wait for local-model CV reads |
+| — | Update profile from a newer CV | **Approved** (24 Nov) | Branch `cv-update-profile`. A CV matching an existing candidate can update their profile (jobs, education, certificates, skills, headline) with a preview of every change; notes, stage, applications and HR's skill levels kept; audit-logged |
 
 ## Module 1 checklist
 
