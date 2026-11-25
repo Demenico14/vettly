@@ -84,6 +84,16 @@ export interface RecruitmentSettings {
   defaultWeights: { skills: number; experience: number; education: number; tests: number };
 }
 
+/** Recording candidates during tests. Off unless the organisation turns it on. */
+export type RecordingMode = "off" | "photos" | "video";
+export interface RecordingSettings {
+  mode: RecordingMode;
+  /** Sound with video. Off by default: more intrusive, and rarely needed. */
+  audio: boolean;
+  /** Days a recording is kept after the candidate's application closes (7 to 30). */
+  keepDays: number;
+}
+
 export interface AssessmentSettings {
   /** Department → battery id. */
   batteries: Record<string, string>;
@@ -98,6 +108,8 @@ export interface AssessmentSettings {
   retentionMonths: number;
   candidateFeedback: boolean;
   adjustmentsContact: string;
+  /** Absent on organisations set up before recording existed: read with recordingSettings(). */
+  recording?: RecordingSettings;
 }
 
 export type NotificationEvent = "new_application" | "cv_processed" | "test_completed" | "interview_scheduled" | "scorecard_due" | "offer_approval" | "offer_response" | "mention" | "weekly_digest";

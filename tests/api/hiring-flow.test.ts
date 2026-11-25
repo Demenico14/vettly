@@ -148,7 +148,7 @@ describe.sequential("hiring flow", () => {
     expect(results.length).toBeGreaterThan(0);
     // What the browser noticed is cleaned (whole numbers, 0 to a cap) and kept on the attempt for HR.
     const flagged = view.record.attempts.find((a) => a.integrity?.leftWindow)!;
-    expect(flagged.integrity).toEqual({ leftWindow: 2, awaySeconds: 40, pasteBlocked: 0, copyBlocked: 0, shortcutsBlocked: 10_000, contextMenuBlocked: 1 });
+    expect(flagged.integrity).toEqual({ leftWindow: 2, awaySeconds: 40, pasteBlocked: 0, copyBlocked: 0, shortcutsBlocked: 10_000, contextMenuBlocked: 1, cameraOff: 0 });
     expect(flagged.fastResponseFlags).toBe(2);
     const note = view.record.audit.find((e) => e.action === "noticed");
     expect(note?.detail).toContain("left the test window twice (40 s away)");

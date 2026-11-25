@@ -169,6 +169,8 @@ export interface CandidateTestAccess {
   extraTimePercent: number;
   /** Consent was already given on an earlier visit. */
   consented: boolean;
+  /** When the organisation records candidates: how, and what the candidate chose. */
+  recording: { mode: "photos" | "video"; audio: boolean; keepDays: number; choice: "agreed" | "declined" | null; waived: boolean } | null;
 }
 
 /* ---------- HR dashboard (Module 3) ---------- */

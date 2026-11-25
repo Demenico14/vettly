@@ -1,7 +1,7 @@
 import "server-only";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 /**
  * File storage. Uses S3-compatible storage when S3_ENDPOINT is set (SeaweedFS in Docker, any S3 service in
@@ -41,4 +41,13 @@ export async function getObject(key: string): Promise<Uint8Array> {
     return new Uint8Array(await res.Body!.transformToByteArray());
   }
   return new Uint8Array(await readFile(path.join(localDir(), key)));
+}
+
+export async function deleteObject(key: string) {
+  const client = s3();
+  if (client) {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket(), Key: key }));
+    return;
+  }
+  await rm(path.join(localDir(), key), { force: true });
 }

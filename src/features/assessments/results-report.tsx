@@ -9,6 +9,7 @@ import { IllustrativeNotice } from "@/components/domain/assessment";
 import { services, MOCK_NOW, type InvitationView, type ScoredResult } from "@/services";
 import type { Attempt, NormGroup, Test } from "@/types/psychometrics";
 import { integrityNotes } from "@/lib/integrity";
+import { RecordingPanel } from "./recording-panel";
 import { BAND_LABEL } from "@/lib/psychometrics";
 import { cn, ordinal, timeAgo } from "@/lib/utils";
 import { InvitationBadge, PercentileBar, StenScale, day, dayTime } from "./meta";
@@ -165,6 +166,7 @@ export function ResultsReport({ id }: { id: string }) {
 
         <aside className="flex flex-col gap-5">
           {r.status === "completed" && <ReviewPanel v={v} onChange={set} />}
+          <RecordingPanel invitationId={r.id} candidateName={r.candidateName} testName={(t) => testOf(t)?.name ?? t} onChanged={() => setReload((n) => n + 1)} />
           <Card>
             <CardHeader title="Activity" description="Every send, reminder, change and review." />
             <ol className="flex flex-col px-5 pb-5">
@@ -209,6 +211,7 @@ const ACTION: Record<string, string> = {
   flagged: "Concern",
   expired: "Expired",
   noticed: "Noticed during test",
+  recording: "Recording",
 };
 
 function prettyDetail(d: string, testOf: (id: string) => Test) {

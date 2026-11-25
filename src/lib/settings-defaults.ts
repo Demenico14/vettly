@@ -1,7 +1,11 @@
 /**
  * Roles, permissions and the starting settings for a new organisation. Shared by the browser and the server.
  */
-import type { OrgSettings, Permission, RolePermissions } from "@/types/settings";
+import type { OrgSettings, Permission, RecordingSettings, RolePermissions } from "@/types/settings";
+
+/** Recording is off until an organisation chooses it; when on, recordings go 30 days after the application closes. */
+export const DEFAULT_RECORDING: RecordingSettings = { mode: "off", audio: false, keepDays: 30 };
+export const recordingSettings = (a: { recording?: RecordingSettings }): RecordingSettings => ({ ...DEFAULT_RECORDING, ...(a.recording ?? {}) });
 
 export const PERMISSIONS: { id: Permission; label: string; description: string; group: "Recruiting" | "Assessments" | "Insight" | "Administration" }[] = [
   { id: "view_candidates", label: "See candidates", description: "Profiles, CVs and applications for their vacancies", group: "Recruiting" },
@@ -111,6 +115,7 @@ export function defaultSettings(org: { name: string; city: string; country: stri
       retentionMonths: 12,
       candidateFeedback: true,
       adjustmentsContact: "",
+      recording: { ...DEFAULT_RECORDING },
     },
     notifications: {
       personal: {
