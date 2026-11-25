@@ -72,8 +72,11 @@ export interface CandidateAccessService {
   recordConsent(token: string): Promise<void>;
   loadTest(token: string, testId: string): Promise<CandidateTest>;
   saveProgress(token: string, testId: string, answered: number): Promise<void>;
-  /** Submits answers. Returns true when every test in the invitation is finished. */
-  submit(token: string, testId: string, answers: Record<string, number>, minutes: number): Promise<boolean>;
+  /**
+   * Submits answers. Returns true when every test in the invitation is finished. `integrity` is what the browser
+   * noticed (window switches, blocked paste and shortcuts); `fastAnswers` counts answers given implausibly fast.
+   */
+  submit(token: string, testId: string, answers: Record<string, number>, minutes: number, integrity?: import("@/types/psychometrics").TestIntegrity, fastAnswers?: number): Promise<boolean>;
 }
 
 export interface SessionService {

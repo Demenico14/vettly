@@ -127,7 +127,9 @@ describe.sequential("hiring flow", () => {
       const test = await cand.ok<{ questions: Record<string, unknown>[]; practice: Record<string, unknown>[] }>("candidateAccess", "loadTest", s.token, t.id);
       for (const q of test.questions) for (const key of ["answer", "explanation", "keyed", "effectiveness"]) expect(q[key], `${t.id} leaks ${key}`).toBeUndefined();
       const answers = Object.fromEntries(test.questions.map((q) => [q.id as string, 1]));
-      finished = await cand.ok<boolean>("candidateAccess", "submit", s.token, t.id, answers, 10);
+      // The first test reports what the browser noticed, with values a tampered browser might send.
+      const noticed = t === access.tests[0] ? [{ leftWindow: 2, awaySeconds: 40.4, pasteBlocked: -3, copyBlocked: "lots", shortcutsBlocked: 1e12, contextMenuBlocked: 1 }, 2] : [];
+      finished = await cand.ok<boolean>("candidateAccess", "submit", s.token, t.id, answers, 10, ...noticed);
     }
     expect(finished).toBe(true);
 
@@ -139,8 +141,18 @@ describe.sequential("hiring flow", () => {
     const list = await hr.ok<{ record: { id: string; candidateId: string; status: string } }[]>("assessments", "invitations");
     const inv = list.find((x) => x.record.candidateId === s.candidateId)!;
     expect(inv.record.status).toBe("completed");
-    const { results } = await hr.ok<{ results: unknown[] }>("assessments", "invitation", inv.record.id);
+    const { results, view } = await hr.ok<{
+      results: unknown[];
+      view: { record: { attempts: { testId: string; integrity?: Record<string, number>; fastResponseFlags: number }[]; audit: { action: string; detail?: string }[] } };
+    }>("assessments", "invitation", inv.record.id);
     expect(results.length).toBeGreaterThan(0);
+    // What the browser noticed is cleaned (whole numbers, 0 to a cap) and kept on the attempt for HR.
+    const flagged = view.record.attempts.find((a) => a.integrity?.leftWindow)!;
+    expect(flagged.integrity).toEqual({ leftWindow: 2, awaySeconds: 40, pasteBlocked: 0, copyBlocked: 0, shortcutsBlocked: 10_000, contextMenuBlocked: 1 });
+    expect(flagged.fastResponseFlags).toBe(2);
+    const note = view.record.audit.find((e) => e.action === "noticed");
+    expect(note?.detail).toContain("left the test window twice (40 s away)");
+    expect(note?.detail).toContain("2 answers given in under two seconds");
     const { assessments } = await hr.ok<{ assessments: { candidateId: string; testScore: number | null }[] }>("matching", "rank", s.vacancyId);
     expect(assessments.find((x) => x.candidateId === s.candidateId)!.testScore).not.toBeNull();
   });

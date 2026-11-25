@@ -6,6 +6,7 @@
  */
 import "server-only";
 import { orgEmail } from "../org-mail";
+import { integrityNotes } from "@/lib/integrity";
 import type { ApplicationStage, TestInvitationSummary } from "@/types";
 import type {
   Battery,
@@ -16,6 +17,7 @@ import type {
   NormGroup,
   SampleItem,
   Test,
+  TestIntegrity,
   TestResult,
 } from "@/types/psychometrics";
 import {
@@ -503,13 +505,16 @@ export function recordConsent(r: InvitationRecord) {
  * percentile against the test's default norm group. Questionnaires: keyed answers move their scales from
  * the middle. The item bank is a short form, so these are indicative scores, labelled as such in reports.
  */
-export function submitTest(r: InvitationRecord, testId: string, answers: Record<string, number>, minutes: number, device: "mobile" | "desktop") {
+export function submitTest(r: InvitationRecord, testId: string, answers: Record<string, number>, minutes: number, device: "mobile" | "desktop", integrity?: TestIntegrity, fastAnswers = 0) {
   const t = tests.find((x) => x.id === testId)!;
   // Items the candidate actually answered (the prototype borrows some from sibling tests).
   const items = sampleItems.filter((i) => i.testId === testId || Object.keys(answers).some((k) => k === i.id || k.startsWith(`${i.id}:`)));
   const started = new Date(nowMs() - minutes * 60000).toISOString();
-  r.attempts.push({ testId, startedAt: started, completedAt: now(), formId: `${testId.replace("tst_", "f_")}_1`, disconnects: 0, timerPausedSec: 0, focusLossEvents: 0, fastResponseFlags: 0, supervised: false, device });
+  r.attempts = r.attempts.filter((x) => x.testId !== testId);
+  r.attempts.push({ testId, startedAt: started, completedAt: now(), formId: `${testId.replace("tst_", "f_")}_1`, disconnects: 0, timerPausedSec: 0, focusLossEvents: integrity?.leftWindow ?? 0, fastResponseFlags: fastAnswers, supervised: false, device, integrity });
   audit(r, "started", testId, r.candidateName);
+  const noted = integrityNotes(integrity, fastAnswers);
+  if (noted.length) audit(r, "noticed", `${testId}: ${noted.join("; ")}`, r.candidateName);
   const norm = t.defaultNorm;
   let result: TestResult;
   if (t.family === "personality" || t.family === "integrity" || t.family === "emotional_intelligence" || t.family === "motivation") {
