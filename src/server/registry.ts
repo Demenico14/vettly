@@ -15,6 +15,7 @@ import { platformService } from "./services/platform";
 import { settingsService } from "./services/settings";
 import { talentService } from "./services/talent";
 import { vacancyService } from "./services/vacancies";
+import { recordingsService } from "./services/recordings";
 import { candidateSummaryService, notificationService, searchService, sessionService } from "./services/workspace";
 
 /** How a service is reached. */
@@ -52,6 +53,7 @@ export const registry: Record<string, { access: Access; impl: AnyService; method
   notifications: { access: "org", impl: notificationService as unknown as AnyService },
   search: { access: "org", impl: searchService as unknown as AnyService },
   candidates: { access: "org", impl: candidateSummaryService as unknown as AnyService },
+  recordings: { access: "org", impl: recordingsService as unknown as AnyService },
 };
 
 /** Methods that run only in the browser and must never be called remotely. */
@@ -72,8 +74,11 @@ const NEEDS: Record<Permission, string[]> = {
   interview: ["interviews.schedule", "interviews.reschedule", "interviews.cancel", "interviews.markNoShow", "interviews.markCompleted", "interviews.addQuestion", "interviews.removeQuestion", "interviews.decide"],
   make_offers: ["offers.importLetter", "offers.create", "offers.update", "offers.send", "offers.withdraw", "offers.extend", "offers.respond", "offers.setChecklist", "offers.hire", "offers.notifyOthers", "offers.markViewed"],
   approve_offers: ["offers.approve", "offers.reject"],
-  send_tests: ["pipeline.sendTests", "assessments.send", "assessments.remind", "assessments.extend", "assessments.cancel", "assessments.resend", "assessments.restore", "assessments.saveBattery", "assessments.deleteBattery"],
-  view_test_reports: ["assessments.invitations", "assessments.invitation", "assessments.setReviewed", "assessments.addNote", "assessments.setConcern", "profiles.tests", "candidates.tests"],
+  send_tests: ["pipeline.sendTests", "assessments.send", "assessments.remind", "assessments.extend", "assessments.cancel", "assessments.resend", "assessments.restore", "assessments.saveBattery", "assessments.deleteBattery", "recordings.waive"],
+  view_test_reports: [
+    "assessments.invitations", "assessments.invitation", "assessments.setReviewed", "assessments.addNote", "assessments.setConcern", "profiles.tests", "candidates.tests",
+    "recordings.summary", "recordings.playback", "recordings.hold", "recordings.releaseHold",
+  ],
   view_analytics: ["analytics.*"],
   view_fairness: [],
   export_data: [],

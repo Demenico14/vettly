@@ -8,6 +8,7 @@ import { PLATFORM } from "@/server/services/platform";
 import { db, ready, schema } from "@/server/db";
 import { eq } from "drizzle-orm";
 import { clientAddress, fromOwnSite, rateLimited } from "@/server/http";
+import { scheduleRecordingSweep } from "@/server/services/recordings";
 
 /**
  * The one API endpoint the screens use: POST /api/rpc/<service>/<method> with `{ "args": [...] }`.
@@ -64,6 +65,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ser
           for (const n of needs) requirePermission(n.permission, n.what);
           return call();
         });
+        // Recordings past their retention date are deleted in the background, at most every few hours.
+        scheduleRecordingSweep(s.organisationId);
       }
     }
     return NextResponse.json({ ok: true, data: data ?? null }, { headers: NO_STORE });

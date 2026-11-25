@@ -306,6 +306,37 @@ export interface TestIntegrity {
   shortcutsBlocked: number;
   /** Right-click menu attempts that were blocked. */
   contextMenuBlocked: number;
+  /** Times the camera stopped during a recorded test. */
+  cameraOff?: number;
+}
+
+/** One stored piece of a recording: a photo, or a 10-second stretch of video. */
+export interface RecordingPiece {
+  testId: string;
+  seq: number;
+  mime: string;
+  bytes: number;
+  at: string;
+}
+
+/**
+ * Recording for one invitation. The candidate makes a separate written choice; declining never counts against
+ * them, and HR can let them take the tests unrecorded. Pieces are deleted when the retention period ends.
+ */
+export interface TestRecording {
+  mode: "photos" | "video";
+  audio: boolean;
+  /** Days kept after the application closes, fixed when the invitation started recording. */
+  keepDays: number;
+  choice: "agreed" | "declined" | null;
+  choiceAt?: string;
+  /** HR let a candidate who declined take the tests without recording. */
+  waived?: { by: string; at: string; reason: string };
+  pieces: RecordingPiece[];
+  /** HR is looking into a concern, so deletion waits until this date (at most 90 days ahead). */
+  hold?: { by: string; at: string; until: string; reason: string };
+  /** When the pieces were deleted, and why. */
+  deleted?: { at: string; why: string; pieces: number };
 }
 
 export interface Attempt {
@@ -351,7 +382,7 @@ export interface HrReview {
   notes: { by: string; at: string; body: string }[];
 }
 
-export type AuditAction = "sent" | "delivered" | "delivery_failed" | "opened" | "consented" | "started" | "completed" | "reminded" | "extended" | "cancelled" | "resent" | "restored" | "reviewed" | "note" | "flagged" | "expired" | "noticed";
+export type AuditAction = "sent" | "delivered" | "delivery_failed" | "opened" | "consented" | "started" | "completed" | "reminded" | "extended" | "cancelled" | "resent" | "restored" | "reviewed" | "note" | "flagged" | "expired" | "noticed" | "recording";
 
 export interface AuditEntry {
   at: string;
@@ -391,6 +422,8 @@ export interface InvitationRecord {
   audit: AuditEntry[];
   /** Untimed questionnaires can be saved part-way; answers so far per test. */
   progress?: Record<string, number>;
+  /** Present when the organisation records candidates during tests. */
+  recording?: TestRecording;
   isMock: true;
 }
 

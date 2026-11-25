@@ -63,6 +63,37 @@ export interface CandidateTest {
   questions: import("@/types/psychometrics").SampleItem[];
   /** Full length of the published test, for the "short form" note. */
   fullLength: number;
+  /** Set when this test is recorded: how. */
+  recording: { mode: "photos" | "video"; audio: boolean } | null;
+}
+
+/** HR's view of a recording: what was kept, when it goes, and any hold or decision. */
+export interface RecordingSummary {
+  mode: "photos" | "video";
+  audio: boolean;
+  keepDays: number;
+  choice: "agreed" | "declined" | null;
+  choiceAt?: string;
+  waived?: { by: string; at: string; reason: string };
+  tests: { testId: string; pieces: number; bytes: number; firstAt: string; lastAt: string }[];
+  /** Null while there's nothing stored. */
+  deletesOn: string | null;
+  hold?: { by: string; at: string; until: string; reason: string };
+  deleted?: { at: string; why: string; pieces: number };
+}
+
+/** Recording candidates during tests (HR side). Viewing is logged; holding and deleting need a reason. */
+export interface RecordingsService {
+  summary(invitationId: string): Promise<RecordingSummary | null>;
+  /** The pieces of one test's recording, in order. Logs that the viewer opened it. */
+  playback(invitationId: string, testId: string): Promise<{ mime: string; pieces: { seq: number; at: string; url: string }[] }>;
+  /** Keeps the recording past its deletion date while a concern is looked into (1 to 90 days from today). */
+  hold(invitationId: string, days: number, reason: string): Promise<RecordingSummary>;
+  releaseHold(invitationId: string): Promise<RecordingSummary>;
+  /** Lets a candidate who declined recording take the tests without it. */
+  waive(invitationId: string, reason: string): Promise<RecordingSummary>;
+  /** Deletes the recording now, for example on the candidate's request. */
+  remove(invitationId: string, reason: string): Promise<RecordingSummary>;
 }
 
 export interface CandidateAccessService {
@@ -72,6 +103,10 @@ export interface CandidateAccessService {
   recordConsent(token: string): Promise<void>;
   loadTest(token: string, testId: string): Promise<CandidateTest>;
   saveProgress(token: string, testId: string, answered: number): Promise<void>;
+  /** The candidate's separate written choice about being recorded. Declining is always accepted. */
+  recordingChoice(token: string, agree: boolean): Promise<void>;
+  /** One piece of the recording (a photo, or about 10 seconds of video), base64-encoded. */
+  uploadRecording(token: string, testId: string, seq: number, mime: string, data: string): Promise<void>;
   /**
    * Submits answers. Returns true when every test in the invitation is finished. `integrity` is what the browser
    * noticed (window switches, blocked paste and shortcuts); `fastAnswers` counts answers given implausibly fast.

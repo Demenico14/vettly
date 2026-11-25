@@ -22,6 +22,7 @@ import type {
   SearchService,
   SessionService,
   SettingsService,
+  RecordingsService,
   TalentService,
   VacancyService,
 } from "./contracts";
@@ -185,4 +186,5 @@ export const services = {
   notifications: remote<NotificationService>("notifications"),
   search: remote<SearchService>("search"),
   candidates: remote<CandidateService>("candidates"),
+  recordings: remote<RecordingsService>("recordings"),
 };

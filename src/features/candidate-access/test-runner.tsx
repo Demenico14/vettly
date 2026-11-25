@@ -9,6 +9,7 @@ import type { SampleItem } from "@/types/psychometrics";
 import { cn } from "@/lib/utils";
 import { Stimulus } from "@/features/assessments/meta";
 import { FAST_ANSWER_MS, useTestGuard } from "./test-guard";
+import { useTestRecorder } from "./test-recorder";
 
 type Phase = "intro" | "practice" | "questions" | "submitting";
 const LIKERT_5 = ["Very inaccurate", "Moderately inaccurate", "Neither", "Moderately accurate", "Very accurate"];
@@ -34,6 +35,12 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
   // Integrity: blocks copy, paste and inspect shortcuts and notes window switches while scored questions are open.
   const readIntegrity = useTestGuard(phase === "questions");
   const shownAt = React.useRef(0);
+  // Recording, when the candidate agreed to it: camera check before starting, capture while scored questions are open.
+  const recorder = useTestRecorder(token, testId, test?.recording ?? null);
+  const { begin: beginRecording } = recorder;
+  React.useEffect(() => {
+    if (phase === "questions") beginRecording();
+  }, [phase, beginRecording]);
   const fast = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
@@ -51,7 +58,8 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
       setPhase("submitting");
       try {
         const minutes = Math.max(1, Math.round(((startedAt ? Date.now() - startedAt : 60000) / 60000) * 10) / 10);
-        const allDone = await services.candidateAccess.submit(token, test.id, answers, minutes, readIntegrity(), fast.current.size);
+        await recorder.stop();
+        const allDone = await services.candidateAccess.submit(token, test.id, answers, minutes, { ...readIntegrity(), cameraOff: recorder.cameraOffCount() }, fast.current.size);
         if (timedOut) toast.info("Time's up", "Your answers so far have been saved.");
         onFinished(allDone);
       } catch (e) {
@@ -59,7 +67,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
         setPhase("questions");
       }
     },
-    [test, token, answers, startedAt, onFinished, readIntegrity],
+    [test, token, answers, startedAt, onFinished, readIntegrity, recorder],
   );
 
   // Countdown for timed tests. Pauses are server-side in production; here it simply runs.
@@ -133,7 +141,15 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
             </li>
           )}
         </ul>
-        <Button size="lg" className="mt-6 w-full sm:w-auto" onClick={() => (test.practice.length ? (setPhase("practice"), setIndex(0), setPracticeChecked(false)) : start())}>
+        {test.recording && (
+          <CameraCheck status={recorder.status} prepare={recorder.prepare} attachPreview={recorder.attachPreview} mode={test.recording.mode} token={token} onDecline={onExit} />
+        )}
+        <Button
+          size="lg"
+          className="mt-6 w-full sm:w-auto"
+          disabled={!!test.recording && recorder.status !== "live"}
+          onClick={() => (test.practice.length ? (setPhase("practice"), setIndex(0), setPracticeChecked(false)) : start())}
+        >
           {test.practice.length ? "Try a practice question" : "Start"}
         </Button>
       </Panel>
@@ -175,6 +191,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
         <p className="text-xs font-semibold text-fg-subtle">
           {isPractice ? "Practice · not scored" : `${test.name} · question ${index + 1} of ${items.length}`}
         </p>
+        {!isPractice && test.recording && <RecordingBadge status={recorder.status} attachPreview={recorder.attachPreview} />}
         {!isPractice && secondsLeft !== null && (
           <p className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tabular", secondsLeft <= 60 ? "bg-danger-50 text-danger-700" : secondsLeft <= 300 ? "bg-warning-50 text-warning-700" : "bg-ink-100 text-fg-muted")}>
             <Timer className="size-3.5" aria-hidden />
@@ -358,6 +375,82 @@ function Answer({ item, format, answers, onChange, disabled }: { item: SampleIte
         </label>
       ))}
     </fieldset>
+  );
+}
+
+/** Before a recorded test: turn the camera on and see yourself, or say you can't. */
+type Recorder = ReturnType<typeof useTestRecorder>;
+
+function CameraCheck({
+  status: s,
+  prepare,
+  attachPreview,
+  mode,
+  token,
+  onDecline,
+}: {
+  status: Recorder["status"];
+  prepare: Recorder["prepare"];
+  attachPreview: Recorder["attachPreview"];
+  mode: "photos" | "video";
+  token: string;
+  onDecline: () => void;
+}) {
+  const [busy, setBusy] = React.useState(false);
+  return (
+    <div className="mt-6 flex flex-col gap-4 rounded-md border border-line p-4 sm:flex-row sm:items-center">
+      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-md bg-ink-900 sm:w-44">
+        <video ref={attachPreview} autoPlay muted playsInline className={cn("size-full -scale-x-100 object-cover", s !== "live" && "opacity-0")} />
+        {s !== "live" && <span className="absolute inset-0 grid place-items-center text-xs text-white/70">Camera off</span>}
+      </div>
+      <div className="text-sm text-fg-muted">
+        <p className="font-semibold text-fg">{mode === "photos" ? "Photos are taken every 20 seconds" : "This test is recorded"}</p>
+        <p className="mt-1">
+          {s === "live"
+            ? "You're set. Recording starts with the first scored question and stops when you finish."
+            : s === "blocked"
+              ? "Your browser blocked the camera. Allow it from the camera icon in the address bar, then try again."
+              : s === "unavailable"
+                ? "We couldn't find a camera on this device. Try another device, or tell us you can't use one."
+                : "Turn on your camera to start. You'll see yourself here first."}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {s !== "live" && (
+            <Button size="sm" loading={s === "starting"} onClick={() => prepare()}>
+              {s === "idle" || s === "starting" ? "Turn on my camera" : "Try again"}
+            </Button>
+          )}
+          {(s === "blocked" || s === "unavailable") && (
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={busy}
+              onClick={async () => {
+                setBusy(true);
+                await services.candidateAccess.recordingChoice(token, false).catch(() => {});
+                onDecline();
+              }}
+            >
+              I can&apos;t use a camera
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** While scored questions are open: a small live preview and a clear "Recording" label. */
+function RecordingBadge({ status, attachPreview }: { status: Recorder["status"]; attachPreview: Recorder["attachPreview"] }) {
+  const live = status === "live";
+  return (
+    <p className="ml-auto inline-flex items-center gap-2 rounded-full bg-ink-900 py-1 pr-3 pl-1 text-xs font-semibold text-white" role="status">
+      <span className="relative h-6 w-8 overflow-hidden rounded-full bg-ink-700">
+        <video ref={attachPreview} autoPlay muted playsInline className="size-full -scale-x-100 object-cover" />
+      </span>
+      <span aria-hidden className={cn("size-1.5 rounded-full", live ? "bg-white motion-safe:animate-pulse" : "bg-white/40")} />
+      {live ? "Recording" : "Camera off: this is noted"}
+    </p>
   );
 }
 

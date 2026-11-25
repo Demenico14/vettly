@@ -45,6 +45,8 @@ const LIMITS: Record<string, { max: number; windowMs: number }> = {
   "auth.acceptInvitation": { max: 10, windowMs: 10 * 60_000 },
   "candidateAccess.sendCode": { max: 5, windowMs: 60 * 60_000 },
   "candidateAccess.verify": { max: 20, windowMs: 10 * 60_000 },
+  // A recorded test sends a piece every 10 to 20 seconds; this allows several hours of tests an hour, and no flood.
+  "candidateAccess.uploadRecording": { max: 1_500, windowMs: 60 * 60_000 },
 };
 
 const g = globalThis as unknown as { __vettlyHits?: Map<string, number[]> };

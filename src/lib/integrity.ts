@@ -12,6 +12,7 @@ export function integrityNotes(i: TestIntegrity | undefined, fastAnswers = 0) {
   if (i?.pasteBlocked) notes.push(`tried to paste ${times(i.pasteBlocked)}`);
   if (i?.copyBlocked) notes.push(`tried to copy ${times(i.copyBlocked)}`);
   if (i?.shortcutsBlocked) notes.push(`used a blocked shortcut ${times(i.shortcutsBlocked)}`);
+  if (i?.cameraOff) notes.push(`camera stopped ${times(i.cameraOff)} during the recording`);
   if (fastAnswers) notes.push(`${fastAnswers} answer${fastAnswers === 1 ? "" : "s"} given in under two seconds`);
   return notes;
 }

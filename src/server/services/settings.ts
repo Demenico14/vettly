@@ -235,6 +235,14 @@ export const settingsService: SettingsService = {
       if ((b.letterFooter ?? "").length > 400) throw new Error("Keep the footer to 400 characters.");
       if (b.logoFileId) await checkLogo(b.logoFileId);
     }
+    if (section === "assessments") {
+      const rec = (value as OrgSettings["assessments"]).recording;
+      if (rec) {
+        if (!["off", "photos", "video"].includes(rec.mode)) throw new Error("Choose how candidates are recorded.");
+        if (!Number.isInteger(rec.keepDays) || rec.keepDays < 7 || rec.keepDays > 30) throw new Error("Keep recordings for 7 to 30 days after the application closes.");
+        if (rec.mode !== "video") rec.audio = false;
+      }
+    }
     if (section === "recruitment") {
       const r = value as OrgSettings["recruitment"];
       const total = Object.values(r.defaultWeights).reduce((s, n) => s + n, 0);

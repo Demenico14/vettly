@@ -66,7 +66,18 @@ These are worked out from the bitrate; browsers often record above the rate requ
 - **Photos**, one small JPEG (about 40 KB) every 20 seconds: about **6 MB per candidate**.
 - **Audio** roughly doubles how intrusive the recording feels, but it catches someone being told answers. Make it a separate setting, off by default.
 
-## What building it involves
+## What was built (branch `test-recording`, 25 November 2026)
+
+Built on the recommended settings, with one addition: whatever happens to the application, a recording is deleted at the latest **six months** after the test, so an application left open can't keep one indefinitely.
+
+- **Settings → Assessments → Recording during tests:** Don't record (default), a photo every 20 seconds, or video; sound with video (off by default); delete 7, 14 or 30 days after the application closes (default 30).
+- **Candidates:** a separate "Recording during your tests" choice on the consent screen, explaining what is recorded, who can watch, and when it is deleted. Declining is accepted, holds the tests, and tells HR in the activity log; the candidate can change their mind while nothing has been recorded. Before a recorded test there is a camera check (the test can't start until the camera is on, and "I can't use a camera" counts as declining), and a "Recording" badge with a small preview while the scored questions are open.
+- **Capture and storage:** photos at 320×240, or VP8/WebM (MP4 on Safari) at about 250 kbps in 10-second pieces, uploaded as the test goes, with retries, and flushed before the answers are sent. The server checks each piece's type and first bytes, its size (2 MB a piece, 400 MB an invitation), and that the candidate agreed and the test belongs to them. Pieces are stored at `{org}/recordings/{invitation}/{test}/{n}`, outside the general files table.
+- **HR:** a Recording panel on the test report: the candidate's choice; for each test, the number of photos or minutes of video and the size; the deletion date; View (logged, inline only, no downloads); Keep longer (1 to 90 days, with a reason); Let them test without recording (for decliners, with a reason); and Delete now (organisation admins, with a reason). A camera that stops mid-test appears in the test's "Test conditions" line.
+- **Deletion:** runs in the background for each organisation at most every three hours, triggered by that organisation's own activity. If an organisation is inactive, deletion waits until its next sign-in. A platform-wide scheduler would close that gap.
+- **Tests:** `tests/api/recording.test.ts` covers the settings limits, the choice and decline, the upload checks, playback access and logging, the deletion date after rejection, holds, and early deletion.
+
+## What building it involved (plan)
 
 - **Settings → Assessments:** "Record candidates during tests" (Off, Photos, Video), "Include sound" (off), "Keep recordings for" (7–30 days after the application closes, default 30), and the alternative offered to candidates who decline.
 - **Candidate flow:** a separate written opt-in for recording, with plain wording on who sees it and when it's deleted; a camera check before the timer starts; a visible recording indicator; and a "No, offer me another way" choice that tells HR.

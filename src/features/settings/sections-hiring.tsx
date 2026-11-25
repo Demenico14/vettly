@@ -7,7 +7,8 @@ import { ArrowDown, ArrowUp, Plus, X } from "@/components/icons";
 import { Button, Checkbox, Input, Select, SwitchField, Textarea } from "@/components/ui";
 import { Slider } from "@/components/ui/slider";
 import { TEST_BATTERIES } from "@/lib/onboarding";
-import type { AssessmentSettings } from "@/types/settings";
+import type { AssessmentSettings, RecordingSettings } from "@/types/settings";
+import { recordingSettings } from "@/lib/settings-defaults";
 import { cn } from "@/lib/utils";
 import { Group, Row, SaveBar, SectionSkeleton, useSection } from "./settings-shell";
 
@@ -124,6 +125,53 @@ const fill = (t: string, org: string) => {
   return t.replace(/\{\{(\w+)\}\}/g, (m, k: string) => vars[k] ?? m);
 };
 
+/**
+ * Recording candidates during tests. Off by default. When on, candidates give a separate written opt-in, can
+ * decline without losing their chance, and recordings are deleted 7 to 30 days after the application closes.
+ */
+function RecordingGroup({ value, onChange }: { value: RecordingSettings; onChange: (v: RecordingSettings) => void }) {
+  const on = value.mode !== "off";
+  return (
+    <Group
+      title="Recording during tests"
+      description="Off unless you turn it on. Candidates agree to it separately and in writing, can say no without losing their chance, and see when the recording will be deleted."
+    >
+      <Row label="Record candidates" hint="Only while the scored questions are open, never during practice.">
+        <Select
+          value={value.mode}
+          onValueChange={(v) => onChange({ ...value, mode: v as RecordingSettings["mode"], audio: v === "video" ? value.audio : false })}
+          options={[
+            { value: "off", label: "Don't record" },
+            { value: "photos", label: "A photo every 20 seconds", description: "About 6 MB per candidate. The least intrusive option." },
+            { value: "video", label: "Video", description: "Low resolution, about 100 MB per candidate for a 48-minute set of tests." },
+          ]}
+          className="max-w-sm"
+        />
+      </Row>
+      {on && (
+        <>
+          {value.mode === "video" && (
+            <Row label="Sound" hint="Catches someone being told answers, but is more intrusive. Off by default.">
+              <SwitchField label="Record sound with the video" checked={value.audio} onCheckedChange={(c) => onChange({ ...value, audio: c })} />
+            </Row>
+          )}
+          <Row label="Delete recordings" hint="Counted from when the application closes (hired, rejected or withdrawn), and at the latest six months after the test. You can keep one longer, with a reason, while looking into a concern.">
+            <Select
+              value={String(value.keepDays)}
+              onValueChange={(v) => onChange({ ...value, keepDays: Number(v) })}
+              options={[7, 14, 30].map((d) => ({ value: String(d), label: `${d} days after the application closes` }))}
+              className="max-w-sm"
+            />
+          </Row>
+          <Row label="Who can watch" hint="People whose role can see test reports. Every viewing is logged, and recordings can't be downloaded.">
+            <p className="text-sm text-fg-muted">Set in Roles and permissions, under See test reports.</p>
+          </Row>
+        </>
+      )}
+    </Group>
+  );
+}
+
 export function AssessmentsSection() {
   const org = useSession().organisation?.name ?? "Your organisation";
   const s = useSection("assessments");
@@ -165,6 +213,8 @@ export function AssessmentsSection() {
           <Input id="adj" value={a.adjustmentsContact} onChange={(e) => s.set("adjustmentsContact", e.target.value)} className="max-w-sm" />
         </Row>
       </Group>
+
+      <RecordingGroup value={recordingSettings(a)} onChange={(r) => s.set("recording", r)} />
 
       <Group
         title="Invitation messages"

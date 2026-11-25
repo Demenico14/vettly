@@ -16,6 +16,8 @@ import { sha256, sixDigits } from "../crypto";
 import { withOrg } from "../store";
 import { profileSnapshot } from "./candidates";
 import { recordConsent, recordOpen, runFor, saveProgress, submitTest } from "./assessments";
+import { MAX_PIECE_BYTES, MAX_RECORDING_BYTES, RECORDING_TYPES, candidateRecordingView, ensureRecording, recordingGate, recordingKey } from "./recordings";
+import { deleteObject, putObject } from "../storage";
 
 const FAMILY_TYPE: Record<string, CandidateTestAccess["tests"][number]["type"]> = {
   personality: "personality",
@@ -65,6 +67,7 @@ function cleanIntegrity(v: unknown): TestIntegrity | undefined {
     copyBlocked: count(o.copyBlocked),
     shortcutsBlocked: count(o.shortcutsBlocked),
     contextMenuBlocked: count(o.contextMenuBlocked),
+    cameraOff: count(o.cameraOff),
   };
 }
 
@@ -76,6 +79,7 @@ export const candidateAccessService: CandidateAccessService = {
       if (!run) throw new AuthError("token_invalid", "This test link is not valid.");
       const r = run.record;
       if (r.status === "sent" || r.status === "opened") recordOpen(r);
+      ensureRecording(r);
       const extra = Math.max(0, ...r.accommodations.map((a) => a.extraTimePercent ?? 0));
       const [local = "", domain = ""] = emailOf(r.candidateId).split("@");
       return {
@@ -99,6 +103,7 @@ export const candidateAccessService: CandidateAccessService = {
         })),
         extraTimePercent: extra,
         consented: !!r.consent,
+        recording: candidateRecordingView(r),
       } satisfies CandidateTestAccess;
     });
   },
@@ -149,6 +154,9 @@ export const candidateAccessService: CandidateAccessService = {
       const t = run?.tests.find((x) => x.id === testId);
       if (!run || !t) throw new AuthError("token_invalid", "This test isn't part of your invitation.");
       if (!run.record.consent) throw new AuthError("token_invalid", "Agree to how your results are used before starting.");
+      const gate = recordingGate(run.record);
+      if (gate === "choose") throw new AuthError("token_invalid", "Choose whether you agree to be recorded before starting.");
+      if (gate === "declined") throw new AuthError("token_invalid", `You chose not to be recorded. ${run.organisationName} will be in touch about another way to take this test.`);
       const own = run.items[testId] ?? [];
       // The item bank holds a short form of each test, topped up from sibling tests of the same kind.
       const siblings = tests.filter((x) => x.id !== t.id && (x.shortName === t.shortName || (x.family === t.family && x.itemFormat === t.itemFormat)));
@@ -172,8 +180,74 @@ export const candidateAccessService: CandidateAccessService = {
         practice: t.timeLimitMin ? practice : [],
         questions: (t.timeLimitMin ? questions : items).map(strip),
         fullLength: t.items,
+        recording: gate === "record" && run.record.recording ? { mode: run.record.recording.mode, audio: run.record.recording.audio } : null,
       };
     });
+  },
+
+  async recordingChoice(token, agree) {
+    await requireVerified(token);
+    const org = await orgOf(token);
+    await withOrg(org, null, () => {
+      const run = runFor(token);
+      if (!run) throw new AuthError("token_invalid", "This test link is not valid.");
+      const r = run.record;
+      ensureRecording(r);
+      const rec = r.recording;
+      if (!rec || rec.deleted) return;
+      // A candidate can change their mind towards agreeing; declining stays possible until they've been recorded.
+      if (agree === true) {
+        rec.choice = "agreed";
+        rec.choiceAt = new Date().toISOString();
+        r.audit.push({ at: rec.choiceAt, by: r.candidateName, action: "recording", detail: `Agreed in writing to ${rec.mode === "photos" ? "photos every 20 seconds" : rec.audio ? "video with sound" : "video without sound"} during the tests` });
+      } else if (rec.pieces.length === 0) {
+        rec.choice = "declined";
+        rec.choiceAt = new Date().toISOString();
+        r.audit.push({ at: rec.choiceAt, by: r.candidateName, action: "recording", detail: "Declined recording. Let them take the tests without it, or arrange a supervised session." });
+      }
+    });
+  },
+
+  async uploadRecording(token, testId, seq, mime, data) {
+    await requireVerified(token);
+    const org = await orgOf(token);
+    if (typeof testId !== "string" || typeof mime !== "string" || typeof data !== "string") throw new TypeError("Bad recording piece.");
+    if (!Number.isInteger(seq) || seq < 0 || seq > 20_000) throw new TypeError("Bad recording piece number.");
+    const type = mime.split(";")[0]!.trim().toLowerCase();
+    const allowed = RECORDING_TYPES[type];
+    if (!allowed) throw new Error("This kind of recording isn't accepted.");
+    const bytes = new Uint8Array(Buffer.from(data, "base64"));
+    if (bytes.byteLength === 0) return;
+    if (bytes.byteLength > MAX_PIECE_BYTES) throw new Error("That piece of the recording is too large.");
+    // Photos each start a new file; video continues one stream, so only its first piece carries the header.
+    if ((type === "image/jpeg" || seq === 0) && allowed.first && !allowed.first(bytes)) throw new Error("That piece of the recording isn't a valid file.");
+
+    const key = await withOrg(org, null, () => {
+      const run = runFor(token);
+      if (!run) throw new AuthError("token_invalid", "This test link is not valid.");
+      const r = run.record;
+      const rec = r.recording;
+      if (!rec || recordingGate(r) !== "record") throw new AuthError("token_invalid", "These tests aren't being recorded.");
+      if (!run.tests.some((t) => t.id === testId)) throw new AuthError("token_invalid", "This test isn't part of your invitation.");
+      if ((rec.mode === "photos") !== (type === "image/jpeg")) throw new Error("This kind of recording isn't accepted.");
+      // The last piece can arrive just after the answers; nothing comes in long after a test is finished.
+      const finished = r.attempts.find((a) => a.testId === testId)?.completedAt;
+      if (finished && Date.now() - new Date(finished).getTime() > 2 * 60_000) throw new Error("This test is finished.");
+      if (rec.pieces.some((p) => p.testId === testId && p.seq === seq)) return null;
+      if (rec.pieces.reduce((n, p) => n + p.bytes, 0) + bytes.byteLength > MAX_RECORDING_BYTES) throw new Error("The recording has reached its size limit.");
+      return { key: recordingKey(org, r.id, { testId, seq }), id: r.id };
+    });
+    if (!key) return;
+    await putObject(key.key, bytes, type);
+    const kept = await withOrg(org, null, () => {
+      const run = runFor(token);
+      const rec = run?.record.recording;
+      if (!rec || rec.deleted) return false;
+      if (!rec.pieces.some((p) => p.testId === testId && p.seq === seq)) rec.pieces.push({ testId, seq, mime: type, bytes: bytes.byteLength, at: new Date().toISOString() });
+      return true;
+    });
+    // Deleted while this piece was being stored: don't leave it behind.
+    if (!kept) await deleteObject(key.key).catch(() => {});
   },
 
   async saveProgress(token, testId, answered) {

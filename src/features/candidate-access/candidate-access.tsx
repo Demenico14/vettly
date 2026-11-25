@@ -107,10 +107,19 @@ export function CandidateAccess({ token }: { token: string }) {
             {PHASES.some((p) => p.id === phase) && <Progress phase={phase} />}
             {phase === "welcome" && <Welcome access={access} onNext={() => setPhase("verify")} />}
             {phase === "verify" && <Verify access={access} onNext={() => setPhase(access.consented ? "ready" : "consent")} />}
-            {phase === "consent" && <Consent access={access} onNext={() => setPhase("ready")} />}
+            {phase === "consent" && (
+              <Consent
+                access={access}
+                onNext={async () => {
+                  setLoad({ kind: "ok", access: await services.candidateAccess.open(access.token) });
+                  setPhase("ready");
+                }}
+              />
+            )}
             {phase === "ready" && (
               <Ready
                 access={access}
+                onChanged={async () => setLoad({ kind: "ok", access: await services.candidateAccess.open(access.token) })}
                 onStart={(id) => {
                   setRunning(id);
                   setPhase("run");
@@ -315,8 +324,10 @@ function Verify({ access, onNext }: { access: CandidateTestAccess; onNext: () =>
   );
 }
 
-function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () => void }) {
+function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () => void | Promise<void> }) {
   const [checks, setChecks] = React.useState({ data: false, own: false });
+  const asks = !!access.recording && access.recording.choice === null && !access.recording.waived;
+  const [rec, setRec] = React.useState<"agree" | "decline" | null>(null);
   const [error, setError] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   return (
@@ -359,9 +370,12 @@ function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () =
           }}
           label="I will complete the tests myself, without help"
         />
+        {asks && <RecordingChoice access={access} value={rec} onChange={(v) => (setRec(v), setError(false))} />}
         {error && (
           <p className="text-xs font-medium text-danger-700" role="alert">
-            Tick both boxes to continue. If you have questions, reply to your invitation email.
+            {asks && !rec && checks.data && checks.own
+              ? "Choose whether you agree to be recorded. Either answer is fine."
+              : "Tick both boxes to continue. If you have questions, reply to your invitation email."}
           </p>
         )}
       </div>
@@ -370,13 +384,14 @@ function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () =
         className="mt-7 w-full sm:w-auto"
         loading={busy}
         onClick={async () => {
-          if (!checks.data || !checks.own) {
+          if (!checks.data || !checks.own || (asks && !rec)) {
             setError(true);
             return;
           }
           setBusy(true);
           await services.candidateAccess.recordConsent(access.token);
-          onNext();
+          if (asks) await services.candidateAccess.recordingChoice(access.token, rec === "agree");
+          await onNext();
         }}
       >
         Agree and continue
@@ -385,7 +400,20 @@ function Consent({ access, onNext }: { access: CandidateTestAccess; onNext: () =
   );
 }
 
-function Ready({ access, onStart }: { access: CandidateTestAccess; onStart: (testId: string) => void }) {
+function Ready({ access, onStart, onChanged }: { access: CandidateTestAccess; onStart: (testId: string) => void; onChanged: () => Promise<void> }) {
+  const rec = access.recording;
+  const waiting = !!rec && !rec.waived && rec.choice !== "agreed";
+  const [choice, setChoice] = React.useState<"agree" | "decline" | null>(null);
+  const [busy, setBusy] = React.useState(false);
+  const choose = async (agree: boolean) => {
+    setBusy(true);
+    try {
+      await services.candidateAccess.recordingChoice(access.token, agree);
+      await onChanged();
+    } finally {
+      setBusy(false);
+    }
+  };
   const next = access.tests.find((t) => !t.done);
   const doneCount = access.tests.filter((t) => t.done).length;
   const mins = (t: CandidateTestAccess["tests"][number]) => (t.timed ? Math.round(t.minutes * (1 + access.extraTimePercent / 100)) : t.minutes);
@@ -411,6 +439,22 @@ function Ready({ access, onStart }: { access: CandidateTestAccess; onStart: (tes
           </li>
         )}
       </ul>
+      {rec && !rec.waived && rec.choice === null && (
+        <div className="mt-6 flex flex-col gap-4">
+          <RecordingChoice access={access} value={choice} onChange={setChoice} />
+          <Button className="self-start" disabled={!choice} loading={busy} onClick={() => choose(choice === "agree")}>
+            Save my choice
+          </Button>
+        </div>
+      )}
+      {rec && !rec.waived && rec.choice === "declined" && (
+        <Alert tone="info" title="You chose not to be recorded" className="mt-6">
+          That&apos;s fine, and it won&apos;t count against you. {access.organisationName} will be in touch about another way to take the tests.{" "}
+          <button type="button" disabled={busy} onClick={() => choose(true)} className="font-semibold underline">
+            Agree to be recorded instead
+          </button>
+        </Alert>
+      )}
       <ul className="mt-6 flex flex-col divide-y divide-line rounded-md border border-line">
         {access.tests.map((t) => (
           <li key={t.id ?? t.name} className="flex items-center justify-between gap-3 px-4 py-3">
@@ -426,7 +470,7 @@ function Ready({ access, onStart }: { access: CandidateTestAccess; onStart: (tes
                 Done
               </span>
             ) : (
-              <Button size="sm" variant={t === next ? "primary" : "secondary"} onClick={() => t.id && onStart(t.id)}>
+              <Button size="sm" variant={t === next ? "primary" : "secondary"} disabled={waiting} onClick={() => t.id && onStart(t.id)}>
                 {t.saved ? "Continue" : "Start"}
               </Button>
             )}
@@ -434,6 +478,50 @@ function Ready({ access, onStart }: { access: CandidateTestAccess; onStart: (tes
         ))}
       </ul>
     </Panel>
+  );
+}
+
+/** What recording means for this candidate, and their yes or no. Either answer is fine. */
+function RecordingChoice({ access, value, onChange }: { access: CandidateTestAccess; value: "agree" | "decline" | null; onChange: (v: "agree" | "decline") => void }) {
+  const rec = access.recording!;
+  const what = rec.mode === "photos" ? "a photo of you every 20 seconds" : rec.audio ? "video and sound of you" : "video of you, without sound";
+  const org = access.organisationName;
+  return (
+    <fieldset className="rounded-md border border-line p-4">
+      <legend className="px-1 text-sm font-semibold text-fg">Recording during your tests</legend>
+      <div className="text-sm leading-relaxed text-fg-muted">
+        <p>
+          {org} records {what} through your camera while the scored questions are open, not during practice. It helps them check that the work is your own.
+        </p>
+        <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
+          <li>Only people at {org} who can see your test results can watch it. Each viewing is logged, and it can&apos;t be downloaded.</li>
+          <li>
+            It&apos;s deleted {rec.keepDays} days after your application closes, and at the latest six months after your tests. You can ask {org} to delete it
+            sooner.
+          </li>
+          <li>You can say no. {org} will arrange another way for you to take the tests, and saying no won&apos;t count against you.</li>
+        </ul>
+      </div>
+      <div role="radiogroup" aria-label="Recording during your tests" className="mt-4 flex flex-col gap-2 sm:flex-row">
+        {(
+          [
+            ["agree", "I agree to be recorded"],
+            ["decline", "I'd rather not be recorded"],
+          ] as const
+        ).map(([v, label]) => (
+          <label
+            key={v}
+            className={cn(
+              "flex flex-1 cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm font-medium",
+              value === v ? "border-primary-500 bg-primary-50 text-fg" : "border-line text-fg-muted hover:bg-ink-50",
+            )}
+          >
+            <input type="radio" name="recording-choice" checked={value === v} onChange={() => onChange(v)} className="accent-primary-600" />
+            {label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
