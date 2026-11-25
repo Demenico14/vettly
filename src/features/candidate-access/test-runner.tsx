@@ -8,6 +8,7 @@ import type { CandidateTest } from "@/services";
 import type { SampleItem } from "@/types/psychometrics";
 import { cn } from "@/lib/utils";
 import { Stimulus } from "@/features/assessments/meta";
+import { TestFigure } from "@/features/assessments/figures";
 import { FAST_ANSWER_MS, useTestGuard } from "./test-guard";
 import { useTestRecorder } from "./test-recorder";
 
@@ -185,64 +186,98 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
   const last = index === items.length - 1;
   const correct = isPractice && practiceChecked ? item.answer === undefined || answers[item.id] === item.answer : null;
 
+  const format = test.itemFormat;
+  const wide = !!(item.figure || item.stimulus) && !format.startsWith("likert");
+  const onChange = (k: string, v: number) => {
+    // On timed tests, an answer within two seconds of the question appearing is counted as implausibly fast.
+    if (!isPractice && !questionnaire && Date.now() - shownAt.current < FAST_ANSWER_MS) fast.current.add(item.id);
+    setAnswers((a) => ({ ...a, [k]: v }));
+  };
+
   return (
     <Panel locked={!isPractice}>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold text-fg-subtle">
-          {isPractice ? "Practice · not scored" : `${test.name} · question ${index + 1} of ${items.length}`}
-        </p>
-        {!isPractice && test.recording && <RecordingBadge status={recorder.status} attachPreview={recorder.attachPreview} />}
-        {!isPractice && secondsLeft !== null && (
-          <p className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tabular", secondsLeft <= 60 ? "bg-danger-50 text-danger-700" : secondsLeft <= 300 ? "bg-warning-50 text-warning-700" : "bg-ink-100 text-fg-muted")}>
-            <Timer className="size-3.5" aria-hidden />
-            <span aria-hidden>
-              {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
-            </span>
-            <span className="sr-only">Time left: {Math.ceil(secondsLeft / 60)} minutes</span>
-          </p>
-        )}
+      {/* Top bar: where you are, and the clock. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-ink-900">{test.name}</p>
+          <p className="text-xs text-fg-subtle tabular">{isPractice ? "Practice question · not scored" : `Question ${index + 1} of ${items.length} · ${answered} answered`}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {!isPractice && test.recording && <RecordingBadge status={recorder.status} attachPreview={recorder.attachPreview} />}
+          {!isPractice && secondsLeft !== null && (
+            <p
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold tabular",
+                secondsLeft <= 60 ? "bg-danger-50 text-danger-700" : secondsLeft <= 300 ? "bg-warning-50 text-warning-700" : "bg-ink-100 text-ink-900",
+              )}
+            >
+              <Timer className="size-4" aria-hidden />
+              <span aria-hidden>
+                {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
+              </span>
+              <span className="sr-only">Time left: {Math.ceil(secondsLeft / 60)} minutes</span>
+            </p>
+          )}
+        </div>
       </div>
       <p className="sr-only" aria-live="assertive">
         {announce}
       </p>
+
+      {/* Question map: answered, current, and a way to jump back. */}
       {!isPractice && (
-        <div className="mt-3 h-1 overflow-hidden rounded-full bg-ink-100" role="progressbar" aria-label="Progress" aria-valuenow={answered} aria-valuemin={0} aria-valuemax={items.length}>
-          <div className="h-full rounded-full bg-primary-500 transition-[width] duration-300" style={{ width: `${(answered / items.length) * 100}%` }} />
+        <nav aria-label="Questions" className="mt-4 flex flex-wrap gap-1.5">
+          {items.map((q, i) => {
+            const done = isAnswered(q, answers, format);
+            return (
+              <button
+                key={q.id}
+                type="button"
+                onClick={() => setIndex(i)}
+                aria-current={i === index ? "step" : undefined}
+                aria-label={`Question ${i + 1}${done ? ", answered" : ""}`}
+                className={cn(
+                  "grid size-7 place-items-center rounded-md text-2xs font-semibold tabular transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500",
+                  i === index ? "bg-ink-900 text-white" : done ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : "bg-ink-100 text-fg-muted hover:bg-ink-200",
+                )}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      <div className={cn("mt-6", wide && "grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8")}>
+        {(item.figure || item.stimulus) && (
+          <div className={cn("flex flex-col gap-3", wide && "lg:sticky lg:top-6 lg:self-start")}>
+            {item.stimulus && <Stimulus text={item.stimulus} />}
+            {item.figure && <TestFigure figure={item.figure} alt={item.figureAlt} className={item.figure.kind === "shape" ? "max-w-[11rem]" : undefined} />}
+          </div>
+        )}
+        <div>
+          <h1 ref={heading} tabIndex={-1} className={cn("font-semibold text-ink-900 outline-none", format.startsWith("likert") ? "text-xl tracking-[-0.01em]" : "text-lg")}>
+            {item.prompt}
+          </h1>
+          <Answer item={item} format={format} answers={answers} onChange={onChange} disabled={isPractice && practiceChecked} />
+
+          {isPractice && practiceChecked && (
+            <div className={cn("mt-4 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm", correct ? "bg-success-50 text-success-700" : "bg-warning-50 text-warning-700")} role="status">
+              {correct ? <Check className="mt-0.5 size-4 shrink-0" /> : <X className="mt-0.5 size-4 shrink-0" />}
+              <span>
+                {correct ? "That's right." : `Not quite. The answer is ${item.optionFigures ? `option ${item.options?.[item.answer ?? 0]}` : `"${item.options?.[item.answer ?? 0]}"`}.`} {item.explanation}
+              </span>
+            </div>
+          )}
+          {error && (
+            <Alert tone="danger" title="Not sent" className="mt-4">
+              {error}
+            </Alert>
+          )}
         </div>
-      )}
+      </div>
 
-      {item.stimulus && <Stimulus text={item.stimulus} className="mt-5" />}
-      <h1 ref={heading} tabIndex={-1} className="mt-5 text-base font-semibold text-fg outline-none">
-        {item.prompt}
-      </h1>
-
-      <Answer
-        item={item}
-        format={test.itemFormat}
-        answers={answers}
-        onChange={(k, v) => {
-          // On timed tests, an answer within two seconds of the question appearing is counted as implausibly fast.
-          if (!isPractice && !questionnaire && Date.now() - shownAt.current < FAST_ANSWER_MS) fast.current.add(item.id);
-          setAnswers((a) => ({ ...a, [k]: v }));
-        }}
-        disabled={isPractice && practiceChecked}
-      />
-
-      {isPractice && practiceChecked && (
-        <div className={cn("mt-4 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm", correct ? "bg-success-50 text-success-700" : "bg-warning-50 text-warning-700")} role="status">
-          {correct ? <Check className="mt-0.5 size-4 shrink-0" /> : <X className="mt-0.5 size-4 shrink-0" />}
-          <span>
-            {correct ? "That's right." : `Not quite. The answer is "${item.options?.[item.answer ?? 0]}".`} {item.explanation}
-          </span>
-        </div>
-      )}
-      {error && (
-        <Alert tone="danger" title="Not sent" className="mt-4">
-          {error}
-        </Alert>
-      )}
-
-      <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
         <div className="flex gap-2">
           {index > 0 && !isPractice && (
             <Button variant="ghost" onClick={() => setIndex((i) => i - 1)}>
@@ -267,21 +302,21 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
           practiceChecked ? (
             <Button onClick={() => (last ? start() : (setIndex((i) => i + 1), setPracticeChecked(false)))}>{last ? "Start the test" : "Next practice question"}</Button>
           ) : (
-            <Button disabled={!isAnswered(item, answers, test.itemFormat)} onClick={() => setPracticeChecked(true)}>
+            <Button disabled={!isAnswered(item, answers, format)} onClick={() => setPracticeChecked(true)}>
               Check answer
             </Button>
           )
         ) : last ? (
-          <Button onClick={() => submit()} disabled={!isAnswered(item, answers, test.itemFormat) && questionnaire}>
-            Finish test
+          <Button onClick={() => submit()} disabled={!isAnswered(item, answers, format) && questionnaire}>
+            Finish test{!questionnaire && answered < items.length ? ` (${items.length - answered} unanswered)` : ""}
           </Button>
         ) : (
-          <Button onClick={() => setIndex((i) => i + 1)} disabled={questionnaire && !isAnswered(item, answers, test.itemFormat)}>
+          <Button onClick={() => setIndex((i) => i + 1)} disabled={questionnaire && !isAnswered(item, answers, format)}>
             Next
           </Button>
         )}
       </div>
-      {!isPractice && !questionnaire && <p className="mt-3 text-xs text-fg-subtle">You can skip a question and come back to it before you finish.</p>}
+      {!isPractice && !questionnaire && <p className="mt-3 text-xs text-fg-subtle">Skip a question and come back to it with the numbers above, any time before you finish.</p>}
     </Panel>
   );
 }
@@ -358,6 +393,26 @@ function Answer({ item, format, answers, onChange, disabled }: { item: SampleIte
   }
   const options = item.options ?? (format === "likert_7" ? LIKERT_7 : LIKERT_5);
   const scale = !item.options;
+  if (item.optionFigures) {
+    return (
+      <fieldset className={cn("mt-5 grid gap-3", item.optionFigures.length > 4 ? "grid-cols-3 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4")} disabled={disabled}>
+        <legend className="sr-only">{item.prompt}</legend>
+        {item.optionFigures.map((f, i) => (
+          <label
+            key={i}
+            className={cn(
+              "flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 bg-surface p-2.5 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-primary-500/30",
+              answers[item.id] === i ? "border-primary-600 bg-primary-50" : "border-line hover:border-ink-400",
+            )}
+          >
+            <input type="radio" name={name} className="sr-only" checked={answers[item.id] === i} onChange={() => onChange(item.id, i)} aria-label={`Option ${options[i]}`} />
+            <TestFigure figure={f} compact className="w-full max-w-[7rem]" />
+            <span className={cn("grid size-6 place-items-center rounded-full text-xs font-bold", answers[item.id] === i ? "bg-primary-600 text-white" : "bg-ink-100 text-ink-700")}>{options[i]}</span>
+          </label>
+        ))}
+      </fieldset>
+    );
+  }
   return (
     <fieldset className={cn("mt-4", scale ? "grid grid-cols-1 gap-2 sm:grid-cols-5" : "flex flex-col gap-2")} disabled={disabled}>
       <legend className="sr-only">{item.prompt}</legend>
@@ -370,7 +425,12 @@ function Answer({ item, format, answers, onChange, disabled }: { item: SampleIte
             answers[item.id] === i ? "border-primary-500 bg-primary-50 font-medium text-primary-900" : "border-line-strong text-fg hover:border-ink-400",
           )}
         >
-          <input type="radio" name={name} className="size-4 shrink-0 accent-(--color-primary-600)" checked={answers[item.id] === i} onChange={() => onChange(item.id, i)} />
+          <input type="radio" name={name} className={cn("size-4 shrink-0 accent-(--color-primary-600)", !scale && "sr-only")} checked={answers[item.id] === i} onChange={() => onChange(item.id, i)} />
+          {!scale && (
+            <span aria-hidden className={cn("grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold", answers[item.id] === i ? "bg-primary-600 text-white" : "bg-ink-100 text-ink-700")}>
+              {String.fromCharCode(65 + i)}
+            </span>
+          )}
           {o}
         </label>
       ))}

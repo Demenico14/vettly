@@ -1,0 +1,75 @@
+/**
+ * Personality: the 50 IPIP Big-Five Factor Markers (Goldberg, 1992), which are in the public domain
+ * (ipip.ori.org), with British spelling. Ten statements per trait, keyed + or −, answered on a five-point
+ * scale. `scale` holds the trait: es (emotional stability), ag, co, ex, op (intellect / openness).
+ * Two practice statements, not scored, come first.
+ */
+import type { BankItem } from "./util";
+
+const ITEMS: [string, "es" | "ag" | "co" | "ex" | "op", "+" | "-"][] = [
+  ["Am the life of the party.", "ex", "+"],
+  ["Feel little concern for others.", "ag", "-"],
+  ["Am always prepared.", "co", "+"],
+  ["Get stressed out easily.", "es", "-"],
+  ["Have a rich vocabulary.", "op", "+"],
+  ["Don't talk a lot.", "ex", "-"],
+  ["Am interested in people.", "ag", "+"],
+  ["Leave my belongings around.", "co", "-"],
+  ["Am relaxed most of the time.", "es", "+"],
+  ["Have difficulty understanding abstract ideas.", "op", "-"],
+  ["Feel comfortable around people.", "ex", "+"],
+  ["Insult people.", "ag", "-"],
+  ["Pay attention to details.", "co", "+"],
+  ["Worry about things.", "es", "-"],
+  ["Have a vivid imagination.", "op", "+"],
+  ["Keep in the background.", "ex", "-"],
+  ["Sympathise with others' feelings.", "ag", "+"],
+  ["Make a mess of things.", "co", "-"],
+  ["Seldom feel blue.", "es", "+"],
+  ["Am not interested in abstract ideas.", "op", "-"],
+  ["Start conversations.", "ex", "+"],
+  ["Am not interested in other people's problems.", "ag", "-"],
+  ["Get chores done right away.", "co", "+"],
+  ["Am easily disturbed.", "es", "-"],
+  ["Have excellent ideas.", "op", "+"],
+  ["Have little to say.", "ex", "-"],
+  ["Have a soft heart.", "ag", "+"],
+  ["Often forget to put things back in their proper place.", "co", "-"],
+  ["Get upset easily.", "es", "-"],
+  ["Do not have a good imagination.", "op", "-"],
+  ["Talk to a lot of different people at parties.", "ex", "+"],
+  ["Am not really interested in others.", "ag", "-"],
+  ["Like order.", "co", "+"],
+  ["Change my mood a lot.", "es", "-"],
+  ["Am quick to understand things.", "op", "+"],
+  ["Don't like to draw attention to myself.", "ex", "-"],
+  ["Take time out for others.", "ag", "+"],
+  ["Shirk my duties.", "co", "-"],
+  ["Have frequent mood swings.", "es", "-"],
+  ["Use difficult words.", "op", "+"],
+  ["Don't mind being the centre of attention.", "ex", "+"],
+  ["Feel others' emotions.", "ag", "+"],
+  ["Follow a schedule.", "co", "+"],
+  ["Get irritated easily.", "es", "-"],
+  ["Spend time reflecting on things.", "op", "+"],
+  ["Am quiet around strangers.", "ex", "-"],
+  ["Make people feel at ease.", "ag", "+"],
+  ["Am exacting in my work.", "co", "+"],
+  ["Often feel blue.", "es", "-"],
+  ["Am full of ideas.", "op", "+"],
+];
+
+export const personalityBank: BankItem[] = [
+  ...ITEMS.map(([text, scale, keyed], i): BankItem => ({
+    id: `ipip_${String(i + 1).padStart(2, "0")}`,
+    testId: "personality",
+    practice: false,
+    scale,
+    keyed,
+    prompt: text,
+    difficulty: 1,
+    source: "ipip",
+  })),
+  { id: "ipip_p1", testId: "personality", practice: true, prompt: "Enjoy a good meal with friends.", difficulty: 1, source: "original" },
+  { id: "ipip_p2", testId: "personality", practice: true, prompt: "Prefer tea to coffee.", difficulty: 1, source: "original" },
+];

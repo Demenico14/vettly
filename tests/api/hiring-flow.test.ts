@@ -125,6 +125,11 @@ describe.sequential("hiring flow", () => {
     let finished = false;
     for (const t of access.tests) {
       const test = await cand.ok<{ questions: Record<string, unknown>[]; practice: Record<string, unknown>[] }>("candidateAccess", "loadTest", s.token, t.id);
+      // Each candidate gets a set drawn from the test's bank, and the same set every time they open it.
+      expect(test.questions.length).toBeGreaterThanOrEqual(12);
+      expect(test.questions.length).toBeLessThanOrEqual(30);
+      const again = await cand.ok<{ questions: { id: string }[] }>("candidateAccess", "loadTest", s.token, t.id);
+      expect(again.questions.map((q) => q.id)).toEqual(test.questions.map((q) => q.id as string));
       for (const q of test.questions) for (const key of ["answer", "explanation", "keyed", "effectiveness"]) expect(q[key], `${t.id} leaks ${key}`).toBeUndefined();
       const answers = Object.fromEntries(test.questions.map((q) => [q.id as string, 1]));
       // The first test reports what the browser noticed, with values a tampered browser might send.
@@ -135,6 +140,13 @@ describe.sequential("hiring flow", () => {
 
     // Another browser with the same link but no code still can't load anything.
     expect((await new Client().call("candidateAccess", "loadTest", s.token, access.tests[0]!.id)).ok).toBe(false);
+  });
+
+  it("shows HR the size of each test's question bank", async () => {
+    const page = await hr.ok<{ bank: { size: number; perCandidate: number } | null; items: unknown[] }>("assessments", "test", "tst_num_prof");
+    expect(page.bank!.size).toBeGreaterThanOrEqual(50);
+    expect(page.bank!.size).toBeLessThanOrEqual(60);
+    expect(page.items.length).toBeGreaterThan(5);
   });
 
   it("scores the tests and feeds them into the match", async () => {

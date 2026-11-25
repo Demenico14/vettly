@@ -10,6 +10,8 @@ import { AuthError, type CandidateTestAccess } from "@/types";
 import { cn } from "@/lib/utils";
 import { useCountdown } from "@/features/auth/verify-email";
 import { TestRunner } from "./test-runner";
+import { TestFigure } from "@/features/assessments/figures";
+import type { Figure, Glyph } from "@/types/psychometrics";
 import { consentNotice } from "@/mocks/psychometrics";
 
 type Phase = "welcome" | "verify" | "consent" | "ready" | "run" | "done";
@@ -49,7 +51,7 @@ export function CandidateAccess({ token }: { token: string }) {
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
       <header className="border-b border-line bg-surface" style={{ borderTop: `4px solid ${access?.organisationColour ?? "var(--color-primary-600)"}` }}>
-        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5">
+        <div className={cn("mx-auto flex h-14 items-center justify-between px-5", phase === "run" || phase === "ready" ? "max-w-5xl" : "max-w-2xl")}>
           {access ? (
             <span className="flex min-w-0 items-center gap-2.5">
               {access.organisationLogoUrl && (
@@ -68,7 +70,7 @@ export function CandidateAccess({ token }: { token: string }) {
           </span>
         </div>
       </header>
-      <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-5 py-8 sm:py-12">
+      <main id="main" className={cn("mx-auto w-full flex-1 px-5 py-8 sm:py-12", phase === "run" || phase === "ready" ? "max-w-5xl" : "max-w-2xl")}>
         {load.kind === "loading" && <LoadingCard />}
         {load.kind === "error" && (
           <StatusCard
@@ -455,29 +457,113 @@ function Ready({ access, onStart, onChanged }: { access: CandidateTestAccess; on
           </button>
         </Alert>
       )}
-      <ul className="mt-6 flex flex-col divide-y divide-line rounded-md border border-line">
+      <h2 className="mt-8 text-sm font-semibold text-ink-900">Choose a test to start</h2>
+      <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {access.tests.map((t) => (
-          <li key={t.id ?? t.name} className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-fg">{t.name}</p>
-              <p className="text-xs text-fg-subtle">
-                {t.done ? "Finished" : t.saved ? `Saved part-way · ${t.saved} answered` : t.timed ? `${mins(t)} min, timed` : `About ${t.minutes} min, no time limit`}
-              </p>
-            </div>
-            {t.done ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-success-700">
-                <CircleCheck className="size-4" aria-hidden />
-                Done
-              </span>
-            ) : (
-              <Button size="sm" variant={t === next ? "primary" : "secondary"} disabled={waiting} onClick={() => t.id && onStart(t.id)}>
-                {t.saved ? "Continue" : "Start"}
-              </Button>
+          <li
+            key={t.id ?? t.name}
+            className={cn(
+              "flex flex-col overflow-hidden rounded-xl border bg-surface transition-shadow",
+              t.done ? "border-line opacity-80" : t === next ? "border-primary-500 shadow-platter" : "border-line hover:shadow-platter",
             )}
+          >
+            <div className="flex h-28 items-center justify-center bg-ink-50 px-4" aria-hidden>
+              <TestPreview id={t.id ?? ""} />
+            </div>
+            <div className="flex flex-1 flex-col p-4">
+              <p className="font-semibold text-ink-900">{t.name}</p>
+              <p className="mt-1 text-xs text-fg-subtle tabular">
+                {t.questions ? `${t.questions} questions · ` : ""}
+                {t.timed ? `${mins(t)} min, timed` : `about ${t.minutes} min, no time limit`}
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-2">
+                {t.done ? (
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-success-700">
+                    <CircleCheck className="size-4" aria-hidden />
+                    Done
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-xs text-fg-muted">{t.saved ? `Saved · ${t.saved} answered` : t === next ? "Suggested next" : ""}</span>
+                    <Button size="sm" variant={t === next ? "primary" : "secondary"} disabled={waiting} onClick={() => t.id && onStart(t.id)}>
+                      {t.saved ? "Continue" : "Start"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </li>
         ))}
       </ul>
     </Panel>
+  );
+}
+
+/** A small, decorative picture of what a test's questions look like, for its card. */
+function TestPreview({ id }: { id: string }) {
+  const g = (shape: Glyph["shape"], fill: Glyph["fill"], extra: Partial<Glyph> = {}): Glyph[] => [{ shape, fill, ...extra }];
+  const figure: Figure | null = id.startsWith("tst_num")
+    ? { kind: "bars", title: "", unit: "", categories: ["", "", "", ""], series: [{ name: "", values: [40, 65, 52, 80] }] }
+    : id === "tst_inductive"
+      ? { kind: "series", cells: [g("arrow", "solid"), g("arrow", "solid", { rot: 90 }), g("arrow", "solid", { rot: 180 }), null] }
+      : id === "tst_mechanical"
+        ? { kind: "gears", teeth: [20, 12, 16], driver: "cw" }
+        : id === "tst_spatial"
+          ? { kind: "shape", cells: [[0, 0], [1, 0], [1, 1], [2, 1], [1, 2]] }
+          : id === "tst_checking"
+            ? { kind: "pair", left: "ZW-4471-BQ", right: "ZW-4471-B0" }
+            : null;
+  if (figure?.kind === "bars")
+    return (
+      <span className="flex h-16 items-end gap-2">
+        {[40, 65, 52, 80].map((v, i) => (
+          <span key={i} className={cn("w-5 rounded-t-sm", i === 3 ? "bg-primary-600" : "bg-primary-300")} style={{ height: `${v}%` }} />
+        ))}
+      </span>
+    );
+  if (figure?.kind === "pair") return <span className="font-mono text-sm leading-6 text-ink-700">ZW-4471-BQ<br />ZW-4471-B0</span>;
+  if (figure) return <TestFigure figure={figure} compact className={figure.kind === "shape" ? "h-20 w-auto" : "h-20 w-auto max-w-full"} />;
+  if (/sjt/.test(id))
+    return (
+      <span className="flex w-full max-w-[12rem] flex-col gap-1.5">
+        <span className="h-2 w-4/5 rounded-full bg-ink-300" />
+        {[3, 1, 4, 2].map((e, i) => (
+          <span key={i} className="flex items-center gap-1.5">
+            <span className="h-1.5 flex-1 rounded-full bg-ink-200" />
+            {[1, 2, 3, 4].map((k) => (
+              <span key={k} className={cn("size-2 rounded-full", k === e ? "bg-primary-600" : "bg-ink-200")} />
+            ))}
+          </span>
+        ))}
+      </span>
+    );
+  if (/big_five|six_factor|work_styles|integrity|ei|motivation/.test(id))
+    return (
+      <span className="flex items-center gap-2">
+        {[0, 1, 2, 3, 4].map((k) => (
+          <span key={k} className={cn("rounded-full", k === 3 ? "size-5 bg-primary-600" : "size-4 bg-ink-200")} />
+        ))}
+      </span>
+    );
+  if (id === "tst_excel")
+    return (
+      <span className="grid grid-cols-3 gap-px overflow-hidden rounded-sm border border-line bg-line">
+        {Array.from({ length: 9 }, (_, k) => (
+          <span key={k} className={cn("h-4 w-10", k < 3 ? "bg-ink-100" : k === 7 ? "bg-primary-100" : "bg-surface")} />
+        ))}
+      </span>
+    );
+  return (
+    <span className="flex w-full max-w-[12rem] flex-col gap-1.5">
+      <span className="h-2 w-full rounded-full bg-ink-300" />
+      <span className="h-2 w-11/12 rounded-full bg-ink-200" />
+      <span className="h-2 w-4/5 rounded-full bg-ink-200" />
+      <span className="mt-1 flex gap-1.5">
+        {["True", "False", "?"].map((x, k) => (
+          <span key={x} className={cn("h-4 flex-1 rounded-sm", k === 0 ? "bg-primary-600" : "bg-ink-200")} />
+        ))}
+      </span>
+    </span>
   );
 }
 

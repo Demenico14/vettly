@@ -8,11 +8,18 @@ import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { IllustrativeNotice } from "@/components/domain/assessment";
 import { services } from "@/services";
 import type { Battery, NormGroup, SampleItem, Test } from "@/types/psychometrics";
+import { TestFigure } from "./figures";
 import { cn } from "@/lib/utils";
 import { FAMILY_SHORT, Stimulus } from "./meta";
 import { itemText, timeText } from "./test-library";
 
-type Data = { test: Test; norms: (NormGroup & { n: number; mean: number; sd: number })[]; items: SampleItem[]; usedIn: Battery[] };
+type Data = {
+  test: Test;
+  norms: (NormGroup & { n: number; mean: number; sd: number })[];
+  items: SampleItem[];
+  usedIn: Battery[];
+  bank: { label: string; size: number; pool: number; perCandidate: number; minutes: number | null; pictures: boolean } | null;
+};
 
 const FORMAT: Record<Test["itemFormat"], string> = {
   mcq: "Multiple choice",
@@ -106,7 +113,12 @@ export function TestDetail({ id }: { id: string }) {
                 ["Format", FORMAT[t.itemFormat]],
                 ["Delivery", DELIVERY[t.delivery]],
                 ["Practice questions", t.practiceItems ? `${t.practiceItems}, untimed` : "None"],
-                ["Question bank", `${t.itemBankSize} items`],
+                [
+                  "Question bank",
+                  data.bank
+                    ? `${data.bank.size} questions${data.bank.pool < data.bank.size ? ` (${data.bank.pool} at this level)` : ""}, ${data.bank.perCandidate} drawn at random for each candidate${data.bank.minutes ? ` in ${data.bank.minutes} min` : ""}`
+                    : `${t.itemBankSize} items`,
+                ],
                 ["Calculator", t.calculatorAllowed ? "Allowed" : "Not needed"],
                 ["Devices", t.mobileSupported ? "Phone, tablet or computer" : "Computer or tablet"],
               ].map(([k, v]) => (
@@ -310,18 +322,29 @@ function SampleItems({ items }: { items: SampleItem[] }) {
   const [shown, setShown] = React.useState<Set<string>>(new Set());
   return (
     <Card>
-      <CardHeader title="Sample questions" description="Practice questions candidates see before the timed section, and example statements." />
+      <CardHeader title="Sample questions" description="A spread of questions from the bank, and the practice question candidates see first. Answers are hidden until you show them." />
       <ol className="flex flex-col divide-y divide-line border-t border-line">
         {items.map((it, n) => (
           <li key={it.id} className="px-5 py-4 sm:px-6">
             <p className="text-xs font-semibold text-fg-subtle">
-              {it.practice ? "Practice question" : "Example statement"} {n + 1}
+              {it.practice ? "Practice question" : it.keyed ? "Example statement" : "Sample question"} {n + 1}
               {it.source === "ipip" && " · IPIP, public domain"}
             </p>
             {it.stimulus && <Stimulus text={it.stimulus} className="mt-2" />}
+            {it.figure && <TestFigure figure={it.figure} alt={it.figureAlt} className={cn("mt-2", it.figure.kind === "shape" ? "max-w-[9rem]" : "max-w-xl")} />}
             <p className="mt-2 text-sm font-medium text-fg">{it.prompt}</p>
+            {it.optionFigures && (
+              <ul className="mt-2 grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-5">
+                {it.optionFigures.map((f, i) => (
+                  <li key={i} className={cn("flex flex-col items-center gap-1 rounded-md border p-1.5", shown.has(it.id) && it.answer === i ? "border-primary-500 bg-primary-50" : "border-line")}>
+                    <TestFigure figure={f} compact className="w-full max-w-[5rem]" />
+                    <span className="text-2xs font-semibold text-fg-muted">{it.options?.[i]}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             {it.keyed && !it.options && <p className="mt-1 text-xs text-fg-subtle">Rated from very inaccurate to very accurate · {it.keyed === "+" ? "agreement scores higher" : "agreement scores lower"}</p>}
-            {it.options && (
+            {it.options && !it.optionFigures && (
               <ul className="mt-2 flex flex-col gap-1">
                 {it.options.map((o, i) => {
                   const correct = shown.has(it.id) && (it.answer === i || (it.effectiveness && it.effectiveness[i] === 4));

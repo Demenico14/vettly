@@ -7,6 +7,8 @@
 import "server-only";
 import { orgEmail } from "../org-mail";
 import { integrityNotes } from "@/lib/integrity";
+import { BANKS, bankItem, bankKindOf, formSize, poolFor, practiceFor, timeLimitFor } from "../test-bank";
+import { scoreForm } from "../test-bank/score";
 import type { ApplicationStage, TestInvitationSummary } from "@/types";
 import type {
   Battery,
@@ -178,9 +180,21 @@ export interface SendResult {
   skipped: { name: string; reason: string }[];
 }
 
+/** A test's question bank, for HR's test page. */
+export interface TestBankInfo {
+  label: string;
+  /** Scored questions in the bank. */
+  size: number;
+  /** Questions that suit this test's level or theme. */
+  pool: number;
+  perCandidate: number;
+  minutes: number | null;
+  pictures: boolean;
+}
+
 export interface AssessmentsService {
   library(): Promise<{ tests: Test[]; families: typeof families; normGroups: NormGroup[] }>;
-  test(id: string): Promise<{ test: Test; norms: (NormGroup & { n: number; mean: number; sd: number })[]; items: SampleItem[]; usedIn: Battery[] }>;
+  test(id: string): Promise<{ test: Test; norms: (NormGroup & { n: number; mean: number; sd: number })[]; items: SampleItem[]; usedIn: Battery[]; bank: TestBankInfo | null }>;
   batteries(): Promise<(Battery & { custom?: boolean })[]>;
   saveBattery(draft: BatteryDraft): Promise<Battery>;
   deleteBattery(id: string): Promise<void>;
@@ -308,7 +322,21 @@ export const assessmentsService: AssessmentsService = {
       const total = rows.find((r) => !r.scale) ?? rows[0]!;
       return { ...g, n: total.n, mean: total.mean, sd: total.sd };
     });
-    return clone({ test, norms, items: sampleItems.filter((i) => i.testId === id), usedIn: allBatteries().filter((b) => b.components.some((c) => c.testId === id)) });
+    const kind = bankKindOf(id);
+    const pool = kind ? poolFor(test) : [];
+    const step = Math.max(1, Math.ceil(pool.length / 8));
+    const items = kind ? [...practiceFor(id).slice(0, 1), ...pool.filter((_, i) => i % step === 0).slice(0, 8)] : sampleItems.filter((i) => i.testId === id);
+    const bank: TestBankInfo | null = kind
+      ? {
+          label: BANKS[kind].label,
+          size: BANKS[kind].items.filter((i) => !i.practice).length,
+          pool: pool.length,
+          perCandidate: formSize(test),
+          minutes: timeLimitFor(test, formSize(test)),
+          pictures: BANKS[kind].pictures,
+        }
+      : null;
+    return clone({ test, norms, items, usedIn: allBatteries().filter((b) => b.components.some((c) => c.testId === id)), bank });
   },
   async batteries() {
     return clone(allBatteries());
@@ -517,7 +545,11 @@ export function submitTest(r: InvitationRecord, testId: string, answers: Record<
   if (noted.length) audit(r, "noticed", `${testId}: ${noted.join("; ")}`, r.candidateName);
   const norm = t.defaultNorm;
   let result: TestResult;
-  if (t.family === "personality" || t.family === "integrity" || t.family === "emotional_intelligence" || t.family === "motivation") {
+  // Sets drawn from the question banks are scored from the bank; older invitations keep the sample scoring.
+  const form = (r.forms?.[testId] ?? []).map((id) => bankItem(id)).filter((x): x is NonNullable<typeof x> => !!x);
+  if (form.length) {
+    result = scoreForm(t, form, answers);
+  } else if (t.family === "personality" || t.family === "integrity" || t.family === "emotional_intelligence" || t.family === "motivation") {
     result = {
       testId,
       scores: t.scales.map((sc, i) => {

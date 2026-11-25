@@ -226,6 +226,36 @@ export interface ReportTemplate {
   releasedViaPractitioner: boolean;
 }
 
+/* ---------- Pictures in questions ---------- */
+
+/** One symbol in a pattern question. */
+export interface Glyph {
+  shape: "circle" | "square" | "triangle" | "diamond" | "pentagon" | "hexagon" | "star" | "cross" | "arrow";
+  fill: "none" | "solid" | "half";
+  /** Degrees clockwise. */
+  rot?: number;
+  /** How many copies, laid out in the cell. */
+  count?: number;
+}
+
+/**
+ * A picture in a question, described as data and drawn in the browser (src/features/assessments/figures.tsx),
+ * so questions stay small, accessible and easy to check, and no image can carry its answer in a file name.
+ */
+export type Figure =
+  | { kind: "bars"; title: string; unit: string; categories: string[]; series: { name: string; values: number[] }[] }
+  | { kind: "table"; title: string; head: string[]; rows: (string | number)[][] }
+  | { kind: "matrix"; cells: (Glyph[] | null)[] }
+  | { kind: "series"; cells: (Glyph[] | null)[] }
+  | { kind: "glyphs"; glyphs: Glyph[] }
+  | { kind: "shape"; cells: [number, number][]; label?: string }
+  | { kind: "gears"; teeth: number[]; driver: "cw" | "ccw"; rpm?: number }
+  | { kind: "lever"; length: number; fulcrum: number; loads: { at: number; label: string }[] }
+  | { kind: "pulley"; ropes: number; load: string }
+  | { kind: "belt"; crossed: boolean; driver: "cw" | "ccw" }
+  | { kind: "pair"; left: string; right: string }
+  | { kind: "sheet"; cols: string[]; rows: (string | number)[][] };
+
 export interface SampleItem {
   id: string;
   testId: string;
@@ -242,6 +272,18 @@ export interface SampleItem {
   effectiveness?: number[];
   explanation?: string;
   source: "original" | "ipip";
+  /** A picture shown with the question (a chart, a grid of shapes, a machine). */
+  figure?: Figure;
+  /** Pictures as the answer options, in the same order as `options` (which then hold their labels). */
+  optionFigures?: Figure[];
+  /** Words for screen readers describing the picture. */
+  figureAlt?: string;
+  /** 1 easy, 2 medium, 3 hard. Levels draw from the part of the bank that suits them. */
+  difficulty?: 1 | 2 | 3;
+  /** How this question is answered, when it differs from its test's usual format. */
+  format?: ItemFormat;
+  /** Finer grouping inside a bank, for example the kind of judgement scenario. */
+  tags?: string[];
 }
 
 export interface ComplianceRequirement {
@@ -424,6 +466,8 @@ export interface InvitationRecord {
   progress?: Record<string, number>;
   /** Present when the organisation records candidates during tests. */
   recording?: TestRecording;
+  /** The questions each test drew from its bank for this candidate, fixed once drawn. */
+  forms?: Record<string, string[]>;
   isMock: true;
 }
 
