@@ -16,6 +16,7 @@ import { sha256, sixDigits } from "../crypto";
 import { withOrg } from "../store";
 import { profileSnapshot } from "./candidates";
 import { recordConsent, recordOpen, runFor, saveProgress, submitTest } from "./assessments";
+import { bankItem, bankKindOf, drawForm, forCandidate, formSize, practiceFor, timeLimitFor } from "../test-bank";
 import { MAX_PIECE_BYTES, MAX_RECORDING_BYTES, RECORDING_TYPES, candidateRecordingView, ensureRecording, recordingGate, recordingKey } from "./recordings";
 import { deleteObject, putObject } from "../storage";
 
@@ -98,8 +99,10 @@ export const candidateAccessService: CandidateAccessService = {
           saved: r.progress?.[t.id],
           name: t.name.replace(/ · .*$/, ""),
           type: t.id.includes("num") ? "numerical" : t.id.includes("verb") ? "verbal" : FAMILY_TYPE[t.family] ?? "cognitive",
-          minutes: t.timeLimitMin ?? t.medianCompletionMin,
+          minutes: bankKindOf(t.id) ? (timeLimitFor(t, formSize(t)) ?? Math.max(5, Math.round((t.medianCompletionMin * formSize(t)) / Math.max(1, t.items)))) : (t.timeLimitMin ?? t.medianCompletionMin),
           timed: t.timeLimitMin !== null,
+          questions: bankKindOf(t.id) ? formSize(t) : t.items,
+          kind: t.family,
         })),
         extraTimePercent: extra,
         consented: !!r.consent,
@@ -157,6 +160,29 @@ export const candidateAccessService: CandidateAccessService = {
       const gate = recordingGate(run.record);
       if (gate === "choose") throw new AuthError("token_invalid", "Choose whether you agree to be recorded before starting.");
       if (gate === "declined") throw new AuthError("token_invalid", `You chose not to be recorded. ${run.organisationName} will be in touch about another way to take this test.`);
+      // Banked tests: the candidate's set is drawn once from the test's bank and kept on the invitation.
+      if (bankKindOf(t.id)) {
+        const r = run.record;
+        r.forms = { ...(r.forms ?? {}) };
+        r.forms[testId] ??= drawForm(t, r.id);
+        const form = r.forms[testId]!.map((id) => bankItem(id)).filter((x): x is NonNullable<typeof x> => !!x);
+        const practice = t.timeLimitMin ? practiceFor(t.id).slice(0, 2) : [];
+        return {
+          id: t.id,
+          name: t.name.replace(/ · .*$/, ""),
+          family: t.family,
+          instructions: t.candidateDescription,
+          timeLimitMin: timeLimitFor(t, form.length),
+          extraTimePercent: Math.max(0, ...r.accommodations.map((a) => a.extraTimePercent ?? 0)),
+          calculatorAllowed: t.calculatorAllowed,
+          // The three personality tests share one bank of rating-scale statements.
+          itemFormat: bankKindOf(t.id) === "personality" ? "likert_5" : t.itemFormat,
+          practice: practice.map((p) => ({ ...p, testId: t.id })),
+          questions: form.map((q) => ({ ...forCandidate(q), testId: t.id })),
+          fullLength: form.length,
+          recording: gate === "record" && r.recording ? { mode: r.recording.mode, audio: r.recording.audio } : null,
+        };
+      }
       const own = run.items[testId] ?? [];
       // The item bank holds a short form of each test, topped up from sibling tests of the same kind.
       const siblings = tests.filter((x) => x.id !== t.id && (x.shortName === t.shortName || (x.family === t.family && x.itemFormat === t.itemFormat)));

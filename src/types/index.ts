@@ -165,6 +165,10 @@ export interface CandidateTestAccess {
     done?: boolean;
     /** Questions answered so far on an untimed test that was saved part-way. */
     saved?: number;
+    /** Questions in the candidate's set. */
+    questions?: number;
+    /** The test's family, for its card. */
+    kind?: string;
   }[];
   extraTimePercent: number;
   /** Consent was already given on an earlier visit. */
