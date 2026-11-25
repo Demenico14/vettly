@@ -8,6 +8,7 @@ import type { CandidateTest } from "@/services";
 import type { SampleItem } from "@/types/psychometrics";
 import { cn } from "@/lib/utils";
 import { Stimulus } from "@/features/assessments/meta";
+import { FAST_ANSWER_MS, useTestGuard } from "./test-guard";
 
 type Phase = "intro" | "practice" | "questions" | "submitting";
 const LIKERT_5 = ["Very inaccurate", "Moderately inaccurate", "Neither", "Moderately accurate", "Very accurate"];
@@ -30,6 +31,10 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
   const [secondsLeft, setSecondsLeft] = React.useState<number | null>(null);
   const [announce, setAnnounce] = React.useState("");
   const heading = React.useRef<HTMLHeadingElement>(null);
+  // Integrity: blocks copy, paste and inspect shortcuts and notes window switches while scored questions are open.
+  const readIntegrity = useTestGuard(phase === "questions");
+  const shownAt = React.useRef(0);
+  const fast = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
     services.candidateAccess
@@ -46,7 +51,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
       setPhase("submitting");
       try {
         const minutes = Math.max(1, Math.round(((startedAt ? Date.now() - startedAt : 60000) / 60000) * 10) / 10);
-        const allDone = await services.candidateAccess.submit(token, test.id, answers, minutes);
+        const allDone = await services.candidateAccess.submit(token, test.id, answers, minutes, readIntegrity(), fast.current.size);
         if (timedOut) toast.info("Time's up", "Your answers so far have been saved.");
         onFinished(allDone);
       } catch (e) {
@@ -54,7 +59,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
         setPhase("questions");
       }
     },
-    [test, token, answers, startedAt, onFinished],
+    [test, token, answers, startedAt, onFinished, readIntegrity],
   );
 
   // Countdown for timed tests. Pauses are server-side in production; here it simply runs.
@@ -74,6 +79,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
 
   React.useEffect(() => {
     heading.current?.focus();
+    shownAt.current = Date.now();
   }, [phase, index]);
 
   if (error && !test)
@@ -115,6 +121,11 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
               <Info className="mt-0.5 size-4 shrink-0 text-primary-700" />A calculator, pen and paper are allowed.
             </li>
           )}
+          <li className="flex gap-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-primary-700" />
+            While the questions are open, copy, paste and some keyboard shortcuts are turned off, and leaving this window is noted. The recruitment team sees what was
+            noted, as something to talk about with you, not as a verdict.
+          </li>
           {questionnaire && (
             <li className="flex gap-3">
               <Info className="mt-0.5 size-4 shrink-0 text-primary-700" />
@@ -159,7 +170,7 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
   const correct = isPractice && practiceChecked ? item.answer === undefined || answers[item.id] === item.answer : null;
 
   return (
-    <Panel>
+    <Panel locked={!isPractice}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-semibold text-fg-subtle">
           {isPractice ? "Practice · not scored" : `${test.name} · question ${index + 1} of ${items.length}`}
@@ -188,7 +199,17 @@ export function TestRunner({ token, testId, onExit, onFinished }: { token: strin
         {item.prompt}
       </h1>
 
-      <Answer item={item} format={test.itemFormat} answers={answers} onChange={(k, v) => setAnswers((a) => ({ ...a, [k]: v }))} disabled={isPractice && practiceChecked} />
+      <Answer
+        item={item}
+        format={test.itemFormat}
+        answers={answers}
+        onChange={(k, v) => {
+          // On timed tests, an answer within two seconds of the question appearing is counted as implausibly fast.
+          if (!isPractice && !questionnaire && Date.now() - shownAt.current < FAST_ANSWER_MS) fast.current.add(item.id);
+          setAnswers((a) => ({ ...a, [k]: v }));
+        }}
+        disabled={isPractice && practiceChecked}
+      />
 
       {isPractice && practiceChecked && (
         <div className={cn("mt-4 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm", correct ? "bg-success-50 text-success-700" : "bg-warning-50 text-warning-700")} role="status">
@@ -340,8 +361,8 @@ function Answer({ item, format, answers, onChange, disabled }: { item: SampleIte
   );
 }
 
-function Panel({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-line bg-surface p-6 sm:p-8">{children}</div>;
+function Panel({ children, locked = false }: { children: React.ReactNode; locked?: boolean }) {
+  return <div className={cn("rounded-lg border border-line bg-surface p-6 sm:p-8", locked && "select-none")}>{children}</div>;
 }
 
 function BackButton({ onClick }: { onClick: () => void }) {

@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRightLeft, BadgeCheck, Bell, ChatText, Flag, RefreshCw, Sparkles, TriangleAlert, UserRound } from "@/components/icons";
+import { ArrowLeft, ArrowRightLeft, BadgeCheck, Bell, ChatText, CircleCheck, Flag, RefreshCw, Sparkles, TriangleAlert, UserRound } from "@/components/icons";
 import { Alert, Button, Card, CardHeader, Input, Segmented, Skeleton, Switch, Textarea, toast } from "@/components/ui";
 import { PageContainer, PageTitle } from "@/components/layout/page-header";
 import { IllustrativeNotice } from "@/components/domain/assessment";
 import { services, MOCK_NOW, type InvitationView, type ScoredResult } from "@/services";
-import type { NormGroup, Test } from "@/types/psychometrics";
+import type { Attempt, NormGroup, Test } from "@/types/psychometrics";
+import { integrityNotes } from "@/lib/integrity";
 import { BAND_LABEL } from "@/lib/psychometrics";
 import { cn, ordinal, timeAgo } from "@/lib/utils";
 import { InvitationBadge, PercentileBar, StenScale, day, dayTime } from "./meta";
@@ -207,10 +208,17 @@ const ACTION: Record<string, string> = {
   note: "Note added",
   flagged: "Concern",
   expired: "Expired",
+  noticed: "Noticed during test",
 };
 
 function prettyDetail(d: string, testOf: (id: string) => Test) {
-  return d.startsWith("tst_") ? (testOf(d)?.name ?? d) : d;
+  if (!d.startsWith("tst_")) return d;
+  // "tst_id" alone, or "tst_id: what was noticed".
+  const cut = d.indexOf(": ");
+  const id = cut < 0 ? d : d.slice(0, cut);
+  const rest = cut < 0 ? "" : d.slice(cut + 2);
+  const name = testOf(id)?.name ?? id;
+  return rest ? `${name}: ${rest}` : name;
 }
 
 function StatusPanel({ v, pending, onChanged }: { v: InvitationView; pending: Test[]; onChanged: () => void }) {
@@ -263,7 +271,7 @@ function StatusPanel({ v, pending, onChanged }: { v: InvitationView; pending: Te
   );
 }
 
-function ResultCard({ res, test, norm, attempt }: { res: ScoredResult; test: Test; norm?: NormGroup; attempt?: { completedAt: string | null; device: string; disconnects: number } }) {
+function ResultCard({ res, test, norm, attempt }: { res: ScoredResult; test: Test; norm?: NormGroup; attempt?: Attempt }) {
   const profile = QUESTIONNAIRE.includes(test.family);
   const s = res.scored[0]!;
   return (
@@ -315,7 +323,29 @@ function ResultCard({ res, test, norm, attempt }: { res: ScoredResult; test: Tes
           {res.flags.join(" ")}
         </p>
       )}
+      {attempt?.integrity && <TestConditions attempt={attempt} />}
     </Card>
+  );
+}
+
+/** What the browser noticed while this test was taken. Prompts for the interview, never proof of cheating. */
+function TestConditions({ attempt }: { attempt: Attempt }) {
+  const notes = integrityNotes(attempt.integrity, attempt.fastResponseFlags);
+  return (
+    <div className="border-t border-line px-5 py-3 text-xs sm:px-6">
+      <p className="flex items-start gap-1.5 text-fg-muted">
+        {notes.length ? (
+          <TriangleAlert className="mt-px size-3.5 shrink-0 text-warning-600" aria-hidden />
+        ) : (
+          <CircleCheck className="mt-px size-3.5 shrink-0 text-success-600" aria-hidden />
+        )}
+        <span>
+          <span className="font-semibold text-fg">Test conditions: </span>
+          {notes.length ? `The candidate ${notes.join(", ")}.` : "nothing unusual was noticed."}{" "}
+          <span className="text-fg-subtle">Unsupervised online test. Copy, paste and inspect shortcuts were blocked. Treat anything noted as a question to ask, not proof.</span>
+        </span>
+      </p>
+    </div>
   );
 }
 

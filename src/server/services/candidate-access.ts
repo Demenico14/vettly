@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import type { CandidateAccessService } from "@/services/contracts";
 import type { CandidateTestAccess } from "@/types";
+import type { TestIntegrity } from "@/types/psychometrics";
 import { AuthError } from "@/types";
 import { sampleItems, tests } from "@/mocks/psychometrics";
 import { db, ready, schema, sql } from "../db";
@@ -47,6 +48,24 @@ async function requireVerified(token: string) {
 
 function emailOf(candidateId: string) {
   return profileSnapshot().find((c) => c.id === candidateId)?.email ?? "";
+}
+
+/** A whole number from 0 to `max`, whatever the browser sent: the browser is never trusted. */
+function count(v: unknown, max = 10_000) {
+  return typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : 0;
+}
+
+function cleanIntegrity(v: unknown): TestIntegrity | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const o = v as Record<string, unknown>;
+  return {
+    leftWindow: count(o.leftWindow),
+    awaySeconds: count(o.awaySeconds, 24 * 3600),
+    pasteBlocked: count(o.pasteBlocked),
+    copyBlocked: count(o.copyBlocked),
+    shortcutsBlocked: count(o.shortcutsBlocked),
+    contextMenuBlocked: count(o.contextMenuBlocked),
+  };
 }
 
 export const candidateAccessService: CandidateAccessService = {
@@ -166,7 +185,7 @@ export const candidateAccessService: CandidateAccessService = {
     });
   },
 
-  async submit(token, testId, answers, minutes) {
+  async submit(token, testId, answers, minutes, integrity, fastAnswers) {
     await requireVerified(token);
     const org = await orgOf(token);
     return withOrg(org, null, () => {
@@ -175,7 +194,7 @@ export const candidateAccessService: CandidateAccessService = {
       if (run.record.status === "expired" || run.record.status === "cancelled") throw new AuthError("token_expired", "This invitation has closed.");
       if (!run.tests.some((t) => t.id === testId)) throw new AuthError("token_invalid", "This test isn't part of your invitation.");
       if (run.record.results.some((r) => r.testId === testId)) throw new AuthError("token_expired", "You've already finished this test.");
-      return submitTest(run.record, testId, answers, Math.max(1, Math.min(240, Math.round(minutes))), "desktop");
+      return submitTest(run.record, testId, answers, Math.max(1, Math.min(240, Math.round(minutes))), "desktop", cleanIntegrity(integrity), count(fastAnswers));
     });
   },
 };

@@ -290,6 +290,24 @@ export interface Accommodation {
   note: string;
 }
 
+/**
+ * What the candidate's browser noticed during an unsupervised online test. These are prompts to discuss at
+ * interview, never proof of cheating and never a reason to reject on their own.
+ */
+export interface TestIntegrity {
+  /** Times the candidate switched tab, app or window. */
+  leftWindow: number;
+  /** Total seconds spent away from the test. */
+  awaySeconds: number;
+  /** Paste, copy and cut attempts that were blocked. */
+  pasteBlocked: number;
+  copyBlocked: number;
+  /** Developer-tools, view-source, save, print and select-all shortcuts that were blocked. */
+  shortcutsBlocked: number;
+  /** Right-click menu attempts that were blocked. */
+  contextMenuBlocked: number;
+}
+
 export interface Attempt {
   testId: string;
   startedAt: string;
@@ -301,6 +319,8 @@ export interface Attempt {
   fastResponseFlags: number;
   supervised: boolean;
   device: "mobile" | "desktop" | "tablet";
+  /** Present for tests taken since integrity checks were added. */
+  integrity?: TestIntegrity;
 }
 
 export interface ScaleScore {
@@ -331,7 +351,7 @@ export interface HrReview {
   notes: { by: string; at: string; body: string }[];
 }
 
-export type AuditAction = "sent" | "delivered" | "delivery_failed" | "opened" | "consented" | "started" | "completed" | "reminded" | "extended" | "cancelled" | "resent" | "restored" | "reviewed" | "note" | "flagged" | "expired";
+export type AuditAction = "sent" | "delivered" | "delivery_failed" | "opened" | "consented" | "started" | "completed" | "reminded" | "extended" | "cancelled" | "resent" | "restored" | "reviewed" | "note" | "flagged" | "expired" | "noticed";
 
 export interface AuditEntry {
   at: string;
