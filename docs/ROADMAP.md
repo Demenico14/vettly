@@ -48,6 +48,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | App refresh, first pass | Approved |
 | — | App refresh, second pass | Approved |
 | — | Psychometric test integrity | Approved |
+| — | Recording during tests | Approved |
 
 ---
 
