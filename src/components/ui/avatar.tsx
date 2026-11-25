@@ -1,12 +1,13 @@
 import * as React from "react";
 import { cn, hashString, initials } from "@/lib/utils";
 
+/** Neutral and brand tints only: leaf green, ochre and copper keep their meanings (confirmed, warning, unreviewed AI). */
 const TINTS = [
   "bg-primary-100 text-primary-800",
   "bg-secondary-100 text-secondary-700",
   "bg-primary-50 text-primary-700",
-  "bg-success-100 text-success-700",
-  "bg-warning-100 text-warning-700",
+  "bg-ink-100 text-ink-700",
+  "bg-secondary-50 text-secondary-700",
   "bg-ink-200 text-ink-800",
 ];
 

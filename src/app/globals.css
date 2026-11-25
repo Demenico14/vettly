@@ -124,9 +124,9 @@
   /* Radius */
   --radius-xs: 3px;
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
   /* Elevation: offset + soft blur, tinted with ink. */
   --shadow-xs: 0 1px 1px 0 rgb(15 23 42 / 0.04);
