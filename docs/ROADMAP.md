@@ -46,6 +46,7 @@ Psychometric tests sit after shortlisting and before interviews, so panels walk 
 | — | Pricing page and 5-day trial | Approved |
 | — | Sign-in pages | Approved |
 | — | App refresh, first pass | Approved |
+| — | App refresh, second pass | Approved |
 
 ---
 
